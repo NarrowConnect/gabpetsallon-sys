@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { PlusCircle, Search, Heart, Calendar, Weight, Stethoscope } from "lucide-react";
+import { PlusCircle, Search, Heart, Calendar, Weight, Stethoscope, Edit, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface Pet {
@@ -30,7 +30,48 @@ interface Pet {
   medicamentos: string;
   vacinasVermifugos: string;
   controleParasitario: string;
+  nomeVeterinario: string;
+  telefoneVeterinario: string;
+  celularVeterinario: string;
+  enderecoVeterinario: string;
+  cidadeVeterinario: string;
+  estadoVeterinario: string;
 }
+
+const racasComuns = [
+  "Cane Corso",
+  "Shiba-Inu", 
+  "Akita-Inu",
+  "Husky Siberiano",
+  "Dogo Alemão",
+  "Golden Retriever",
+  "Alabay",
+  "American Bully",
+  "Boder Collie",
+  "Bull Terrier",
+  "Bulldog Francês",
+  "Bulldog Inglês",
+  "Chiuaua",
+  "Chow Chow",
+  "Dogo Argentino",
+  "Fila Brasileiro",
+  "Kangal",
+  "Pastor Alemão",
+  "Pastor Belga",
+  "Pastor de Malinoa",
+  "Pastor Malemano",
+  "Pincher",
+  "Pit Bull",
+  "Pit Monster",
+  "Presa Canário",
+  "Rottweiler Americano",
+  "Rottweiler Inglês",
+  "Sabugio da Bósnia",
+  "Salmoieda",
+  "São Bernardo",
+  "Schnauzer",
+  "Scottish Terrier"
+];
 
 const PetsManager = () => {
   const { toast } = useToast();
@@ -53,12 +94,19 @@ const PetsManager = () => {
       tomaMedicamentos: false,
       medicamentos: "",
       vacinasVermifugos: "2024-01-15",
-      controleParasitario: "2024-02-10"
+      controleParasitario: "2024-02-10",
+      nomeVeterinario: "Dr. João Santos",
+      telefoneVeterinario: "(41) 3333-5555",
+      celularVeterinario: "(41) 99999-7777",
+      enderecoVeterinario: "Av. Veterinária, 123",
+      cidadeVeterinario: "Curitiba",
+      estadoVeterinario: "PR"
     }
   ]);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingPet, setEditingPet] = useState<Pet | null>(null);
   const [formData, setFormData] = useState({
     nomeTutor: "",
     nomePet: "",
@@ -76,7 +124,13 @@ const PetsManager = () => {
     tomaMedicamentos: false,
     medicamentos: "",
     vacinasVermifugos: "",
-    controleParasitario: ""
+    controleParasitario: "",
+    nomeVeterinario: "",
+    telefoneVeterinario: "",
+    celularVeterinario: "",
+    enderecoVeterinario: "",
+    cidadeVeterinario: "",
+    estadoVeterinario: ""
   });
 
   const filteredPets = pets.filter(pet =>
@@ -85,29 +139,7 @@ const PetsManager = () => {
     pet.raca.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const newPet: Pet = {
-      id: Date.now().toString(),
-      nomeTutor: formData.nomeTutor,
-      nomePet: formData.nomePet,
-      idade: parseInt(formData.idade),
-      especie: formData.especie,
-      raca: formData.raca,
-      sexo: formData.sexo,
-      porte: formData.porte,
-      castrado: formData.castrado,
-      peso: parseFloat(formData.peso),
-      temperamento: formData.temperamento,
-      necessidadesEspeciais: formData.necessidadesEspeciais,
-      rotina: formData.rotina,
-      saude: formData.saude,
-      tomaMedicamentos: formData.tomaMedicamentos,
-      medicamentos: formData.medicamentos,
-      vacinasVermifugos: formData.vacinasVermifugos,
-      controleParasitario: formData.controleParasitario
-    };
-    setPets([...pets, newPet]);
+  const resetForm = () => {
     setFormData({
       nomeTutor: "",
       nomePet: "",
@@ -125,13 +157,128 @@ const PetsManager = () => {
       tomaMedicamentos: false,
       medicamentos: "",
       vacinasVermifugos: "",
-      controleParasitario: ""
+      controleParasitario: "",
+      nomeVeterinario: "",
+      telefoneVeterinario: "",
+      celularVeterinario: "",
+      enderecoVeterinario: "",
+      cidadeVeterinario: "",
+      estadoVeterinario: ""
     });
-    setIsDialogOpen(false);
+    setEditingPet(null);
+  };
+
+  const handleEdit = (pet: Pet) => {
+    setEditingPet(pet);
+    setFormData({
+      nomeTutor: pet.nomeTutor,
+      nomePet: pet.nomePet,
+      idade: pet.idade.toString(),
+      especie: pet.especie,
+      raca: pet.raca,
+      sexo: pet.sexo,
+      porte: pet.porte,
+      castrado: pet.castrado,
+      peso: pet.peso.toString(),
+      temperamento: pet.temperamento,
+      necessidadesEspeciais: pet.necessidadesEspeciais,
+      rotina: pet.rotina,
+      saude: pet.saude,
+      tomaMedicamentos: pet.tomaMedicamentos,
+      medicamentos: pet.medicamentos,
+      vacinasVermifugos: pet.vacinasVermifugos,
+      controleParasitario: pet.controleParasitario,
+      nomeVeterinario: pet.nomeVeterinario,
+      telefoneVeterinario: pet.telefoneVeterinario,
+      celularVeterinario: pet.celularVeterinario,
+      enderecoVeterinario: pet.enderecoVeterinario,
+      cidadeVeterinario: pet.cidadeVeterinario,
+      estadoVeterinario: pet.estadoVeterinario
+    });
+    setIsDialogOpen(true);
+  };
+
+  const handleDelete = (id: string) => {
+    setPets(pets.filter(pet => pet.id !== id));
     toast({
-      title: "Pet cadastrado com sucesso!",
-      description: `${formData.nomePet} foi adicionado ao sistema.`,
+      title: "Pet removido",
+      description: "O pet foi removido do sistema.",
+      variant: "destructive"
     });
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (editingPet) {
+      const updatedPet: Pet = {
+        ...editingPet,
+        nomeTutor: formData.nomeTutor,
+        nomePet: formData.nomePet,
+        idade: parseInt(formData.idade),
+        especie: formData.especie,
+        raca: formData.raca,
+        sexo: formData.sexo,
+        porte: formData.porte,
+        castrado: formData.castrado,
+        peso: parseFloat(formData.peso),
+        temperamento: formData.temperamento,
+        necessidadesEspeciais: formData.necessidadesEspeciais,
+        rotina: formData.rotina,
+        saude: formData.saude,
+        tomaMedicamentos: formData.tomaMedicamentos,
+        medicamentos: formData.medicamentos,
+        vacinasVermifugos: formData.vacinasVermifugos,
+        controleParasitario: formData.controleParasitario,
+        nomeVeterinario: formData.nomeVeterinario,
+        telefoneVeterinario: formData.telefoneVeterinario,
+        celularVeterinario: formData.celularVeterinario,
+        enderecoVeterinario: formData.enderecoVeterinario,
+        cidadeVeterinario: formData.cidadeVeterinario,
+        estadoVeterinario: formData.estadoVeterinario
+      };
+      
+      setPets(pets.map(pet => pet.id === editingPet.id ? updatedPet : pet));
+      toast({
+        title: "Pet atualizado com sucesso!",
+        description: `${formData.nomePet} foi atualizado no sistema.`,
+      });
+    } else {
+      const newPet: Pet = {
+        id: Date.now().toString(),
+        nomeTutor: formData.nomeTutor,
+        nomePet: formData.nomePet,
+        idade: parseInt(formData.idade),
+        especie: formData.especie,
+        raca: formData.raca,
+        sexo: formData.sexo,
+        porte: formData.porte,
+        castrado: formData.castrado,
+        peso: parseFloat(formData.peso),
+        temperamento: formData.temperamento,
+        necessidadesEspeciais: formData.necessidadesEspeciais,
+        rotina: formData.rotina,
+        saude: formData.saude,
+        tomaMedicamentos: formData.tomaMedicamentos,
+        medicamentos: formData.medicamentos,
+        vacinasVermifugos: formData.vacinasVermifugos,
+        controleParasitario: formData.controleParasitario,
+        nomeVeterinario: formData.nomeVeterinario,
+        telefoneVeterinario: formData.telefoneVeterinario,
+        celularVeterinario: formData.celularVeterinario,
+        enderecoVeterinario: formData.enderecoVeterinario,
+        cidadeVeterinario: formData.cidadeVeterinario,
+        estadoVeterinario: formData.estadoVeterinario
+      };
+      setPets([...pets, newPet]);
+      toast({
+        title: "Pet cadastrado com sucesso!",
+        description: `${formData.nomePet} foi adicionado ao sistema.`,
+      });
+    }
+    
+    resetForm();
+    setIsDialogOpen(false);
   };
 
   return (
@@ -141,128 +288,188 @@ const PetsManager = () => {
           <h2 className="text-3xl font-bold text-gray-900">Gestão de Pets</h2>
           <p className="text-muted-foreground">Gerencie os dados dos pets cadastrados</p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog open={isDialogOpen} onOpenChange={(open) => {
+          setIsDialogOpen(open);
+          if (!open) resetForm();
+        }}>
           <DialogTrigger asChild>
             <Button className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700">
               <PlusCircle className="mr-2 h-4 w-4" />
               Novo Pet
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
+          <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Cadastrar Novo Pet</DialogTitle>
+              <DialogTitle>{editingPet ? "Editar Pet" : "Cadastrar Novo Pet"}</DialogTitle>
               <DialogDescription>
-                Preencha os dados do pet para cadastrá-lo no sistema.
+                {editingPet ? "Edite os dados do pet." : "Preencha os dados do pet para cadastrá-lo no sistema."}
               </DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="nomeTutor">Nome do Tutor</Label>
-                  <Input
-                    id="nomeTutor"
-                    value={formData.nomeTutor}
-                    onChange={(e) => setFormData({ ...formData, nomeTutor: e.target.value })}
-                    required
-                  />
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Dados Básicos</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="nomeTutor">Nome do Tutor</Label>
+                    <Input
+                      id="nomeTutor"
+                      value={formData.nomeTutor}
+                      onChange={(e) => setFormData({ ...formData, nomeTutor: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="nomePet">Nome do Pet</Label>
+                    <Input
+                      id="nomePet"
+                      value={formData.nomePet}
+                      onChange={(e) => setFormData({ ...formData, nomePet: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="idade">Idade (anos)</Label>
+                    <Input
+                      id="idade"
+                      type="number"
+                      value={formData.idade}
+                      onChange={(e) => setFormData({ ...formData, idade: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="especie">Espécie</Label>
+                    <Select value={formData.especie} onValueChange={(value) => setFormData({ ...formData, especie: value })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione a espécie" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Cão">Cão</SelectItem>
+                        <SelectItem value="Gato">Gato</SelectItem>
+                        <SelectItem value="Pássaro">Pássaro</SelectItem>
+                        <SelectItem value="Outro">Outro</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="raca">Raça</Label>
+                    <Select value={formData.raca} onValueChange={(value) => setFormData({ ...formData, raca: value })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione a raça" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {racasComuns.map((raca) => (
+                          <SelectItem key={raca} value={raca}>{raca}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="sexo">Sexo</Label>
+                    <Select value={formData.sexo} onValueChange={(value) => setFormData({ ...formData, sexo: value })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o sexo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Macho">Macho</SelectItem>
+                        <SelectItem value="Fêmea">Fêmea</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="porte">Porte</Label>
+                    <Select value={formData.porte} onValueChange={(value) => setFormData({ ...formData, porte: value })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o porte" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Pequeno">Pequeno</SelectItem>
+                        <SelectItem value="Médio">Médio</SelectItem>
+                        <SelectItem value="Grande">Grande</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="peso">Peso (kg)</Label>
+                    <Input
+                      id="peso"
+                      type="number"
+                      step="0.1"
+                      value={formData.peso}
+                      onChange={(e) => setFormData({ ...formData, peso: e.target.value })}
+                    />
+                  </div>
                 </div>
-                <div>
-                  <Label htmlFor="nomePet">Nome do Pet</Label>
-                  <Input
-                    id="nomePet"
-                    value={formData.nomePet}
-                    onChange={(e) => setFormData({ ...formData, nomePet: e.target.value })}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="idade">Idade (anos)</Label>
-                  <Input
-                    id="idade"
-                    type="number"
-                    value={formData.idade}
-                    onChange={(e) => setFormData({ ...formData, idade: e.target.value })}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="especie">Espécie</Label>
-                  <Select value={formData.especie} onValueChange={(value) => setFormData({ ...formData, especie: value })}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione a espécie" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Cão">Cão</SelectItem>
-                      <SelectItem value="Gato">Gato</SelectItem>
-                      <SelectItem value="Pássaro">Pássaro</SelectItem>
-                      <SelectItem value="Outro">Outro</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="raca">Raça</Label>
-                  <Input
-                    id="raca"
-                    value={formData.raca}
-                    onChange={(e) => setFormData({ ...formData, raca: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="sexo">Sexo</Label>
-                  <Select value={formData.sexo} onValueChange={(value) => setFormData({ ...formData, sexo: value })}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o sexo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Macho">Macho</SelectItem>
-                      <SelectItem value="Fêmea">Fêmea</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="porte">Porte</Label>
-                  <Select value={formData.porte} onValueChange={(value) => setFormData({ ...formData, porte: value })}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o porte" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Pequeno">Pequeno</SelectItem>
-                      <SelectItem value="Médio">Médio</SelectItem>
-                      <SelectItem value="Grande">Grande</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="peso">Peso (kg)</Label>
-                  <Input
-                    id="peso"
-                    type="number"
-                    step="0.1"
-                    value={formData.peso}
-                    onChange={(e) => setFormData({ ...formData, peso: e.target.value })}
-                  />
-                </div>
-                <div className="sm:col-span-2">
-                  <Label htmlFor="temperamento">Temperamento</Label>
-                  <Textarea
-                    id="temperamento"
-                    value={formData.temperamento}
-                    onChange={(e) => setFormData({ ...formData, temperamento: e.target.value })}
-                    rows={2}
-                  />
-                </div>
-                <div className="sm:col-span-2">
-                  <Label htmlFor="necessidadesEspeciais">Necessidades Especiais</Label>
-                  <Textarea
-                    id="necessidadesEspeciais"
-                    value={formData.necessidadesEspeciais}
-                    onChange={(e) => setFormData({ ...formData, necessidadesEspeciais: e.target.value })}
-                    rows={2}
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="sm:col-span-2">
+                    <Label htmlFor="temperamento">Temperamento</Label>
+                    <Textarea
+                      id="temperamento"
+                      value={formData.temperamento}
+                      onChange={(e) => setFormData({ ...formData, temperamento: e.target.value })}
+                      rows={2}
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <Label htmlFor="necessidadesEspeciais">Necessidades Especiais</Label>
+                    <Textarea
+                      id="necessidadesEspeciais"
+                      value={formData.necessidadesEspeciais}
+                      onChange={(e) => setFormData({ ...formData, necessidadesEspeciais: e.target.value })}
+                      rows={2}
+                    />
+                  </div>
                 </div>
               </div>
+
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Dados do Veterinário</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="nomeVeterinario">Nome do Veterinário</Label>
+                    <Input
+                      id="nomeVeterinario"
+                      value={formData.nomeVeterinario}
+                      onChange={(e) => setFormData({ ...formData, nomeVeterinario: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="telefoneVeterinario">Telefone do Veterinário</Label>
+                    <Input
+                      id="telefoneVeterinario"
+                      value={formData.telefoneVeterinario}
+                      onChange={(e) => setFormData({ ...formData, telefoneVeterinario: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="celularVeterinario">Celular do Veterinário</Label>
+                    <Input
+                      id="celularVeterinario"
+                      value={formData.celularVeterinario}
+                      onChange={(e) => setFormData({ ...formData, celularVeterinario: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="cidadeVeterinario">Cidade do Veterinário</Label>
+                    <Input
+                      id="cidadeVeterinario"
+                      value={formData.cidadeVeterinario}
+                      onChange={(e) => setFormData({ ...formData, cidadeVeterinario: e.target.value })}
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <Label htmlFor="enderecoVeterinario">Endereço do Veterinário</Label>
+                    <Input
+                      id="enderecoVeterinario"
+                      value={formData.enderecoVeterinario}
+                      onChange={(e) => setFormData({ ...formData, enderecoVeterinario: e.target.value })}
+                    />
+                  </div>
+                </div>
+              </div>
+
               <Button type="submit" className="w-full">
-                Cadastrar Pet
+                {editingPet ? "Atualizar Pet" : "Cadastrar Pet"}
               </Button>
             </form>
           </DialogContent>
@@ -325,6 +532,20 @@ const PetsManager = () => {
                     </Badge>
                   )}
                   <p className="text-xs text-muted-foreground line-clamp-2">{pet.temperamento}</p>
+                  <div className="flex gap-2 pt-2">
+                    <Button variant="outline" size="sm" className="flex-1" onClick={() => handleEdit(pet)}>
+                      <Edit className="h-4 w-4 mr-1" />
+                      Editar
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      onClick={() => handleDelete(pet.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             ))}
