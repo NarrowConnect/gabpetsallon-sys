@@ -1,11 +1,29 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DollarSign, TrendingUp, TrendingDown, Receipt, CreditCard, Settings } from "lucide-react";
+import { DollarSign, TrendingUp, TrendingDown, Receipt, CreditCard, FileText } from "lucide-react";
+import CustomIncomeManager from "./CustomIncomeManager";
+import CustomExpenseManager from "./CustomExpenseManager";
+import FinancialReports from "./FinancialReports";
+
+interface CustomIncome {
+  id: string;
+  description: string;
+  value: number;
+  date: string;
+  category: string;
+}
+
+interface CustomExpense {
+  id: string;
+  description: string;
+  value: number;
+  date: string;
+  category: string;
+}
 
 const FinanceManager = () => {
   const [expenses, setExpenses] = useState({
@@ -45,15 +63,68 @@ const FinanceManager = () => {
     taxiDog: 30.00
   });
 
-  const [showPriceConfig, setShowPriceConfig] = useState(false);
+  const [customIncomes, setCustomIncomes] = useState<CustomIncome[]>([]);
+  const [customExpenses, setCustomExpenses] = useState<CustomExpense[]>([]);
+  const [reportData, setReportData] = useState<any[]>([]);
 
   const totalExpenses = Object.values(expenses).reduce((sum, value) => sum + value, 0);
-  const totalIncome = Object.entries(income).reduce((sum, [key, quantity]) => {
+  const totalServiceIncome = Object.entries(income).reduce((sum, [key, quantity]) => {
     const value = serviceValues[key as keyof typeof serviceValues];
     return sum + (quantity * value);
   }, 0);
+  const totalCustomIncome = customIncomes.reduce((sum, income) => sum + income.value, 0);
+  const totalCustomExpenses = customExpenses.reduce((sum, expense) => sum + expense.value, 0);
+  
+  const totalIncome = totalServiceIncome + totalCustomIncome;
+  const totalAllExpenses = totalExpenses + totalCustomExpenses;
+  const netBalance = totalIncome - totalAllExpenses;
 
-  const netBalance = totalIncome - totalExpenses;
+  const handleAddCustomIncome = (income: Omit<CustomIncome, 'id'>) => {
+    const newIncome: CustomIncome = {
+      ...income,
+      id: Date.now().toString()
+    };
+    setCustomIncomes([...customIncomes, newIncome]);
+  };
+
+  const handleUpdateCustomIncome = (id: string, updates: Partial<CustomIncome>) => {
+    setCustomIncomes(customIncomes.map(income => 
+      income.id === id ? { ...income, ...updates } : income
+    ));
+  };
+
+  const handleDeleteCustomIncome = (id: string) => {
+    setCustomIncomes(customIncomes.filter(income => income.id !== id));
+  };
+
+  const handleAddCustomExpense = (expense: Omit<CustomExpense, 'id'>) => {
+    const newExpense: CustomExpense = {
+      ...expense,
+      id: Date.now().toString()
+    };
+    setCustomExpenses([...customExpenses, newExpense]);
+  };
+
+  const handleUpdateCustomExpense = (id: string, updates: Partial<CustomExpense>) => {
+    setCustomExpenses(customExpenses.map(expense => 
+      expense.id === id ? { ...expense, ...updates } : expense
+    ));
+  };
+
+  const handleDeleteCustomExpense = (id: string) => {
+    setCustomExpenses(customExpenses.filter(expense => expense.id !== id));
+  };
+
+  const handleGenerateReport = (month: string, year: string) => {
+    const newReport = {
+      month,
+      year,
+      totalIncome,
+      totalExpenses: totalAllExpenses,
+      netBalance
+    };
+    setReportData([...reportData, newReport]);
+  };
 
   const serviceNames = {
     banhosPortePequeno: 'Banhos Porte Pequeno',
@@ -101,7 +172,7 @@ const FinanceManager = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">R$ {totalIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-            <p className="text-xs opacity-75">Total de serviços prestados</p>
+            <p className="text-xs opacity-75">Serviços + Receitas personalizadas</p>
           </CardContent>
         </Card>
 
@@ -111,8 +182,8 @@ const FinanceManager = () => {
             <TrendingDown className="h-4 w-4 opacity-90" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">R$ {totalExpenses.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-            <p className="text-xs opacity-75">Total de gastos fixos</p>
+            <div className="text-2xl font-bold">R$ {totalAllExpenses.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+            <p className="text-xs opacity-75">Fixas + Adicionais</p>
           </CardContent>
         </Card>
 
@@ -129,7 +200,7 @@ const FinanceManager = () => {
       </div>
 
       <Tabs defaultValue="income" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-6 bg-white/50 backdrop-blur-sm">
+        <TabsList className="grid w-full grid-cols-3 mb-6 bg-white/50 backdrop-blur-sm">
           <TabsTrigger value="income" className="flex items-center gap-2">
             <Receipt className="h-4 w-4" />
             Receitas
@@ -138,57 +209,19 @@ const FinanceManager = () => {
             <CreditCard className="h-4 w-4" />
             Despesas
           </TabsTrigger>
+          <TabsTrigger value="reports" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            Relatórios
+          </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="income">
+        <TabsContent value="income" className="space-y-6">
           <Card className="bg-white/70 backdrop-blur-sm">
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Receitas por Serviço</CardTitle>
-                  <CardDescription>Quantidade de serviços realizados no mês</CardDescription>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowPriceConfig(!showPriceConfig)}
-                  className="flex items-center gap-2"
-                >
-                  <Settings className="h-4 w-4" />
-                  {showPriceConfig ? 'Ocultar Preços' : 'Configurar Preços'}
-                </Button>
-              </div>
+              <CardTitle>Receitas por Serviço</CardTitle>
+              <CardDescription>Quantidade de serviços realizados no mês</CardDescription>
             </CardHeader>
             <CardContent>
-              {showPriceConfig && (
-                <div className="mb-6 p-4 border rounded-lg bg-blue-50/50">
-                  <h4 className="font-medium mb-3 text-blue-900">Configuração de Preços por Serviço</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {Object.entries(serviceValues).map(([key, value]) => (
-                      <div key={key} className="flex items-center gap-2">
-                        <Label className="text-sm min-w-0 flex-1">{serviceNames[key as keyof typeof serviceNames]}:</Label>
-                        <div className="flex items-center gap-1">
-                          <span className="text-sm text-muted-foreground">R$</span>
-                          <Input
-                            type="number"
-                            step="0.01"
-                            value={value}
-                            onChange={(e) => setServiceValues({
-                              ...serviceValues, 
-                              [key]: parseFloat(e.target.value) || 0
-                            })}
-                            className="w-20 text-right"
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-3">
-                    💡 Dica: Ajuste os preços conforme serviços adicionais (ex: banho + hidratação, tosa + unha, etc.)
-                  </p>
-                </div>
-              )}
-              
               <div className="space-y-4">
                 {Object.entries(income).map(([key, quantity]) => {
                   const serviceName = serviceNames[key as keyof typeof serviceNames];
@@ -217,18 +250,25 @@ const FinanceManager = () => {
                 })}
                 <div className="border-t pt-4 mt-4">
                   <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
-                    <span className="font-bold text-lg">Total de Receitas</span>
+                    <span className="font-bold text-lg">Total de Serviços</span>
                     <span className="font-bold text-lg text-green-600">
-                      R$ {totalIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      R$ {totalServiceIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </span>
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
+
+          <CustomIncomeManager
+            customIncomes={customIncomes}
+            onAddIncome={handleAddCustomIncome}
+            onUpdateIncome={handleUpdateCustomIncome}
+            onDeleteIncome={handleDeleteCustomIncome}
+          />
         </TabsContent>
 
-        <TabsContent value="expenses">
+        <TabsContent value="expenses" className="space-y-6">
           <Card className="bg-white/70 backdrop-blur-sm">
             <CardHeader>
               <CardTitle>Contas a Pagar</CardTitle>
@@ -257,7 +297,7 @@ const FinanceManager = () => {
                 })}
                 <div className="border-t pt-4 mt-4">
                   <div className="flex items-center justify-between p-4 bg-red-50 rounded-lg">
-                    <span className="font-bold text-lg">Total de Despesas</span>
+                    <span className="font-bold text-lg">Total de Despesas Fixas</span>
                     <span className="font-bold text-lg text-red-600">
                       R$ {totalExpenses.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </span>
@@ -266,6 +306,20 @@ const FinanceManager = () => {
               </div>
             </CardContent>
           </Card>
+
+          <CustomExpenseManager
+            customExpenses={customExpenses}
+            onAddExpense={handleAddCustomExpense}
+            onUpdateExpense={handleUpdateCustomExpense}
+            onDeleteExpense={handleDeleteCustomExpense}
+          />
+        </TabsContent>
+
+        <TabsContent value="reports">
+          <FinancialReports
+            reportData={reportData}
+            onGenerateReport={handleGenerateReport}
+          />
         </TabsContent>
       </Tabs>
     </div>

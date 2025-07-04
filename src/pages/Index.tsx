@@ -18,9 +18,9 @@ const Index = () => {
       <div className="container mx-auto p-6">
         <div className="mb-8 text-center">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
-            🐾 PetShop Manager
+            🐾 GabPetSallon
           </h1>
-          <p className="text-gray-600">Sistema completo de gestão para seu petshop</p>
+          <p className="text-gray-600">Sistema para controle da empresa</p>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

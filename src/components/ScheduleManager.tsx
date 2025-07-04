@@ -25,6 +25,8 @@ interface Appointment {
 const ScheduleManager = () => {
   const { toast } = useToast();
   const [activeView, setActiveView] = useState("lista");
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   
   const [appointments, setAppointments] = useState<Appointment[]>([
     {
@@ -124,8 +126,22 @@ const ScheduleManager = () => {
     });
   };
 
-  const todayAppointments = appointments.filter(apt => apt.dataServico === new Date().toISOString().split('T')[0]);
-  const upcomingAppointments = appointments.filter(apt => apt.dataServico > new Date().toISOString().split('T')[0]);
+  const filteredAppointments = appointments.filter(apt => {
+    const aptDate = new Date(apt.dataServico);
+    return aptDate.getMonth() === selectedMonth && aptDate.getFullYear() === selectedYear;
+  });
+
+  const todayAppointments = filteredAppointments.filter(apt => 
+    apt.dataServico === new Date().toISOString().split('T')[0]
+  );
+  const upcomingAppointments = filteredAppointments.filter(apt => 
+    apt.dataServico > new Date().toISOString().split('T')[0]
+  );
+
+  const monthNames = [
+    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+  ];
 
   return (
     <div className="space-y-6">
@@ -134,102 +150,127 @@ const ScheduleManager = () => {
           <h2 className="text-3xl font-bold text-gray-900">Agendamentos</h2>
           <p className="text-muted-foreground">Gerencie os agendamentos de serviços</p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700">
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Novo Agendamento
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px]">
-            <DialogHeader>
-              <DialogTitle>Novo Agendamento</DialogTitle>
-              <DialogDescription>
-                Agende um novo serviço para um pet.
-              </DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="nomeTutor">Tutor</Label>
-                  <Input
-                    id="nomeTutor"
-                    value={formData.nomeTutor}
-                    onChange={(e) => setFormData({ ...formData, nomeTutor: e.target.value })}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="nomePet">Pet</Label>
-                  <Input
-                    id="nomePet"
-                    value={formData.nomePet}
-                    onChange={(e) => setFormData({ ...formData, nomePet: e.target.value })}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="dataServico">Data</Label>
-                  <Input
-                    id="dataServico"
-                    type="date"
-                    value={formData.dataServico}
-                    onChange={(e) => setFormData({ ...formData, dataServico: e.target.value })}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="horaServico">Horário</Label>
-                  <Select value={formData.horaServico} onValueChange={(value) => setFormData({ ...formData, horaServico: value })}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o horário" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="10:00">10:00</SelectItem>
-                      <SelectItem value="11:00">11:00</SelectItem>
-                      <SelectItem value="12:00">12:00</SelectItem>
-                      <SelectItem value="13:00">13:00</SelectItem>
-                      <SelectItem value="14:00">14:00</SelectItem>
-                      <SelectItem value="15:00">15:00</SelectItem>
-                      <SelectItem value="16:00">16:00</SelectItem>
-                      <SelectItem value="17:00">17:00</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="servicoRealizar">Serviço</Label>
-                  <Select value={formData.servicoRealizar} onValueChange={(value) => setFormData({ ...formData, servicoRealizar: value })}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o serviço" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Banho">Banho</SelectItem>
-                      <SelectItem value="Tosa">Tosa</SelectItem>
-                      <SelectItem value="Banho e Tosa">Banho e Tosa</SelectItem>
-                      <SelectItem value="Hospedagem">Hospedagem</SelectItem>
-                      <SelectItem value="Pet Sitter">Pet Sitter</SelectItem>
-                      <SelectItem value="Taxi Dog">Taxi Dog</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="valor">Valor (R$)</Label>
-                  <Input
-                    id="valor"
-                    type="number"
-                    step="0.01"
-                    value={formData.valor}
-                    onChange={(e) => setFormData({ ...formData, valor: e.target.value })}
-                    required
-                  />
-                </div>
-              </div>
-              <Button type="submit" className="w-full">
-                Agendar Serviço
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Label htmlFor="month-select">Mês:</Label>
+            <select
+              id="month-select"
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+              className="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
+            >
+              {monthNames.map((month, index) => (
+                <option key={index} value={index}>{month}</option>
+              ))}
+            </select>
+          </div>
+          <div className="flex items-center gap-2">
+            <Label htmlFor="year-select">Ano:</Label>
+            <Input
+              id="year-select"
+              type="number"
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+              className="w-24"
+            />
+          </div>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Novo Agendamento
               </Button>
-            </form>
-          </DialogContent>
-        </Dialog>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[500px]">
+              <DialogHeader>
+                <DialogTitle>Novo Agendamento</DialogTitle>
+                <DialogDescription>
+                  Agende um novo serviço para um pet.
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="nomeTutor">Tutor</Label>
+                    <Input
+                      id="nomeTutor"
+                      value={formData.nomeTutor}
+                      onChange={(e) => setFormData({ ...formData, nomeTutor: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="nomePet">Pet</Label>
+                    <Input
+                      id="nomePet"
+                      value={formData.nomePet}
+                      onChange={(e) => setFormData({ ...formData, nomePet: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="dataServico">Data</Label>
+                    <Input
+                      id="dataServico"
+                      type="date"
+                      value={formData.dataServico}
+                      onChange={(e) => setFormData({ ...formData, dataServico: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="horaServico">Horário</Label>
+                    <Select value={formData.horaServico} onValueChange={(value) => setFormData({ ...formData, horaServico: value })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o horário" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="10:00">10:00</SelectItem>
+                        <SelectItem value="11:00">11:00</SelectItem>
+                        <SelectItem value="12:00">12:00</SelectItem>
+                        <SelectItem value="13:00">13:00</SelectItem>
+                        <SelectItem value="14:00">14:00</SelectItem>
+                        <SelectItem value="15:00">15:00</SelectItem>
+                        <SelectItem value="16:00">16:00</SelectItem>
+                        <SelectItem value="17:00">17:00</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="servicoRealizar">Serviço</Label>
+                    <Select value={formData.servicoRealizar} onValueChange={(value) => setFormData({ ...formData, servicoRealizar: value })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o serviço" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Banho">Banho</SelectItem>
+                        <SelectItem value="Tosa">Tosa</SelectItem>
+                        <SelectItem value="Banho e Tosa">Banho e Tosa</SelectItem>
+                        <SelectItem value="Hospedagem">Hospedagem</SelectItem>
+                        <SelectItem value="Pet Sitter">Pet Sitter</SelectItem>
+                        <SelectItem value="Taxi Dog">Taxi Dog</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="valor">Valor (R$)</Label>
+                    <Input
+                      id="valor"
+                      type="number"
+                      step="0.01"
+                      value={formData.valor}
+                      onChange={(e) => setFormData({ ...formData, valor: e.target.value })}
+                      required
+                    />
+                  </div>
+                </div>
+                <Button type="submit" className="w-full">
+                  Agendar Serviço
+                </Button>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <Tabs value={activeView} onValueChange={setActiveView} className="w-full">
@@ -245,66 +286,71 @@ const ScheduleManager = () => {
         </TabsList>
 
         <TabsContent value="lista" className="space-y-6">
-          <Card className="bg-gradient-to-r from-blue-50 to-teal-50 border-blue-200">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5 text-blue-600" />
-                Agendamentos de Hoje
-              </CardTitle>
-              <CardDescription>{todayAppointments.length} serviços agendados para hoje</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {todayAppointments.map((appointment) => {
-                  const ServiceIcon = serviceIcons[appointment.servicoRealizar as keyof typeof serviceIcons] || Clock;
-                  return (
-                    <div key={appointment.id} className="flex items-center justify-between p-4 bg-white/70 rounded-lg border hover:bg-white/90 transition-colors">
-                      <div className="flex items-center gap-3">
-                        <ServiceIcon className="h-5 w-5 text-blue-600" />
-                        <div>
-                          <p className="font-medium">{appointment.nomeTutor} - {appointment.nomePet}</p>
-                          <p className="text-sm text-muted-foreground">{appointment.servicoRealizar}</p>
+          <div className="text-center p-4 bg-blue-50 rounded-lg">
+            <h3 className="text-lg font-semibold">
+              {monthNames[selectedMonth]} de {selectedYear}
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              {filteredAppointments.length} agendamentos neste período
+            </p>
+          </div>
+
+          {todayAppointments.length > 0 && (
+            <Card className="bg-gradient-to-r from-blue-50 to-teal-50 border-blue-200">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5 text-blue-600" />
+                  Agendamentos de Hoje
+                </CardTitle>
+                <CardDescription>{todayAppointments.length} serviços agendados para hoje</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {todayAppointments.map((appointment) => {
+                    const ServiceIcon = serviceIcons[appointment.servicoRealizar as keyof typeof serviceIcons] || Clock;
+                    return (
+                      <div key={appointment.id} className="flex items-center justify-between p-4 bg-white/70 rounded-lg border hover:bg-white/90 transition-colors">
+                        <div className="flex items-center gap-3">
+                          <ServiceIcon className="h-5 w-5 text-blue-600" />
+                          <div>
+                            <p className="font-medium">{appointment.nomeTutor} - {appointment.nomePet}</p>
+                            <p className="text-sm text-muted-foreground">{appointment.servicoRealizar}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="font-medium">{appointment.horaServico}</span>
+                          <Select value={appointment.status} onValueChange={(value: Appointment['status']) => updateStatus(appointment.id, value)}>
+                            <SelectTrigger className="w-32">
+                              <Badge className={statusColors[appointment.status]}>
+                                {appointment.status}
+                              </Badge>
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Agendado">Agendado</SelectItem>
+                              <SelectItem value="Confirmado">Confirmado</SelectItem>
+                              <SelectItem value="Em andamento">Em andamento</SelectItem>
+                              <SelectItem value="Concluído">Concluído</SelectItem>
+                              <SelectItem value="Cancelado">Cancelado</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <span className="font-medium text-green-600">R$ {appointment.valor.toFixed(2)}</span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <span className="font-medium">{appointment.horaServico}</span>
-                        <Badge className={statusColors[appointment.status]}>
-                          {appointment.status}
-                        </Badge>
-                        <span className="font-medium text-green-600">R$ {appointment.valor.toFixed(2)}</span>
-                        <div className="flex gap-1">
-                          {appointment.status === "Agendado" && (
-                            <Button size="sm" variant="outline" onClick={() => updateStatus(appointment.id, "Confirmado")}>
-                              Confirmar
-                            </Button>
-                          )}
-                          {appointment.status === "Confirmado" && (
-                            <Button size="sm" variant="outline" onClick={() => updateStatus(appointment.id, "Em andamento")}>
-                              Iniciar
-                            </Button>
-                          )}
-                          {appointment.status === "Em andamento" && (
-                            <Button size="sm" variant="outline" onClick={() => updateStatus(appointment.id, "Concluído")}>
-                              Concluir
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           <Card className="bg-white/70 backdrop-blur-sm">
             <CardHeader>
-              <CardTitle>Próximos Agendamentos</CardTitle>
-              <CardDescription>{upcomingAppointments.length} agendamentos futuros</CardDescription>
+              <CardTitle>Agendamentos do Período</CardTitle>
+              <CardDescription>{filteredAppointments.length} agendamentos encontrados</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {upcomingAppointments.map((appointment) => {
+                {filteredAppointments.map((appointment) => {
                   const ServiceIcon = serviceIcons[appointment.servicoRealizar as keyof typeof serviceIcons] || Clock;
                   return (
                     <div key={appointment.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
@@ -317,21 +363,42 @@ const ScheduleManager = () => {
                       </div>
                       <div className="flex items-center gap-3">
                         <span className="text-sm">{new Date(appointment.dataServico).toLocaleDateString('pt-BR')} às {appointment.horaServico}</span>
-                        <Badge className={statusColors[appointment.status]}>
-                          {appointment.status}
-                        </Badge>
+                        <Select value={appointment.status} onValueChange={(value: Appointment['status']) => updateStatus(appointment.id, value)}>
+                          <SelectTrigger className="w-32">
+                            <Badge className={statusColors[appointment.status]}>
+                              {appointment.status}
+                            </Badge>
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Agendado">Agendado</SelectItem>
+                            <SelectItem value="Confirmado">Confirmado</SelectItem>
+                            <SelectItem value="Em andamento">Em andamento</SelectItem>
+                            <SelectItem value="Concluído">Concluído</SelectItem>
+                            <SelectItem value="Cancelado">Cancelado</SelectItem>
+                          </SelectContent>
+                        </Select>
                         <span className="font-medium text-green-600">R$ {appointment.valor.toFixed(2)}</span>
                       </div>
                     </div>
                   );
                 })}
+                {filteredAppointments.length === 0 && (
+                  <p className="text-center text-muted-foreground py-8">
+                    Nenhum agendamento encontrado para este período
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
         <TabsContent value="calendario">
-          <CalendarView appointments={appointments} />
+          <div className="mb-4 text-center">
+            <h3 className="text-xl font-semibold">
+              Calendário - {monthNames[selectedMonth]} de {selectedYear}
+            </h3>
+          </div>
+          <CalendarView appointments={filteredAppointments} />
         </TabsContent>
       </Tabs>
     </div>
