@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,8 +6,10 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, PlusCircle, Clock, Scissors, Home, Car, Droplets } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Calendar, PlusCircle, Clock, Scissors, Home, Car, Droplets, CalendarDays } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import CalendarView from "./CalendarView";
 
 interface Appointment {
   id: string;
@@ -23,6 +24,8 @@ interface Appointment {
 
 const ScheduleManager = () => {
   const { toast } = useToast();
+  const [activeView, setActiveView] = useState("lista");
+  
   const [appointments, setAppointments] = useState<Appointment[]>([
     {
       id: "1",
@@ -177,13 +180,21 @@ const ScheduleManager = () => {
                 </div>
                 <div>
                   <Label htmlFor="horaServico">Horário</Label>
-                  <Input
-                    id="horaServico"
-                    type="time"
-                    value={formData.horaServico}
-                    onChange={(e) => setFormData({ ...formData, horaServico: e.target.value })}
-                    required
-                  />
+                  <Select value={formData.horaServico} onValueChange={(value) => setFormData({ ...formData, horaServico: value })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o horário" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10:00">10:00</SelectItem>
+                      <SelectItem value="11:00">11:00</SelectItem>
+                      <SelectItem value="12:00">12:00</SelectItem>
+                      <SelectItem value="13:00">13:00</SelectItem>
+                      <SelectItem value="14:00">14:00</SelectItem>
+                      <SelectItem value="15:00">15:00</SelectItem>
+                      <SelectItem value="16:00">16:00</SelectItem>
+                      <SelectItem value="17:00">17:00</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <Label htmlFor="servicoRealizar">Serviço</Label>
@@ -221,91 +232,108 @@ const ScheduleManager = () => {
         </Dialog>
       </div>
 
-      {/* Today's Appointments */}
-      <Card className="bg-gradient-to-r from-blue-50 to-teal-50 border-blue-200">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-blue-600" />
-            Agendamentos de Hoje
-          </CardTitle>
-          <CardDescription>{todayAppointments.length} serviços agendados para hoje</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {todayAppointments.map((appointment) => {
-              const ServiceIcon = serviceIcons[appointment.servicoRealizar as keyof typeof serviceIcons] || Clock;
-              return (
-                <div key={appointment.id} className="flex items-center justify-between p-4 bg-white/70 rounded-lg border hover:bg-white/90 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <ServiceIcon className="h-5 w-5 text-blue-600" />
-                    <div>
-                      <p className="font-medium">{appointment.nomeTutor} - {appointment.nomePet}</p>
-                      <p className="text-sm text-muted-foreground">{appointment.servicoRealizar}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="font-medium">{appointment.horaServico}</span>
-                    <Badge className={statusColors[appointment.status]}>
-                      {appointment.status}
-                    </Badge>
-                    <span className="font-medium text-green-600">R$ {appointment.valor.toFixed(2)}</span>
-                    <div className="flex gap-1">
-                      {appointment.status === "Agendado" && (
-                        <Button size="sm" variant="outline" onClick={() => updateStatus(appointment.id, "Confirmado")}>
-                          Confirmar
-                        </Button>
-                      )}
-                      {appointment.status === "Confirmado" && (
-                        <Button size="sm" variant="outline" onClick={() => updateStatus(appointment.id, "Em andamento")}>
-                          Iniciar
-                        </Button>
-                      )}
-                      {appointment.status === "Em andamento" && (
-                        <Button size="sm" variant="outline" onClick={() => updateStatus(appointment.id, "Concluído")}>
-                          Concluir
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
+      <Tabs value={activeView} onValueChange={setActiveView} className="w-full">
+        <TabsList className="grid w-full grid-cols-2 mb-6">
+          <TabsTrigger value="lista" className="flex items-center gap-2">
+            <Calendar className="h-4 w-4" />
+            Lista de Agendamentos
+          </TabsTrigger>
+          <TabsTrigger value="calendario" className="flex items-center gap-2">
+            <CalendarDays className="h-4 w-4" />
+            Visualização Calendário
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Upcoming Appointments */}
-      <Card className="bg-white/70 backdrop-blur-sm">
-        <CardHeader>
-          <CardTitle>Próximos Agendamentos</CardTitle>
-          <CardDescription>{upcomingAppointments.length} agendamentos futuros</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {upcomingAppointments.map((appointment) => {
-              const ServiceIcon = serviceIcons[appointment.servicoRealizar as keyof typeof serviceIcons] || Clock;
-              return (
-                <div key={appointment.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <ServiceIcon className="h-5 w-5 text-gray-600" />
-                    <div>
-                      <p className="font-medium">{appointment.nomeTutor} - {appointment.nomePet}</p>
-                      <p className="text-sm text-muted-foreground">{appointment.servicoRealizar}</p>
+        <TabsContent value="lista" className="space-y-6">
+          <Card className="bg-gradient-to-r from-blue-50 to-teal-50 border-blue-200">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5 text-blue-600" />
+                Agendamentos de Hoje
+              </CardTitle>
+              <CardDescription>{todayAppointments.length} serviços agendados para hoje</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {todayAppointments.map((appointment) => {
+                  const ServiceIcon = serviceIcons[appointment.servicoRealizar as keyof typeof serviceIcons] || Clock;
+                  return (
+                    <div key={appointment.id} className="flex items-center justify-between p-4 bg-white/70 rounded-lg border hover:bg-white/90 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <ServiceIcon className="h-5 w-5 text-blue-600" />
+                        <div>
+                          <p className="font-medium">{appointment.nomeTutor} - {appointment.nomePet}</p>
+                          <p className="text-sm text-muted-foreground">{appointment.servicoRealizar}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="font-medium">{appointment.horaServico}</span>
+                        <Badge className={statusColors[appointment.status]}>
+                          {appointment.status}
+                        </Badge>
+                        <span className="font-medium text-green-600">R$ {appointment.valor.toFixed(2)}</span>
+                        <div className="flex gap-1">
+                          {appointment.status === "Agendado" && (
+                            <Button size="sm" variant="outline" onClick={() => updateStatus(appointment.id, "Confirmado")}>
+                              Confirmar
+                            </Button>
+                          )}
+                          {appointment.status === "Confirmado" && (
+                            <Button size="sm" variant="outline" onClick={() => updateStatus(appointment.id, "Em andamento")}>
+                              Iniciar
+                            </Button>
+                          )}
+                          {appointment.status === "Em andamento" && (
+                            <Button size="sm" variant="outline" onClick={() => updateStatus(appointment.id, "Concluído")}>
+                              Concluir
+                            </Button>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm">{new Date(appointment.dataServico).toLocaleDateString('pt-BR')} às {appointment.horaServico}</span>
-                    <Badge className={statusColors[appointment.status]}>
-                      {appointment.status}
-                    </Badge>
-                    <span className="font-medium text-green-600">R$ {appointment.valor.toFixed(2)}</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white/70 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle>Próximos Agendamentos</CardTitle>
+              <CardDescription>{upcomingAppointments.length} agendamentos futuros</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {upcomingAppointments.map((appointment) => {
+                  const ServiceIcon = serviceIcons[appointment.servicoRealizar as keyof typeof serviceIcons] || Clock;
+                  return (
+                    <div key={appointment.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <ServiceIcon className="h-5 w-5 text-gray-600" />
+                        <div>
+                          <p className="font-medium">{appointment.nomeTutor} - {appointment.nomePet}</p>
+                          <p className="text-sm text-muted-foreground">{appointment.servicoRealizar}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm">{new Date(appointment.dataServico).toLocaleDateString('pt-BR')} às {appointment.horaServico}</span>
+                        <Badge className={statusColors[appointment.status]}>
+                          {appointment.status}
+                        </Badge>
+                        <span className="font-medium text-green-600">R$ {appointment.valor.toFixed(2)}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="calendario">
+          <CalendarView appointments={appointments} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
