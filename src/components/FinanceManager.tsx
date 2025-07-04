@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DollarSign, TrendingUp, TrendingDown, Receipt, CreditCard, PlusCircle } from "lucide-react";
+import { DollarSign, TrendingUp, TrendingDown, Receipt, CreditCard, Settings } from "lucide-react";
 
 const FinanceManager = () => {
   const [expenses, setExpenses] = useState({
@@ -36,7 +36,7 @@ const FinanceManager = () => {
     taxiDog: 4
   });
 
-  const [serviceValues] = useState({
+  const [serviceValues, setServiceValues] = useState({
     banhosPortePequeno: 35.00,
     banhosPorteGrande: 50.00,
     tosas: 80.00,
@@ -45,6 +45,8 @@ const FinanceManager = () => {
     taxiDog: 30.00
   });
 
+  const [showPriceConfig, setShowPriceConfig] = useState(false);
+
   const totalExpenses = Object.values(expenses).reduce((sum, value) => sum + value, 0);
   const totalIncome = Object.entries(income).reduce((sum, [key, quantity]) => {
     const value = serviceValues[key as keyof typeof serviceValues];
@@ -52,6 +54,34 @@ const FinanceManager = () => {
   }, 0);
 
   const netBalance = totalIncome - totalExpenses;
+
+  const serviceNames = {
+    banhosPortePequeno: 'Banhos Porte Pequeno',
+    banhosPorteGrande: 'Banhos Porte Grande',
+    tosas: 'Tosas',
+    hospedagens: 'Hospedagens',
+    roupas: 'Roupas',
+    taxiDog: 'Taxi Dog'
+  };
+
+  const expenseNames = {
+    aluguel: 'Aluguel',
+    copel: 'COPEL (Energia)',
+    sanepar: 'SANEPAR (Água)',
+    internet: 'Internet',
+    segurancaMensalidade: 'Segurança',
+    mei: 'MEI',
+    celularMes: 'Celular',
+    lavanderia: 'Lavanderia',
+    gasolina: 'Gasolina',
+    tarifaBancaria: 'Tarifa Bancária',
+    cartaoSantander: 'Cartão Santander',
+    cartaoBB: 'Cartão Banco do Brasil',
+    cartaoNU: 'Cartão Nubank',
+    cartaoGab: 'Cartão Gab',
+    boletoBiocom: 'Boleto Biocom',
+    boletoEuroshop: 'Boleto Euroshop'
+  };
 
   return (
     <div className="space-y-6">
@@ -113,20 +143,54 @@ const FinanceManager = () => {
         <TabsContent value="income">
           <Card className="bg-white/70 backdrop-blur-sm">
             <CardHeader>
-              <CardTitle>Receitas por Serviço</CardTitle>
-              <CardDescription>Quantidade de serviços realizados no mês</CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Receitas por Serviço</CardTitle>
+                  <CardDescription>Quantidade de serviços realizados no mês</CardDescription>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowPriceConfig(!showPriceConfig)}
+                  className="flex items-center gap-2"
+                >
+                  <Settings className="h-4 w-4" />
+                  {showPriceConfig ? 'Ocultar Preços' : 'Configurar Preços'}
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
+              {showPriceConfig && (
+                <div className="mb-6 p-4 border rounded-lg bg-blue-50/50">
+                  <h4 className="font-medium mb-3 text-blue-900">Configuração de Preços por Serviço</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {Object.entries(serviceValues).map(([key, value]) => (
+                      <div key={key} className="flex items-center gap-2">
+                        <Label className="text-sm min-w-0 flex-1">{serviceNames[key as keyof typeof serviceNames]}:</Label>
+                        <div className="flex items-center gap-1">
+                          <span className="text-sm text-muted-foreground">R$</span>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            value={value}
+                            onChange={(e) => setServiceValues({
+                              ...serviceValues, 
+                              [key]: parseFloat(e.target.value) || 0
+                            })}
+                            className="w-20 text-right"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-3">
+                    💡 Dica: Ajuste os preços conforme serviços adicionais (ex: banho + hidratação, tosa + unha, etc.)
+                  </p>
+                </div>
+              )}
+              
               <div className="space-y-4">
                 {Object.entries(income).map(([key, quantity]) => {
-                  const serviceNames = {
-                    banhosPortePequeno: 'Banhos Porte Pequeno',
-                    banhosPorteGrande: 'Banhos Porte Grande',
-                    tosas: 'Tosas',
-                    hospedagens: 'Hospedagens',
-                    roupas: 'Roupas',
-                    taxiDog: 'Taxi Dog'
-                  };
                   const serviceName = serviceNames[key as keyof typeof serviceNames];
                   const unitValue = serviceValues[key as keyof typeof serviceValues];
                   const totalValue = quantity * unitValue;
@@ -151,6 +215,14 @@ const FinanceManager = () => {
                     </div>
                   );
                 })}
+                <div className="border-t pt-4 mt-4">
+                  <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
+                    <span className="font-bold text-lg">Total de Receitas</span>
+                    <span className="font-bold text-lg text-green-600">
+                      R$ {totalIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -165,24 +237,6 @@ const FinanceManager = () => {
             <CardContent>
               <div className="space-y-4">
                 {Object.entries(expenses).map(([key, value]) => {
-                  const expenseNames = {
-                    aluguel: 'Aluguel',
-                    copel: 'COPEL (Energia)',
-                    sanepar: 'SANEPAR (Água)',
-                    internet: 'Internet',
-                    segurancaMensalidade: 'Segurança',
-                    mei: 'MEI',
-                    celularMes: 'Celular',
-                    lavanderia: 'Lavanderia',
-                    gasolina: 'Gasolina',
-                    tarifaBancaria: 'Tarifa Bancária',
-                    cartaoSantander: 'Cartão Santander',
-                    cartaoBB: 'Cartão Banco do Brasil',
-                    cartaoNU: 'Cartão Nubank',
-                    cartaoGab: 'Cartão Gab',
-                    boletoBiocom: 'Boleto Biocom',
-                    boletoEuroshop: 'Boleto Euroshop'
-                  };
                   const expenseName = expenseNames[key as keyof typeof expenseNames];
 
                   return (
