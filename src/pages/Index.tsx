@@ -3,25 +3,58 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Calendar, DollarSign, Users, Heart, Scissors, Home, Car } from "lucide-react";
+import { PlusCircle, Calendar, DollarSign, Users, Heart, Scissors, Home, Car, LogOut } from "lucide-react";
 import { ResponsiveContainer } from "@/components/ui/responsive-container";
 import Dashboard from "@/components/Dashboard";
 import TutorsManager from "@/components/TutorsManager";
 import PetsManager from "@/components/PetsManager";
 import ScheduleManager from "@/components/ScheduleManager";
 import FinanceManager from "@/components/FinanceManager";
+import LoginPage from "@/components/LoginPage";
+import TutorScheduling from "@/components/TutorScheduling";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [user, setUser] = useState<{ type: 'admin' | 'tutor' | null; data?: any }>({ type: null });
+
+  const handleLogin = (userType: 'admin' | 'tutor', userData?: any) => {
+    setUser({ type: userType, data: userData });
+  };
+
+  const handleLogout = () => {
+    setUser({ type: null });
+    setActiveTab("dashboard");
+  };
+
+  if (!user.type) {
+    return <LoginPage onLogin={handleLogin} />;
+  }
+
+  if (user.type === 'tutor') {
+    return <TutorScheduling tutorData={user.data} onLogout={handleLogout} />;
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 font-poppins">
       <ResponsiveContainer className="py-4 sm:py-6">
-        <div className="mb-6 sm:mb-8 text-center">
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
-            🐾 GabPetSallon
-          </h1>
-          <p className="text-sm sm:text-base text-gray-600">Sistema para controle da empresa</p>
+        <div className="mb-6 sm:mb-8 flex justify-between items-center">
+          <div className="text-center flex-1">
+            <div className="flex items-center justify-center gap-3 mb-2">
+              <img 
+                src="/lovable-uploads/becdcf34-2926-47cf-86b4-0d3e413832f7.png" 
+                alt="GabPetSallon" 
+                className="h-12 sm:h-16"
+              />
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold font-pacify bg-gradient-to-r from-blue-600 to-orange-600 bg-clip-text text-transparent">
+                GabPetSallon
+              </h1>
+            </div>
+            <p className="text-sm sm:text-base text-gray-600">Sistema para controle da empresa</p>
+          </div>
+          <Button variant="outline" onClick={handleLogout} className="flex items-center gap-2">
+            <LogOut className="h-4 w-4" />
+            Sair
+          </Button>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

@@ -6,16 +6,20 @@ import { Label } from "@/components/ui/label";
 import { Download, FileText, Calendar } from "lucide-react";
 import { useState } from "react";
 
-interface ReportData {
+interface DetailedReportData {
   month: string;
   year: string;
   totalIncome: number;
   totalExpenses: number;
   netBalance: number;
+  incomeDetails: { [key: string]: number };
+  expenseDetails: { [key: string]: number };
+  customIncomes: Array<{ descricao: string; valor: number; data: string }>;
+  customExpenses: Array<{ descricao: string; valor: number; data: string }>;
 }
 
 interface FinancialReportsProps {
-  reportData: ReportData[];
+  reportData: DetailedReportData[];
   onGenerateReport: (month: string, year: string) => void;
 }
 
@@ -27,26 +31,68 @@ const FinancialReports = ({ reportData, onGenerateReport }: FinancialReportsProp
     onGenerateReport(selectedMonth.toString().padStart(2, '0'), selectedYear.toString());
   };
 
-  const exportToCSV = (data: ReportData[]) => {
-    const csvContent = [
-      ['Mês/Ano', 'Receitas', 'Despesas', 'Saldo'],
-      ...data.map(row => [
-        `${row.month}/${row.year}`,
-        row.totalIncome.toFixed(2),
-        row.totalExpenses.toFixed(2),
-        row.netBalance.toFixed(2)
-      ])
-    ].map(row => row.join(',')).join('\n');
+  const exportToCSV = (data: DetailedReportData[]) => {
+    let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+    
+    // Cabeçalho principal
+    csvContent += "RELATÓRIO FINANCEIRO DETALHADO\n\n";
+    
+    data.forEach(report => {
+      csvContent += `MÊS/ANO,${report.month}/${report.year}\n\n`;
+      
+      // Receitas
+      csvContent += "RECEITAS\n";
+      csvContent += "Categoria,Valor\n";
+      Object.entries(report.incomeDetails).forEach(([key, value]) => {
+        csvContent += `${key},R$ ${value.toFixed(2).replace('.', ',')}\n`;
+      });
+      
+      // Receitas personalizadas
+      if (report.customIncomes?.length > 0) {
+        csvContent += "\nRECEITAS PERSONALIZADAS\n";
+        csvContent += "Descrição,Valor,Data\n";
+        report.customIncomes.forEach(item => {
+          csvContent += `${item.descricao},R$ ${item.valor.toFixed(2).replace('.', ',')},${item.data}\n`;
+        });
+      }
+      
+      csvContent += `\nTOTAL RECEITAS,R$ ${report.totalIncome.toFixed(2).replace('.', ',')}\n\n`;
+      
+      // Despesas
+      csvContent += "DESPESAS\n";
+      csvContent += "Categoria,Valor\n";
+      Object.entries(report.expenseDetails).forEach(([key, value]) => {
+        csvContent += `${key},R$ ${value.toFixed(2).replace('.', ',')}\n`;
+      });
+      
+      // Despesas personalizadas
+      if (report.customExpenses?.length > 0) {
+        csvContent += "\nDESPESAS PERSONALIZADAS\n";
+        csvContent += "Descrição,Valor,Data\n";
+        report.customExpenses.forEach(item => {
+          csvContent += `${item.descricao},R$ ${item.valor.toFixed(2).replace('.', ',')},${item.data}\n`;
+        });
+      }
+      
+      csvContent += `\nTOTAL DESPESAS,R$ ${report.totalExpenses.toFixed(2).replace('.', ',')}\n`;
+      csvContent += `SALDO FINAL,R$ ${report.netBalance.toFixed(2).replace('.', ',')}\n\n`;
+      csvContent += "=" + "=".repeat(50) + "\n\n";
+    });
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `relatorio-financeiro-${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
+    // Criar e baixar arquivo
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `relatorio-financeiro-detalhado-${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const exportToXLS = (data: DetailedReportData[]) => {
+    // Para uma implementação completa de XLS, seria necessário usar uma biblioteca como xlsx
+    // Por ora, vamos usar CSV com BOM UTF-8 que abre corretamente no Excel
+    exportToCSV(data);
   };
 
   return (
@@ -54,9 +100,9 @@ const FinancialReports = ({ reportData, onGenerateReport }: FinancialReportsProp
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <FileText className="h-5 w-5" />
-          Relatórios Financeiros
+          Relatórios Financeiros Detalhados
         </CardTitle>
-        <CardDescription>Gere e exporte relatórios mensais</CardDescription>
+        <CardDescription>Gere e exporte relatórios mensais com detalhamento completo</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex items-end gap-4">
@@ -94,16 +140,27 @@ const FinancialReports = ({ reportData, onGenerateReport }: FinancialReportsProp
         {reportData.length > 0 && (
           <div className="space-y-4">
             <div className="flex justify-between items-center">
-              <h4 className="font-medium">Relatórios Gerados</h4>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => exportToCSV(reportData)}
-                className="flex items-center gap-2"
-              >
-                <Download className="h-4 w-4" />
-                Exportar CSV
-              </Button>
+              <h4 className="font-medium">Relatórios Detalhados Gerados</h4>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => exportToCSV(reportData)}
+                  className="flex items-center gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  CSV (UTF-8)
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => exportToXLS(reportData)}
+                  className="flex items-center gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  Excel
+                </Button>
+              </div>
             </div>
             
             <div className="overflow-x-auto">
@@ -114,6 +171,7 @@ const FinancialReports = ({ reportData, onGenerateReport }: FinancialReportsProp
                     <th className="border border-gray-300 p-2 text-right">Receitas</th>
                     <th className="border border-gray-300 p-2 text-right">Despesas</th>
                     <th className="border border-gray-300 p-2 text-right">Saldo</th>
+                    <th className="border border-gray-300 p-2 text-center">Detalhes</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -130,6 +188,12 @@ const FinancialReports = ({ reportData, onGenerateReport }: FinancialReportsProp
                         row.netBalance >= 0 ? 'text-blue-600' : 'text-orange-600'
                       }`}>
                         R$ {row.netBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      </td>
+                      <td className="border border-gray-300 p-2 text-center">
+                        <span className="text-sm text-gray-600">
+                          {Object.keys(row.incomeDetails).length + (row.customIncomes?.length || 0)} receitas, {' '}
+                          {Object.keys(row.expenseDetails).length + (row.customExpenses?.length || 0)} despesas
+                        </span>
                       </td>
                     </tr>
                   ))}

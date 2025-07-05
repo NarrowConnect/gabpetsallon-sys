@@ -75,6 +75,7 @@ const ScheduleManager = () => {
     "Banho": Droplets,
     "Tosa": Scissors,
     "Banho e Tosa": Droplets,
+    "Banho Medicamentoso": Droplets,
     "Hospedagem": Home,
     "Pet Sitter": Home,
     "Taxi Dog": Car
@@ -246,6 +247,7 @@ const ScheduleManager = () => {
                         <SelectItem value="Banho">Banho</SelectItem>
                         <SelectItem value="Tosa">Tosa</SelectItem>
                         <SelectItem value="Banho e Tosa">Banho e Tosa</SelectItem>
+                        <SelectItem value="Banho Medicamentoso">Banho Medicamentoso</SelectItem>
                         <SelectItem value="Hospedagem">Hospedagem</SelectItem>
                         <SelectItem value="Pet Sitter">Pet Sitter</SelectItem>
                         <SelectItem value="Taxi Dog">Taxi Dog</SelectItem>
