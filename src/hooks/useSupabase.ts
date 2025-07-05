@@ -34,22 +34,30 @@ export const useTutors = () => {
     }
   };
 
-  const addTutor = async (tutor: Omit<TutorDB, 'id' | 'created_at' | 'updated_at'>) => {
-    try {
-      const { data, error } = await supabase
-        .from('tutores')
-        .insert([tutor])
-        .select()
-        .single();
-      
-      if (error) throw error;
-      setTutors(prev => [...prev, data]);
-      return data;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao adicionar tutor');
-      throw err;
-    }
-  };
+const addTutor = async (tutor: Omit<TutorDB, 'id' | 'created_at' | 'updated_at'>) => {
+  try {
+    const celularNormalizado = tutor.celular.replace(/\D/g, '');
+    const nomeNormalizado = tutor.nome.trim();
+
+    const { data, error } = await supabase
+      .from('tutores')
+      .insert([{
+        ...tutor,
+        celular: celularNormalizado,
+        nome: nomeNormalizado
+      }])
+      .select()
+      .single();
+
+    if (error) throw error;
+    setTutors(prev => [...prev, data]);
+    return data;
+  } catch (err) {
+    setError(err instanceof Error ? err.message : 'Erro ao adicionar tutor');
+    throw err;
+  }
+};
+
 
   const updateTutor = async (id: string, updates: Partial<TutorDB>) => {
     try {
