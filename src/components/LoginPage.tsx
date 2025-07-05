@@ -136,7 +136,7 @@ const LoginPage = ({ onLogin }: LoginPageProps) => {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <img 
-            src="https://github.dev/DesignOtavio/gabpetsallon-sys/blob/main/public/lovable-uploads/Marca_Vertical.png" 
+            src="https://i.ibb.co/pB99tpqL/Marca-Vertical.png" 
             alt="GabPetSallon" 
             className="h-20 mx-auto mb-4"
           />
