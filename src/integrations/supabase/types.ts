@@ -1,0 +1,670 @@
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
+
+export type Database = {
+  public: {
+    Tables: {
+      agendamentos: {
+        Row: {
+          created_at: string | null
+          data_servico: string
+          hora_servico: string
+          id: string
+          observacoes: string | null
+          origem: string | null
+          pet_id: string | null
+          pet_nome: string
+          pet_porte: string | null
+          pet_raca: string | null
+          servico: string
+          status: string | null
+          tutor_id: string | null
+          tutor_nome: string
+          tutor_telefone: string | null
+          updated_at: string | null
+          valor: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          data_servico: string
+          hora_servico: string
+          id?: string
+          observacoes?: string | null
+          origem?: string | null
+          pet_id?: string | null
+          pet_nome: string
+          pet_porte?: string | null
+          pet_raca?: string | null
+          servico: string
+          status?: string | null
+          tutor_id?: string | null
+          tutor_nome: string
+          tutor_telefone?: string | null
+          updated_at?: string | null
+          valor?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          data_servico?: string
+          hora_servico?: string
+          id?: string
+          observacoes?: string | null
+          origem?: string | null
+          pet_id?: string | null
+          pet_nome?: string
+          pet_porte?: string | null
+          pet_raca?: string | null
+          servico?: string
+          status?: string | null
+          tutor_id?: string | null
+          tutor_nome?: string
+          tutor_telefone?: string | null
+          updated_at?: string | null
+          valor?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agendamentos_pet_id_fkey"
+            columns: ["pet_id"]
+            isOneToOne: false
+            referencedRelation: "pets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agendamentos_tutor_id_fkey"
+            columns: ["tutor_id"]
+            isOneToOne: false
+            referencedRelation: "tutores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agendamentos_tutores: {
+        Row: {
+          created_at: string | null
+          data_resposta: string | null
+          data_servico: string
+          hora_servico: string
+          id: string
+          observacoes: string | null
+          observacoes_admin: string | null
+          pet_nome: string
+          pet_porte: string | null
+          pet_raca: string | null
+          servico: string
+          status: string | null
+          tutor_nome: string
+          tutor_telefone: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          data_resposta?: string | null
+          data_servico: string
+          hora_servico: string
+          id?: string
+          observacoes?: string | null
+          observacoes_admin?: string | null
+          pet_nome: string
+          pet_porte?: string | null
+          pet_raca?: string | null
+          servico: string
+          status?: string | null
+          tutor_nome: string
+          tutor_telefone: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          data_resposta?: string | null
+          data_servico?: string
+          hora_servico?: string
+          id?: string
+          observacoes?: string | null
+          observacoes_admin?: string | null
+          pet_nome?: string
+          pet_porte?: string | null
+          pet_raca?: string | null
+          servico?: string
+          status?: string | null
+          tutor_nome?: string
+          tutor_telefone?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      contas_a_pagar: {
+        Row: {
+          aluguel: number | null
+          boleto_biocom: number | null
+          boleto_euroshop: number | null
+          cartao_bb: number | null
+          cartao_gab: number | null
+          cartao_nu: number | null
+          cartao_santander: number | null
+          celular_mes: number | null
+          copel: number | null
+          created_at: string | null
+          gasolina: number | null
+          id: string
+          internet: number | null
+          lavanderia: number | null
+          mei: number | null
+          mes_referencia: string
+          sanepar: number | null
+          seguranca_mensalidade: number | null
+          tarifa_bancaria: number | null
+          total_saidas: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          aluguel?: number | null
+          boleto_biocom?: number | null
+          boleto_euroshop?: number | null
+          cartao_bb?: number | null
+          cartao_gab?: number | null
+          cartao_nu?: number | null
+          cartao_santander?: number | null
+          celular_mes?: number | null
+          copel?: number | null
+          created_at?: string | null
+          gasolina?: number | null
+          id?: string
+          internet?: number | null
+          lavanderia?: number | null
+          mei?: number | null
+          mes_referencia: string
+          sanepar?: number | null
+          seguranca_mensalidade?: number | null
+          tarifa_bancaria?: number | null
+          total_saidas?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          aluguel?: number | null
+          boleto_biocom?: number | null
+          boleto_euroshop?: number | null
+          cartao_bb?: number | null
+          cartao_gab?: number | null
+          cartao_nu?: number | null
+          cartao_santander?: number | null
+          celular_mes?: number | null
+          copel?: number | null
+          created_at?: string | null
+          gasolina?: number | null
+          id?: string
+          internet?: number | null
+          lavanderia?: number | null
+          mei?: number | null
+          mes_referencia?: string
+          sanepar?: number | null
+          seguranca_mensalidade?: number | null
+          tarifa_bancaria?: number | null
+          total_saidas?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      controle_financeiro: {
+        Row: {
+          created_at: string | null
+          id: string
+          mes_referencia: string
+          saldo_anterior: number | null
+          saldo_atual: number | null
+          saldo_transportar: number | null
+          total_entradas: number | null
+          total_saidas: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          mes_referencia: string
+          saldo_anterior?: number | null
+          saldo_atual?: number | null
+          saldo_transportar?: number | null
+          total_entradas?: number | null
+          total_saidas?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          mes_referencia?: string
+          saldo_anterior?: number | null
+          saldo_atual?: number | null
+          saldo_transportar?: number | null
+          total_entradas?: number | null
+          total_saidas?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      despesas_personalizadas: {
+        Row: {
+          created_at: string | null
+          data_despesa: string | null
+          descricao: string
+          id: string
+          mes_referencia: string
+          valor: number
+        }
+        Insert: {
+          created_at?: string | null
+          data_despesa?: string | null
+          descricao: string
+          id?: string
+          mes_referencia: string
+          valor: number
+        }
+        Update: {
+          created_at?: string | null
+          data_despesa?: string | null
+          descricao?: string
+          id?: string
+          mes_referencia?: string
+          valor?: number
+        }
+        Relationships: []
+      }
+      pets: {
+        Row: {
+          castrado: boolean | null
+          celular_veterinario: string | null
+          cidade_veterinario: string | null
+          controle_parasitario: string | null
+          created_at: string | null
+          endereco_veterinario: string | null
+          especie: string | null
+          estado_veterinario: string | null
+          id: string
+          idade: number | null
+          medicamentos: string | null
+          necessidades_especiais: string | null
+          nome_pet: string
+          nome_tutor: string
+          nome_veterinario: string | null
+          peso: number | null
+          porte: string | null
+          raca: string | null
+          rotina: string | null
+          saude: string | null
+          sexo: string | null
+          telefone_veterinario: string | null
+          temperamento: string | null
+          toma_medicamentos: boolean | null
+          tutor_id: string | null
+          updated_at: string | null
+          vacinas_vermifugos: string | null
+        }
+        Insert: {
+          castrado?: boolean | null
+          celular_veterinario?: string | null
+          cidade_veterinario?: string | null
+          controle_parasitario?: string | null
+          created_at?: string | null
+          endereco_veterinario?: string | null
+          especie?: string | null
+          estado_veterinario?: string | null
+          id?: string
+          idade?: number | null
+          medicamentos?: string | null
+          necessidades_especiais?: string | null
+          nome_pet: string
+          nome_tutor: string
+          nome_veterinario?: string | null
+          peso?: number | null
+          porte?: string | null
+          raca?: string | null
+          rotina?: string | null
+          saude?: string | null
+          sexo?: string | null
+          telefone_veterinario?: string | null
+          temperamento?: string | null
+          toma_medicamentos?: boolean | null
+          tutor_id?: string | null
+          updated_at?: string | null
+          vacinas_vermifugos?: string | null
+        }
+        Update: {
+          castrado?: boolean | null
+          celular_veterinario?: string | null
+          cidade_veterinario?: string | null
+          controle_parasitario?: string | null
+          created_at?: string | null
+          endereco_veterinario?: string | null
+          especie?: string | null
+          estado_veterinario?: string | null
+          id?: string
+          idade?: number | null
+          medicamentos?: string | null
+          necessidades_especiais?: string | null
+          nome_pet?: string
+          nome_tutor?: string
+          nome_veterinario?: string | null
+          peso?: number | null
+          porte?: string | null
+          raca?: string | null
+          rotina?: string | null
+          saude?: string | null
+          sexo?: string | null
+          telefone_veterinario?: string | null
+          temperamento?: string | null
+          toma_medicamentos?: boolean | null
+          tutor_id?: string | null
+          updated_at?: string | null
+          vacinas_vermifugos?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pets_tutor_id_fkey"
+            columns: ["tutor_id"]
+            isOneToOne: false
+            referencedRelation: "tutores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      receitas_personalizadas: {
+        Row: {
+          created_at: string | null
+          data_receita: string | null
+          descricao: string
+          id: string
+          mes_referencia: string
+          valor: number
+        }
+        Insert: {
+          created_at?: string | null
+          data_receita?: string | null
+          descricao: string
+          id?: string
+          mes_referencia: string
+          valor: number
+        }
+        Update: {
+          created_at?: string | null
+          data_receita?: string | null
+          descricao?: string
+          id?: string
+          mes_referencia?: string
+          valor?: number
+        }
+        Relationships: []
+      }
+      tutores: {
+        Row: {
+          celular: string
+          celular_veterinario: string | null
+          cep: string | null
+          cidade: string | null
+          cidade_veterinario: string | null
+          contato_adicional_1_nome: string | null
+          contato_adicional_1_telefone: string | null
+          contato_adicional_2_nome: string | null
+          contato_adicional_2_telefone: string | null
+          created_at: string | null
+          endereco: string | null
+          endereco_veterinario: string | null
+          estado: string | null
+          estado_veterinario: string | null
+          id: string
+          nome: string
+          nome_veterinario: string | null
+          telefone_residencial: string | null
+          telefone_veterinario: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          celular: string
+          celular_veterinario?: string | null
+          cep?: string | null
+          cidade?: string | null
+          cidade_veterinario?: string | null
+          contato_adicional_1_nome?: string | null
+          contato_adicional_1_telefone?: string | null
+          contato_adicional_2_nome?: string | null
+          contato_adicional_2_telefone?: string | null
+          created_at?: string | null
+          endereco?: string | null
+          endereco_veterinario?: string | null
+          estado?: string | null
+          estado_veterinario?: string | null
+          id?: string
+          nome: string
+          nome_veterinario?: string | null
+          telefone_residencial?: string | null
+          telefone_veterinario?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          celular?: string
+          celular_veterinario?: string | null
+          cep?: string | null
+          cidade?: string | null
+          cidade_veterinario?: string | null
+          contato_adicional_1_nome?: string | null
+          contato_adicional_1_telefone?: string | null
+          contato_adicional_2_nome?: string | null
+          contato_adicional_2_telefone?: string | null
+          created_at?: string | null
+          endereco?: string | null
+          endereco_veterinario?: string | null
+          estado?: string | null
+          estado_veterinario?: string | null
+          id?: string
+          nome?: string
+          nome_veterinario?: string | null
+          telefone_residencial?: string | null
+          telefone_veterinario?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      usuarios_admin: {
+        Row: {
+          ativo: boolean | null
+          created_at: string | null
+          email: string
+          id: string
+          nome: string
+          senha_hash: string
+          updated_at: string | null
+        }
+        Insert: {
+          ativo?: boolean | null
+          created_at?: string | null
+          email: string
+          id?: string
+          nome: string
+          senha_hash: string
+          updated_at?: string | null
+        }
+        Update: {
+          ativo?: boolean | null
+          created_at?: string | null
+          email?: string
+          id?: string
+          nome?: string
+          senha_hash?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      valores_recebidos: {
+        Row: {
+          banhos_medicamentosos: number | null
+          banhos_porte_grande: number | null
+          banhos_porte_pequeno: number | null
+          created_at: string | null
+          hospedagens: number | null
+          id: string
+          mes_referencia: string
+          roupas: number | null
+          taxi_dog: number | null
+          tosas: number | null
+          total_entradas: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          banhos_medicamentosos?: number | null
+          banhos_porte_grande?: number | null
+          banhos_porte_pequeno?: number | null
+          created_at?: string | null
+          hospedagens?: number | null
+          id?: string
+          mes_referencia: string
+          roupas?: number | null
+          taxi_dog?: number | null
+          tosas?: number | null
+          total_entradas?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          banhos_medicamentosos?: number | null
+          banhos_porte_grande?: number | null
+          banhos_porte_pequeno?: number | null
+          created_at?: string | null
+          hospedagens?: number | null
+          id?: string
+          mes_referencia?: string
+          roupas?: number | null
+          taxi_dog?: number | null
+          tosas?: number | null
+          total_entradas?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
+}
+
+type DefaultSchema = Database[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof Database },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof Database
+  }
+    ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
+  ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof Database },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof Database
+  }
+    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
+  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof Database },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof Database
+  }
+    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
+  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof Database },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof Database
+  }
+    ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends { schema: keyof Database }
+  ? Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof Database },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof Database
+  }
+    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
+  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {},
+  },
+} as const
