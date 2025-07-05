@@ -5,8 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Lock, User, PawPrint } from "lucide-react";
+import { Lock, User, PawPrint, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import TutorRegistration from "./TutorRegistration";
 
 interface LoginPageProps {
   onLogin: (userType: 'admin' | 'tutor', userData?: any) => void;
@@ -16,43 +18,124 @@ const LoginPage = ({ onLogin }: LoginPageProps) => {
   const { toast } = useToast();
   const [adminForm, setAdminForm] = useState({ email: "", password: "" });
   const [tutorForm, setTutorForm] = useState({ nome: "", telefone: "" });
+  const [showRegistration, setShowRegistration] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleAdminLogin = (e: React.FormEvent) => {
+  const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Aqui você integraria com Supabase Auth
-    if (adminForm.email && adminForm.password) {
-      onLogin('admin');
+    setLoading(true);
+    
+    try {
+      // Buscar admin na tabela usuarios_admin
+      const { data: adminData, error } = await supabase
+        .from('usuarios_admin')
+        .select('*')
+        .eq('email', adminForm.email)
+        .eq('ativo', true)
+        .single();
+
+      if (error || !adminData) {
+        toast({
+          title: "Erro de Login",
+          description: "Email não encontrado ou usuário inativo.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Aqui você poderia implementar verificação de senha hash
+      // Por agora, vamos usar uma validação simples
+      if (adminForm.password === "admin123") { // Substitua por verificação real
+        onLogin('admin', adminData);
+        toast({
+          title: "Login realizado!",
+          description: "Bem-vindo ao painel administrativo.",
+        });
+      } else {
+        toast({
+          title: "Erro de Login",
+          description: "Senha incorreta.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Erro no login admin:', error);
       toast({
-        title: "Login realizado!",
-        description: "Bem-vindo ao painel administrativo.",
+        title: "Erro",
+        description: "Erro interno do servidor.",
+        variant: "destructive"
       });
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleTutorLogin = (e: React.FormEvent) => {
+  const handleTutorLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Aqui você buscaria o tutor no Supabase
-    if (tutorForm.nome && tutorForm.telefone) {
-      onLogin('tutor', { nome: tutorForm.nome, telefone: tutorForm.telefone });
+    setLoading(true);
+
+    try {
+      const { data: tutorData, error } = await supabase
+        .from('tutores')
+        .select('*')
+        .eq('nome', tutorForm.nome)
+        .eq('celular', tutorForm.telefone)
+        .single();
+
+      if (error || !tutorData) {
+        toast({
+          title: "Tutor não encontrado",
+          description: "Dados não encontrados. Deseja criar um novo cadastro?",
+          variant: "destructive"
+        });
+        setShowRegistration(true);
+        return;
+      }
+
+      onLogin('tutor', tutorData);
       toast({
         title: "Acesso liberado!",
-        description: `Olá ${tutorForm.nome}, você pode agendar serviços para seus pets.`,
+        description: `Olá ${tutorData.nome}, você pode agendar serviços para seus pets.`,
       });
+    } catch (error) {
+      console.error('Erro no login tutor:', error);
+      toast({
+        title: "Erro",
+        description: "Erro interno do servidor.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
     }
   };
+
+  const handleTutorCreated = (newTutor: any) => {
+    setShowRegistration(false);
+    setTutorForm({ nome: newTutor.nome, telefone: newTutor.celular });
+    toast({
+      title: "Cadastro realizado!",
+      description: "Tutor cadastrado com sucesso. Faça login agora.",
+    });
+  };
+
+  if (showRegistration) {
+    return (
+      <TutorRegistration 
+        onTutorCreated={handleTutorCreated}
+        onCancel={() => setShowRegistration(false)}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#f6f6f6] flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <img 
-            src="lovable-uploads/Marca Vertical.png" 
+            src="/lovable-uploads/Marca Vertical.png" 
             alt="GabPetSallon" 
-            className="h-16 mx-auto mb-4"
+            className="h-20 mx-auto mb-4"
           />
-          <h1 className="text-3xl font-bold font-pacify bg-gradient-to-r from-blue-600 to-orange-600 bg-clip-text text-transparent">
-            GabPetSallon
-          </h1>
           <p className="text-gray-600 font-poppins">Acesso ao Sistema</p>
         </div>
 
@@ -89,6 +172,7 @@ const LoginPage = ({ onLogin }: LoginPageProps) => {
                       value={adminForm.email}
                       onChange={(e) => setAdminForm({ ...adminForm, email: e.target.value })}
                       required
+                      disabled={loading}
                     />
                   </div>
                   <div>
@@ -99,10 +183,11 @@ const LoginPage = ({ onLogin }: LoginPageProps) => {
                       value={adminForm.password}
                       onChange={(e) => setAdminForm({ ...adminForm, password: e.target.value })}
                       required
+                      disabled={loading}
                     />
                   </div>
-                  <Button type="submit" className="w-full">
-                    Entrar como Admin
+                  <Button type="submit" className="w-full" disabled={loading}>
+                    {loading ? "Entrando..." : "Entrar como Admin"}
                   </Button>
                 </form>
               </CardContent>
@@ -129,6 +214,7 @@ const LoginPage = ({ onLogin }: LoginPageProps) => {
                       value={tutorForm.nome}
                       onChange={(e) => setTutorForm({ ...tutorForm, nome: e.target.value })}
                       required
+                      disabled={loading}
                     />
                   </div>
                   <div>
@@ -139,10 +225,21 @@ const LoginPage = ({ onLogin }: LoginPageProps) => {
                       onChange={(e) => setTutorForm({ ...tutorForm, telefone: e.target.value })}
                       placeholder="(41) 99999-9999"
                       required
+                      disabled={loading}
                     />
                   </div>
-                  <Button type="submit" className="w-full">
-                    Acessar Agendamentos
+                  <Button type="submit" className="w-full" disabled={loading}>
+                    {loading ? "Verificando..." : "Acessar Agendamentos"}
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    className="w-full" 
+                    onClick={() => setShowRegistration(true)}
+                    disabled={loading}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Criar Novo Cadastro
                   </Button>
                 </form>
               </CardContent>

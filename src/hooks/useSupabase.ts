@@ -1,14 +1,15 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabaseClient';
-import type { 
-  TutorDB, 
-  PetDB, 
-  AgendamentoDB, 
-  ContasAPagarDB, 
-  ValoresRecebidosDB, 
-  ControleFinanceiroDB 
-} from '@/lib/supabaseClient';
+import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
+
+// Type definitions based on the Database schema
+export type TutorDB = Database['public']['Tables']['tutores']['Row'];
+export type PetDB = Database['public']['Tables']['pets']['Row'];
+export type AgendamentoDB = Database['public']['Tables']['agendamentos']['Row'];
+export type ContasAPagarDB = Database['public']['Tables']['contas_a_pagar']['Row'];
+export type ValoresRecebidosDB = Database['public']['Tables']['valores_recebidos']['Row'];
+export type ControleFinanceiroDB = Database['public']['Tables']['controle_financeiro']['Row'];
 
 // Hook para gerenciar tutores
 export const useTutors = () => {
