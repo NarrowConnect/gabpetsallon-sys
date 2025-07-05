@@ -70,22 +70,24 @@ const LoginPage = ({ onLogin }: LoginPageProps) => {
     }
   };
 
- const handleTutorLogin = async (e: React.FormEvent) => {
+const handleTutorLogin = async (e: React.FormEvent) => {
   e.preventDefault();
   setLoading(true);
 
   try {
-    // Normaliza os dados para buscar corretamente
+    // Normalize the data to search correctly.
     const nomeNormalizado = tutorForm.nome.trim();
-    const telefoneNormalizado = tutorForm.telefone.replace(/\D/g, '');
+    const celularNormalizado = tutorForm.telefone.replace(/\D/g, '');
 
+    // Adjust the query to match the new table structure.
     const { data: tutorData, error } = await supabase
       .from('tutores')
       .select('*')
       .eq('nome', nomeNormalizado)
-      .eq('celular', telefoneNormalizado);
+      .eq('celular', celularNormalizado)
+      .single();  // Fetch a single record only
 
-    if (error || !tutorData || tutorData.length === 0) {
+    if (error || !tutorData) {
       toast({
         title: "Tutor não encontrado",
         description: "Dados não encontrados. Deseja criar um novo cadastro?",
@@ -95,10 +97,10 @@ const LoginPage = ({ onLogin }: LoginPageProps) => {
       return;
     }
 
-    onLogin('tutor', tutorData[0]);
+    onLogin('tutor', tutorData);
     toast({
       title: "Acesso liberado!",
-      description: `Olá ${tutorData[0].nome}, você pode agendar serviços para seus pets.`,
+      description: `Olá ${tutorData.nome}, você pode agendar serviços para seus pets.`,
     });
   } catch (error) {
     console.error('Erro no login tutor:', error);
@@ -112,24 +114,6 @@ const LoginPage = ({ onLogin }: LoginPageProps) => {
   }
 };
 
-
-  const handleTutorCreated = (newTutor: any) => {
-    setShowRegistration(false);
-    setTutorForm({ nome: newTutor.nome, telefone: newTutor.celular });
-    toast({
-      title: "Cadastro realizado!",
-      description: "Tutor cadastrado com sucesso. Faça login agora.",
-    });
-  };
-
-  if (showRegistration) {
-    return (
-      <TutorRegistration 
-        onTutorCreated={handleTutorCreated}
-        onCancel={() => setShowRegistration(false)}
-      />
-    );
-  }
 
   return (
     <div className="min-h-screen bg-[#f6f6f6] flex items-center justify-center p-4">
