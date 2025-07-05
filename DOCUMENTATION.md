@@ -9,7 +9,7 @@ Sistema de gestão para petshop desenvolvido em React + TypeScript com integraç
 ### Tecnologias Utilizadas
 - **Frontend**: React 18 + TypeScript + Vite
 - **UI**: Tailwind CSS + shadcn/ui
-- **Fontes**: Pacify (títulos) + Poppins (texto geral)
+- **Fontes**: PacifyAngry (títulos) + Poppins (texto geral)
 - **Banco de Dados**: Supabase (PostgreSQL)
 - **Estado**: React Hooks + Context API
 - **Formulários**: React Hook Form + Zod

@@ -42,18 +42,18 @@ const LoginPage = ({ onLogin }: LoginPageProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#f6f6f6] flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <img 
-            src="/lovable-uploads/becdcf34-2926-47cf-86b4-0d3e413832f7.png" 
+            src="lovable-uploads/Marca Vertical.png" 
             alt="GabPetSallon" 
             className="h-16 mx-auto mb-4"
           />
           <h1 className="text-3xl font-bold font-pacify bg-gradient-to-r from-blue-600 to-orange-600 bg-clip-text text-transparent">
             GabPetSallon
           </h1>
-          <p className="text-gray-600 font-poppins">Sistema para controle da empresa</p>
+          <p className="text-gray-600 font-poppins">Acesso ao Sistema</p>
         </div>
 
         <Tabs defaultValue="admin" className="w-full">
