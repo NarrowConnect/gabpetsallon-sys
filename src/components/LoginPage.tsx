@@ -45,7 +45,7 @@ const LoginPage = ({ onLogin }: LoginPageProps) => {
 
       // Aqui você poderia implementar verificação de senha hash
       // Por agora, vamos usar uma validação simples
-      if (adminForm.password === "admin123") { // Substitua por verificação real
+      if (adminForm.password === adminData.senha_hash) { // Substitua por verificação real
         onLogin('admin', adminData);
         toast({
           title: "Login realizado!",
@@ -70,44 +70,48 @@ const LoginPage = ({ onLogin }: LoginPageProps) => {
     }
   };
 
-  const handleTutorLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+ const handleTutorLogin = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setLoading(true);
 
-    try {
-      const { data: tutorData, error } = await supabase
-        .from('tutores')
-        .select('*')
-        .eq('nome', tutorForm.nome)
-        .eq('celular', tutorForm.telefone)
-        .single();
+  try {
+    // Normaliza os dados para buscar corretamente
+    const nomeNormalizado = tutorForm.nome.trim();
+    const telefoneNormalizado = tutorForm.telefone.replace(/\D/g, '');
 
-      if (error || !tutorData) {
-        toast({
-          title: "Tutor não encontrado",
-          description: "Dados não encontrados. Deseja criar um novo cadastro?",
-          variant: "destructive"
-        });
-        setShowRegistration(true);
-        return;
-      }
+    const { data: tutorData, error } = await supabase
+      .from('tutores')
+      .select('*')
+      .eq('nome', nomeNormalizado)
+      .eq('celular', telefoneNormalizado);
 
-      onLogin('tutor', tutorData);
+    if (error || !tutorData || tutorData.length === 0) {
       toast({
-        title: "Acesso liberado!",
-        description: `Olá ${tutorData.nome}, você pode agendar serviços para seus pets.`,
-      });
-    } catch (error) {
-      console.error('Erro no login tutor:', error);
-      toast({
-        title: "Erro",
-        description: "Erro interno do servidor.",
+        title: "Tutor não encontrado",
+        description: "Dados não encontrados. Deseja criar um novo cadastro?",
         variant: "destructive"
       });
-    } finally {
-      setLoading(false);
+      setShowRegistration(true);
+      return;
     }
-  };
+
+    onLogin('tutor', tutorData[0]);
+    toast({
+      title: "Acesso liberado!",
+      description: `Olá ${tutorData[0].nome}, você pode agendar serviços para seus pets.`,
+    });
+  } catch (error) {
+    console.error('Erro no login tutor:', error);
+    toast({
+      title: "Erro",
+      description: "Erro interno do servidor.",
+      variant: "destructive"
+    });
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const handleTutorCreated = (newTutor: any) => {
     setShowRegistration(false);
