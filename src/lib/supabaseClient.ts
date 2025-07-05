@@ -1,14 +1,13 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-// Placeholder for Supabase configuration
-// Replace these with your actual Supabase URL and anon key when you set up Supabase
-const supabaseUrl = process.env.REACT_APP_SUPABASE_URL || 'your-supabase-url';
-const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY || 'your-supabase-anon-key';
+// Configure estas variáveis com seus dados reais do Supabase
+const supabaseUrl = process.env.REACT_APP_SUPABASE_URL || 'https://your-project.supabase.co';
+const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY || 'your-anon-key-here';
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// Database table interfaces for TypeScript
+// Interfaces TypeScript para as tabelas do banco
 export interface TutorDB extends Record<string, any> {
   id: string;
   nome: string;
@@ -124,4 +123,22 @@ export interface ControleFinanceiroDB extends Record<string, any> {
   saldo_transportar: number;
   created_at: string;
   updated_at: string;
+}
+
+export interface ReceitaPersonalizadaDB extends Record<string, any> {
+  id: string;
+  mes_referencia: string;
+  descricao: string;
+  valor: number;
+  data_receita: string;
+  created_at: string;
+}
+
+export interface DespesaPersonalizadaDB extends Record<string, any> {
+  id: string;
+  mes_referencia: string;
+  descricao: string;
+  valor: number;
+  data_despesa: string;
+  created_at: string;
 }
