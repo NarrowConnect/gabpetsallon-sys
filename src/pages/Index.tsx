@@ -35,7 +35,7 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 font-poppins">
+    <div className="min-h-screen bg-background font-poppins">
       <ResponsiveContainer className="py-4 sm:py-6">
         <div className="mb-6 sm:mb-8 flex justify-between items-center">
           <div className="text-center flex-1">
@@ -45,13 +45,13 @@ const Index = () => {
                 alt="GabPetSallon" 
                 className="h-12 sm:h-16"
               />
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold font-pacify bg-gradient-to-r from-blue-600 to-orange-600 bg-clip-text text-transparent">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold font-pacify bg-gradient-to-r from-brand-cyan to-brand-orange bg-clip-text text-transparent">
                 GabPetSallon
               </h1>
             </div>
             <p className="text-sm sm:text-base text-gray-600">Sistema para controle da empresa</p>
           </div>
-          <Button variant="outline" onClick={handleLogout} className="flex items-center gap-2">
+          <Button variant="outline" onClick={handleLogout} className="flex items-center gap-2 border-brand-cyan hover:bg-brand-cyan hover:text-white transition-colors">
             <LogOut className="h-4 w-4" />
             Sair
           </Button>
@@ -59,26 +59,26 @@ const Index = () => {
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <div className="mb-6 sm:mb-8 overflow-x-auto">
-            <TabsList className="grid w-full min-w-max grid-cols-5 bg-white/50 backdrop-blur-sm">
-              <TabsTrigger value="dashboard" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4">
+            <TabsList className="grid w-full min-w-max grid-cols-5 bg-white/80 backdrop-blur-sm border border-gray-200">
+              <TabsTrigger value="dashboard" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4 data-[state=active]:bg-brand-cyan data-[state=active]:text-white">
                 <DollarSign className="h-3 w-3 sm:h-4 sm:w-4" />
                 <span className="hidden sm:inline">Dashboard</span>
                 <span className="sm:hidden">Dash</span>
               </TabsTrigger>
-              <TabsTrigger value="tutors" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4">
+              <TabsTrigger value="tutors" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4 data-[state=active]:bg-brand-orange data-[state=active]:text-white">
                 <Users className="h-3 w-3 sm:h-4 sm:w-4" />
                 <span>Tutores</span>
               </TabsTrigger>
-              <TabsTrigger value="pets" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4">
+              <TabsTrigger value="pets" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4 data-[state=active]:bg-brand-yellow data-[state=active]:text-gray-800">
                 <Heart className="h-3 w-3 sm:h-4 sm:w-4" />
                 <span>Pets</span>
               </TabsTrigger>
-              <TabsTrigger value="schedule" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4">
+              <TabsTrigger value="schedule" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4 data-[state=active]:bg-brand-cyan data-[state=active]:text-white">
                 <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
                 <span className="hidden sm:inline">Agendamentos</span>
                 <span className="sm:hidden">Agenda</span>
               </TabsTrigger>
-              <TabsTrigger value="finance" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4">
+              <TabsTrigger value="finance" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4 data-[state=active]:bg-brand-orange data-[state=active]:text-white">
                 <DollarSign className="h-3 w-3 sm:h-4 sm:w-4" />
                 <span className="hidden sm:inline">Financeiro</span>
                 <span className="sm:hidden">$</span>

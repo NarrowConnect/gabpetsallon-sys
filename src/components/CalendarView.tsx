@@ -63,8 +63,9 @@ const CalendarView = ({ appointments }: CalendarViewProps) => {
   const renderMonthView = () => {
     return (
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">
+        {/* Controles externos de navegação */}
+        <div className="flex items-center justify-between bg-white/80 backdrop-blur-sm p-4 rounded-lg border border-brand-cyan/20">
+          <h3 className="text-lg font-semibold text-brand-cyan">
             {format(selectedDate, 'MMMM yyyy', { locale: ptBR })}
           </h3>
           <div className="flex gap-2">
@@ -72,13 +73,23 @@ const CalendarView = ({ appointments }: CalendarViewProps) => {
               variant="outline"
               size="sm"
               onClick={() => setSelectedDate(subMonths(selectedDate, 1))}
+              className="border-brand-cyan hover:bg-brand-cyan hover:text-white"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <Button
               variant="outline"
               size="sm"
+              onClick={() => setSelectedDate(new Date())}
+              className="border-brand-orange hover:bg-brand-orange hover:text-white px-4"
+            >
+              Hoje
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => setSelectedDate(addMonths(selectedDate, 1))}
+              className="border-brand-cyan hover:bg-brand-cyan hover:text-white"
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
@@ -90,30 +101,30 @@ const CalendarView = ({ appointments }: CalendarViewProps) => {
           selected={selectedDate}
           onSelect={(date) => date && setSelectedDate(date)}
           month={selectedDate}
-          className="rounded-md border"
+          className="rounded-md border bg-white/90 backdrop-blur-sm border-brand-cyan/20"
           modifiers={{
             hasAppointments: (date) => getAppointmentsForDate(date).length > 0
           }}
           modifiersStyles={{
             hasAppointments: { 
-              backgroundColor: '#e0f2fe',
-              color: '#0369a1',
+              backgroundColor: 'hsl(var(--brand-cyan) / 0.2)',
+              color: 'hsl(var(--brand-cyan))',
               fontWeight: 'bold'
             }
           }}
         />
         
         <div className="mt-4">
-          <h4 className="font-semibold mb-2">
+          <h4 className="font-semibold mb-2 text-brand-cyan">
             Agendamentos para {format(selectedDate, "dd 'de' MMMM", { locale: ptBR })}
           </h4>
           <div className="space-y-2">
             {getAppointmentsForDate(selectedDate).map((appointment) => {
               const ServiceIcon = serviceIcons[appointment.servicoRealizar as keyof typeof serviceIcons] || Clock;
               return (
-                <div key={appointment.id} className="flex items-center justify-between p-3 bg-white rounded-lg border">
+                <div key={appointment.id} className="flex items-center justify-between p-3 bg-white rounded-lg border border-brand-cyan/10 shadow-sm">
                   <div className="flex items-center gap-3">
-                    <ServiceIcon className="h-4 w-4 text-blue-600" />
+                    <ServiceIcon className="h-4 w-4 text-brand-orange" />
                     <div>
                       <p className="font-medium text-sm">{appointment.nomeTutor} - {appointment.nomePet}</p>
                       <p className="text-xs text-muted-foreground">{appointment.servicoRealizar}</p>
@@ -144,8 +155,8 @@ const CalendarView = ({ appointments }: CalendarViewProps) => {
 
     return (
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">
+        <div className="flex items-center justify-between bg-white/80 backdrop-blur-sm p-4 rounded-lg border border-brand-cyan/20">
+          <h3 className="text-lg font-semibold text-brand-cyan">
             Semana de {format(weekStart, 'dd MMM', { locale: ptBR })} - {format(weekEnd, 'dd MMM yyyy', { locale: ptBR })}
           </h3>
           <div className="flex gap-2">
@@ -153,20 +164,30 @@ const CalendarView = ({ appointments }: CalendarViewProps) => {
               variant="outline"
               size="sm"
               onClick={() => setSelectedDate(addDays(selectedDate, -7))}
+              className="border-brand-cyan hover:bg-brand-cyan hover:text-white"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <Button
               variant="outline"
               size="sm"
+              onClick={() => setSelectedDate(new Date())}
+              className="border-brand-orange hover:bg-brand-orange hover:text-white px-4"
+            >
+              Hoje
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => setSelectedDate(addDays(selectedDate, 7))}
+              className="border-brand-cyan hover:bg-brand-cyan hover:text-white"
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
         </div>
 
-        <div className="grid grid-cols-8 gap-2">
+        <div className="grid grid-cols-8 gap-2 bg-white/90 backdrop-blur-sm rounded-lg border border-brand-cyan/20 p-4">
           <div className="font-semibold text-sm p-2">Horário</div>
           {weekDays.map(day => (
             <div key={day.toString()} className="font-semibold text-sm p-2 text-center">
@@ -185,7 +206,7 @@ const CalendarView = ({ appointments }: CalendarViewProps) => {
                 return (
                   <div key={`${day}-${hour}`} className="min-h-[60px] p-1 border border-gray-100">
                     {appointmentsForHour.map(apt => (
-                      <div key={apt.id} className="text-xs bg-blue-100 p-1 rounded mb-1 truncate">
+                      <div key={apt.id} className="text-xs bg-brand-cyan/20 text-brand-cyan p-1 rounded mb-1 truncate">
                         <div className="font-medium">{apt.nomePet}</div>
                         <div className="text-gray-600">{apt.servicoRealizar}</div>
                       </div>
@@ -203,8 +224,8 @@ const CalendarView = ({ appointments }: CalendarViewProps) => {
   const renderDayView = () => {
     return (
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">
+        <div className="flex items-center justify-between bg-white/80 backdrop-blur-sm p-4 rounded-lg border border-brand-cyan/20">
+          <h3 className="text-lg font-semibold text-brand-cyan">
             {format(selectedDate, "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
           </h3>
           <div className="flex gap-2">
@@ -212,13 +233,23 @@ const CalendarView = ({ appointments }: CalendarViewProps) => {
               variant="outline"
               size="sm"
               onClick={() => setSelectedDate(addDays(selectedDate, -1))}
+              className="border-brand-cyan hover:bg-brand-cyan hover:text-white"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <Button
               variant="outline"
               size="sm"
+              onClick={() => setSelectedDate(new Date())}
+              className="border-brand-orange hover:bg-brand-orange hover:text-white px-4"
+            >
+              Hoje
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => setSelectedDate(addDays(selectedDate, 1))}
+              className="border-brand-cyan hover:bg-brand-cyan hover:text-white"
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
@@ -229,8 +260,8 @@ const CalendarView = ({ appointments }: CalendarViewProps) => {
           {workingHours.map(hour => {
             const appointmentsForHour = getAppointmentsForHour(selectedDate, hour);
             return (
-              <div key={hour} className="flex border rounded-lg">
-                <div className="w-20 p-4 bg-gray-50 text-center font-medium">
+              <div key={hour} className="flex border rounded-lg bg-white/90 backdrop-blur-sm border-brand-cyan/20">
+                <div className="w-20 p-4 bg-brand-cyan/10 text-center font-medium text-brand-cyan">
                   {hour}:00
                 </div>
                 <div className="flex-1 p-4 min-h-[80px]">
@@ -239,9 +270,9 @@ const CalendarView = ({ appointments }: CalendarViewProps) => {
                       {appointmentsForHour.map(appointment => {
                         const ServiceIcon = serviceIcons[appointment.servicoRealizar as keyof typeof serviceIcons] || Clock;
                         return (
-                          <div key={appointment.id} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                          <div key={appointment.id} className="flex items-center justify-between p-3 bg-brand-cyan/5 rounded-lg border border-brand-cyan/10">
                             <div className="flex items-center gap-3">
-                              <ServiceIcon className="h-4 w-4 text-blue-600" />
+                              <ServiceIcon className="h-4 w-4 text-brand-orange" />
                               <div>
                                 <p className="font-medium">{appointment.nomeTutor} - {appointment.nomePet}</p>
                                 <p className="text-sm text-muted-foreground">{appointment.servicoRealizar}</p>
@@ -271,20 +302,26 @@ const CalendarView = ({ appointments }: CalendarViewProps) => {
   };
 
   return (
-    <Card className="bg-white/70 backdrop-blur-sm">
+    <Card className="bg-white/90 backdrop-blur-sm border-brand-cyan/20">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <CalendarIcon className="h-5 w-5 text-purple-600" />
+        <CardTitle className="flex items-center gap-2 text-brand-cyan">
+          <CalendarIcon className="h-5 w-5" />
           Calendário de Agendamentos
         </CardTitle>
         <CardDescription>Visualize os agendamentos por mês, semana ou dia</CardDescription>
       </CardHeader>
       <CardContent>
         <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as "month" | "week" | "day")}>
-          <TabsList className="grid w-full grid-cols-3 mb-6">
-            <TabsTrigger value="month">Mês</TabsTrigger>
-            <TabsTrigger value="week">Semana</TabsTrigger>
-            <TabsTrigger value="day">Dia</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 mb-6 bg-white/80 backdrop-blur-sm">
+            <TabsTrigger value="month" className="data-[state=active]:bg-brand-cyan data-[state=active]:text-white">
+              Mês
+            </TabsTrigger>
+            <TabsTrigger value="week" className="data-[state=active]:bg-brand-orange data-[state=active]:text-white">
+              Semana
+            </TabsTrigger>
+            <TabsTrigger value="day" className="data-[state=active]:bg-brand-yellow data-[state=active]:text-gray-800">
+              Dia
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="month">
