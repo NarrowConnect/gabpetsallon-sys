@@ -163,7 +163,8 @@ const PetsManager = () => {
         celular_veterinario: formData.celular_veterinario,
         endereco_veterinario: formData.endereco_veterinario,
         cidade_veterinario: formData.cidade_veterinario,
-        estado_veterinario: formData.estado_veterinario
+        estado_veterinario: formData.estado_veterinario,
+        tutor_id: null
       };
 
       if (editingPet) {

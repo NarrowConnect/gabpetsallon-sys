@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -66,12 +65,12 @@ const FinanceManager = () => {
 
   const [expenses, setExpenses] = useState(currentExpenses);
   const [income, setIncome] = useState({
-    banhosPortePequeno: currentIncome.banhos_porte_pequeno || 0,
-    banhosPorteGrande: currentIncome.banhos_porte_grande || 0,
-    tosas: currentIncome.tosas || 0,
-    hospedagens: currentIncome.hospedagens || 0,
-    roupas: currentIncome.roupas || 0,
-    taxiDog: currentIncome.taxi_dog || 0
+    banhosPortePequeno: Number(currentIncome.banhos_porte_pequeno) || 0,
+    banhosPorteGrande: Number(currentIncome.banhos_porte_grande) || 0,
+    tosas: Number(currentIncome.tosas) || 0,
+    hospedagens: Number(currentIncome.hospedagens) || 0,
+    roupas: Number(currentIncome.roupas) || 0,
+    taxiDog: Number(currentIncome.taxi_dog) || 0
   });
 
   const [serviceValues] = useState({
@@ -104,7 +103,7 @@ const FinanceManager = () => {
         const mappedIncomes: CustomIncome[] = receitas.map(item => ({
           id: item.id,
           description: item.descricao,
-          value: item.valor,
+          value: Number(item.valor),
           date: item.data_receita,
           category: 'Personalizada'
         }));
@@ -121,7 +120,7 @@ const FinanceManager = () => {
         const mappedExpenses: CustomExpense[] = despesas.map(item => ({
           id: item.id,
           description: item.descricao,
-          value: item.valor,
+          value: Number(item.valor),
           date: item.data_despesa,
           category: 'Personalizada'
         }));
@@ -138,7 +137,7 @@ const FinanceManager = () => {
     setExpenses(newExpenses);
 
     try {
-      const totalSaidas = Object.values(newExpenses).reduce((sum, val) => sum + (val || 0), 0);
+      const totalSaidas = Object.values(newExpenses).reduce((sum, val) => sum + Number(val || 0), 0);
       await updateDespesas(currentMonth, { ...newExpenses, total_saidas: totalSaidas });
     } catch (error) {
       toast({
@@ -166,7 +165,7 @@ const FinanceManager = () => {
 
       const totalEntradas = Object.entries(newIncome).reduce((sum, [key, quantity]) => {
         const value = serviceValues[key as keyof typeof serviceValues];
-        return sum + (quantity * value);
+        return sum + (Number(quantity) * Number(value));
       }, 0);
 
       await updateReceitas(currentMonth, { ...supabaseData, total_entradas: totalEntradas });
@@ -179,13 +178,13 @@ const FinanceManager = () => {
     }
   };
 
-  const totalExpenses = Object.values(expenses).reduce((sum, value) => sum + (value || 0), 0);
+  const totalExpenses = Object.values(expenses).reduce((sum, value) => sum + Number(value || 0), 0);
   const totalServiceIncome = Object.entries(income).reduce((sum, [key, quantity]) => {
     const value = serviceValues[key as keyof typeof serviceValues];
-    return sum + (quantity * value);
+    return sum + (Number(quantity) * Number(value));
   }, 0);
-  const totalCustomIncome = customIncomes.reduce((sum, income) => sum + income.value, 0);
-  const totalCustomExpenses = customExpenses.reduce((sum, expense) => sum + expense.value, 0);
+  const totalCustomIncome = customIncomes.reduce((sum, income) => sum + Number(income.value), 0);
+  const totalCustomExpenses = customExpenses.reduce((sum, expense) => sum + Number(expense.value), 0);
   
   const totalIncome = totalServiceIncome + totalCustomIncome;
   const totalAllExpenses = totalExpenses + totalCustomExpenses;
@@ -470,7 +469,7 @@ const FinanceManager = () => {
                 {Object.entries(income).map(([key, quantity]) => {
                   const serviceName = serviceNames[key as keyof typeof serviceNames];
                   const unitValue = serviceValues[key as keyof typeof serviceValues];
-                  const totalValue = quantity * unitValue;
+                  const totalValue = Number(quantity) * Number(unitValue);
 
                   return (
                     <div key={key} className="flex items-center justify-between p-4 border rounded-lg bg-white/50 hover:bg-white/80 transition-colors">
@@ -532,7 +531,7 @@ const FinanceManager = () => {
                         <Input
                           type="number"
                           step="0.01"
-                          value={value || 0}
+                          value={Number(value) || 0}
                           onChange={(e) => handleExpenseChange(key, parseFloat(e.target.value) || 0)}
                           className="w-24 text-right"
                         />
