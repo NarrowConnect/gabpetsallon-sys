@@ -137,7 +137,9 @@ const FinanceManager = () => {
     setExpenses(newExpenses);
 
     try {
-      const totalSaidas = Object.values(newExpenses).reduce((sum: number, val) => sum + Number(val || 0), 0);
+      const totalSaidas = Object.values(newExpenses).reduce((sum: number, val: string | number) => {
+        return sum + Number(val || 0);
+      }, 0);
       await updateDespesas(currentMonth, { ...newExpenses, total_saidas: totalSaidas });
     } catch (error) {
       toast({
@@ -178,13 +180,22 @@ const FinanceManager = () => {
     }
   };
 
-  const totalExpenses = Object.values(expenses).reduce((sum: number, value) => sum + Number(value || 0), 0);
+  const totalExpenses = Object.values(expenses).reduce((sum: number, value: string | number) => {
+    return sum + Number(value || 0);
+  }, 0);
+  
   const totalServiceIncome = Object.entries(income).reduce((sum: number, [key, quantity]) => {
     const value = serviceValues[key as keyof typeof serviceValues];
     return sum + (Number(quantity) * Number(value));
   }, 0);
-  const totalCustomIncome = customIncomes.reduce((sum: number, income) => sum + Number(income.value), 0);
-  const totalCustomExpenses = customExpenses.reduce((sum: number, expense) => sum + Number(expense.value), 0);
+  
+  const totalCustomIncome = customIncomes.reduce((sum: number, income) => {
+    return sum + Number(income.value);
+  }, 0);
+  
+  const totalCustomExpenses = customExpenses.reduce((sum: number, expense) => {
+    return sum + Number(expense.value);
+  }, 0);
   
   const totalIncome = totalServiceIncome + totalCustomIncome;
   const totalAllExpenses = totalExpenses + totalCustomExpenses;
