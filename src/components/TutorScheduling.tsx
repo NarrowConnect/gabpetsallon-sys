@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,16 +8,18 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar, Clock, PawPrint, LogOut, Plus, Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import TutorAppointments from "./TutorAppointments";
 
 interface TutorSchedulingProps {
-  tutorData: { nome: string; telefone: string };
+  tutorData: { id: string; nome: string; celular: string };
   onLogout: () => void;
 }
 
 const TutorScheduling = ({ tutorData, onLogout }: TutorSchedulingProps) => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("novo");
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     nomePet: "",
     racaPet: "",
@@ -47,38 +48,70 @@ const TutorScheduling = ({ tutorData, onLogout }: TutorSchedulingProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
     
-    // Aqui você integraria com Supabase para salvar o agendamento
-    const agendamento = {
-      tutor_nome: tutorData.nome,
-      tutor_telefone: tutorData.telefone,
-      pet_nome: formData.nomePet,
-      pet_raca: formData.racaPet,
-      pet_porte: formData.portePet,
-      data_servico: formData.dataServico,
-      hora_servico: formData.horaServico,
-      servico: formData.servicoRealizar,
-      observacoes: formData.observacoes,
-      status: "Agendado"
-    };
+    try {
+      const agendamentoData = {
+        tutor_id: tutorData.id,
+        tutor_nome: tutorData.nome,
+        tutor_telefone: tutorData.celular,
+        pet_nome: formData.nomePet,
+        pet_raca: formData.racaPet,
+        pet_porte: formData.portePet,
+        data_servico: formData.dataServico,
+        hora_servico: formData.horaServico,
+        servico: formData.servicoRealizar,
+        observacoes: formData.observacoes,
+        status: "Solicitado",
+        origem: "tutor"
+      };
 
-    console.log("Dados para enviar ao Supabase:", agendamento);
+      const { data, error } = await supabase
+        .from('agendamentos_tutores')
+        .insert([agendamentoData])
+        .select()
+        .single();
 
-    // Reset form
-    setFormData({
-      nomePet: "",
-      racaPet: "",
-      portePet: "",
-      dataServico: "",
-      horaServico: "",
-      servicoRealizar: "",
-      observacoes: ""
-    });
+      if (error) {
+        console.error('Erro ao criar agendamento:', error);
+        toast({
+          title: "Erro ao agendar",
+          description: "Não foi possível criar o agendamento. Tente novamente.",
+          variant: "destructive"
+        });
+        return;
+      }
 
-    toast({
-      title: "Agendamento solicitado!",
-      description: "Seu agendamento foi enviado e será confirmado em breve.",
-    });
+      console.log('Agendamento criado:', data);
+
+      // Reset form
+      setFormData({
+        nomePet: "",
+        racaPet: "",
+        portePet: "",
+        dataServico: "",
+        horaServico: "",
+        servicoRealizar: "",
+        observacoes: ""
+      });
+
+      toast({
+        title: "Agendamento solicitado!",
+        description: "Seu agendamento foi enviado e será confirmado em breve.",
+      });
+
+      // Switch to appointments tab to show the new appointment
+      setActiveTab("meus");
+    } catch (error) {
+      console.error('Erro:', error);
+      toast({
+        title: "Erro",
+        description: "Erro interno do servidor.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -87,7 +120,7 @@ const TutorScheduling = ({ tutorData, onLogout }: TutorSchedulingProps) => {
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-4">
             <img 
-              src="/lovable-uploads/becdcf34-2926-47cf-86b4-0d3e413832f7.png" 
+              src="https://i.ibb.co/pB99tpqL/Marca-Vertical.png" 
               alt="GabPetSallon" 
               className="h-12"
             />
@@ -137,17 +170,18 @@ const TutorScheduling = ({ tutorData, onLogout }: TutorSchedulingProps) => {
                         value={formData.nomePet}
                         onChange={(e) => setFormData({ ...formData, nomePet: e.target.value })}
                         required
+                        disabled={loading}
                         className="border-gray-300 focus:border-brand-cyan focus:ring-brand-cyan"
                       />
                     </div>
                     <div>
                       <Label htmlFor="racaPet">Raça</Label>
-                      <Select value={formData.racaPet} onValueChange={(value) => setFormData({ ...formData, racaPet: value })}>
+                      <Select value={formData.racaPet} onValueChange={(value) => setFormData({ ...formData, racaPet: value })} disabled={loading}>
                         <SelectTrigger className="border-gray-300 focus:border-brand-cyan focus:ring-brand-cyan">
                           <SelectValue placeholder="Selecione a raça" />
                         </SelectTrigger>
                         <SelectContent>
-                          {racas.map((raca) => (
+                          {["SRD", "Akita-Inu", "American Bully", "Border Collie", "Bull Terrier", "Bulldog Francês", "Bulldog Inglês", "Cane Corso", "Chow Chow", "Chihuahua", "Dogo Alemão", "Dogo Argentino", "Fila Brasileiro", "Golden Retriever", "Husky Siberiano", "Kangal", "Pastor Alemão", "Pastor Belga", "Pastor de Malinoa", "Pastor Malemano", "Pincher", "Pit Bull", "Pit Monster", "Presa Canário", "Rottweiler Americano", "Rottweiler Inglês", "Samoieda", "São Bernardo", "Schnauzer", "Scottish Terrier", "Shiba-Inu"].sort().map((raca) => (
                             <SelectItem key={raca} value={raca}>{raca}</SelectItem>
                           ))}
                         </SelectContent>
@@ -155,7 +189,7 @@ const TutorScheduling = ({ tutorData, onLogout }: TutorSchedulingProps) => {
                     </div>
                     <div>
                       <Label htmlFor="portePet">Porte</Label>
-                      <Select value={formData.portePet} onValueChange={(value) => setFormData({ ...formData, portePet: value })}>
+                      <Select value={formData.portePet} onValueChange={(value) => setFormData({ ...formData, portePet: value })} disabled={loading}>
                         <SelectTrigger className="border-gray-300 focus:border-brand-cyan focus:ring-brand-cyan">
                           <SelectValue placeholder="Selecione o porte" />
                         </SelectTrigger>
@@ -169,12 +203,12 @@ const TutorScheduling = ({ tutorData, onLogout }: TutorSchedulingProps) => {
                     </div>
                     <div>
                       <Label htmlFor="servicoRealizar">Serviço</Label>
-                      <Select value={formData.servicoRealizar} onValueChange={(value) => setFormData({ ...formData, servicoRealizar: value })}>
+                      <Select value={formData.servicoRealizar} onValueChange={(value) => setFormData({ ...formData, servicoRealizar: value })} disabled={loading}>
                         <SelectTrigger className="border-gray-300 focus:border-brand-cyan focus:ring-brand-cyan">
                           <SelectValue placeholder="Selecione o serviço" />
                         </SelectTrigger>
                         <SelectContent>
-                          {servicos.map((servico) => (
+                          {["Banho", "Tosa", "Banho e Tosa", "Banho Medicamentoso", "Hospedagem", "Pet Sitter", "Taxi Dog"].map((servico) => (
                             <SelectItem key={servico} value={servico}>{servico}</SelectItem>
                           ))}
                         </SelectContent>
@@ -189,25 +223,20 @@ const TutorScheduling = ({ tutorData, onLogout }: TutorSchedulingProps) => {
                         onChange={(e) => setFormData({ ...formData, dataServico: e.target.value })}
                         min={new Date().toISOString().split('T')[0]}
                         required
+                        disabled={loading}
                         className="border-gray-300 focus:border-brand-cyan focus:ring-brand-cyan"
                       />
                     </div>
                     <div>
                       <Label htmlFor="horaServico">Horário Preferido</Label>
-                      <Select value={formData.horaServico} onValueChange={(value) => setFormData({ ...formData, horaServico: value })}>
+                      <Select value={formData.horaServico} onValueChange={(value) => setFormData({ ...formData, horaServico: value })} disabled={loading}>
                         <SelectTrigger className="border-gray-300 focus:border-brand-cyan focus:ring-brand-cyan">
                           <SelectValue placeholder="Selecione o horário" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="08:00">08:00</SelectItem>
-                          <SelectItem value="09:00">09:00</SelectItem>
-                          <SelectItem value="10:00">10:00</SelectItem>
-                          <SelectItem value="11:00">11:00</SelectItem>
-                          <SelectItem value="13:00">13:00</SelectItem>
-                          <SelectItem value="14:00">14:00</SelectItem>
-                          <SelectItem value="15:00">15:00</SelectItem>
-                          <SelectItem value="16:00">16:00</SelectItem>
-                          <SelectItem value="17:00">17:00</SelectItem>
+                          {["08:00", "09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00", "17:00"].map((hora) => (
+                            <SelectItem key={hora} value={hora}>{hora}</SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
@@ -220,12 +249,17 @@ const TutorScheduling = ({ tutorData, onLogout }: TutorSchedulingProps) => {
                       onChange={(e) => setFormData({ ...formData, observacoes: e.target.value })}
                       placeholder="Alguma observação especial sobre seu pet ou preferência para o serviço?"
                       rows={3}
+                      disabled={loading}
                       className="border-gray-300 focus:border-brand-cyan focus:ring-brand-cyan"
                     />
                   </div>
-                  <Button type="submit" className="w-full bg-gradient-to-r from-brand-cyan to-brand-orange hover:from-brand-cyan/90 hover:to-brand-orange/90 text-white">
+                  <Button 
+                    type="submit" 
+                    className="w-full bg-gradient-to-r from-brand-cyan to-brand-orange hover:from-brand-cyan/90 hover:to-brand-orange/90 text-white"
+                    disabled={loading}
+                  >
                     <PawPrint className="mr-2 h-4 w-4" />
-                    Solicitar Agendamento
+                    {loading ? "Enviando..." : "Solicitar Agendamento"}
                   </Button>
                 </form>
               </CardContent>
