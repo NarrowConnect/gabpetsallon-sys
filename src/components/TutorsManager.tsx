@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,94 +6,33 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { PlusCircle, Search, Edit, Trash2, Phone, MapPin, UserPlus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
-interface Tutor {
-  id: string;
-  nome: string;
-  telefoneResidencial: string;
-  celular: string;
-  endereco: string;
-  cep: string;
-  cidade: string;
-  estado: string;
-  nomeVeterinario: string;
-  telefoneVeterinario: string;
-  celularVeterinario: string;
-  enderecoVeterinario: string;
-  cidadeVeterinario: string;
-  estadoVeterinario: string;
-  contatoAdicional1Nome: string;
-  contatoAdicional1Telefone: string;
-  contatoAdicional2Nome: string;
-  contatoAdicional2Telefone: string;
-}
+import { useTutors } from "@/hooks/useSupabase";
 
 const TutorsManager = () => {
   const { toast } = useToast();
-  const [tutors, setTutors] = useState<Tutor[]>([
-    {
-      id: "1",
-      nome: "Maria Silva",
-      telefoneResidencial: "(41) 3333-4444",
-      celular: "(41) 99999-8888",
-      endereco: "Rua das Flores, 123",
-      cep: "80000-000",
-      cidade: "Curitiba",
-      estado: "PR",
-      nomeVeterinario: "Dr. João Santos",
-      telefoneVeterinario: "(41) 3333-5555",
-      celularVeterinario: "(41) 99999-7777",
-      enderecoVeterinario: "Av. Veterinária, 123",
-      cidadeVeterinario: "Curitiba",
-      estadoVeterinario: "PR",
-      contatoAdicional1Nome: "Pedro Silva",
-      contatoAdicional1Telefone: "(41) 99999-1111",
-      contatoAdicional2Nome: "",
-      contatoAdicional2Telefone: ""
-    },
-    {
-      id: "2",
-      nome: "João Santos",
-      telefoneResidencial: "(41) 3333-5555",
-      celular: "(41) 99999-7777",
-      endereco: "Av. Brasil, 456",
-      cep: "80000-001",
-      cidade: "Curitiba",
-      estado: "PR",
-      nomeVeterinario: "Dra. Ana Costa",
-      telefoneVeterinario: "(41) 3333-6666",
-      celularVeterinario: "(41) 99999-2222",
-      enderecoVeterinario: "Rua dos Veterinários, 456",
-      cidadeVeterinario: "Curitiba",
-      estadoVeterinario: "PR",
-      contatoAdicional1Nome: "",
-      contatoAdicional1Telefone: "",
-      contatoAdicional2Nome: "",
-      contatoAdicional2Telefone: ""
-    }
-  ]);
-
+  const { tutors, loading, error, addTutor, updateTutor, deleteTutor } = useTutors();
+  
   const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingTutor, setEditingTutor] = useState<Tutor | null>(null);
+  const [editingTutor, setEditingTutor] = useState<any>(null);
   const [formData, setFormData] = useState({
     nome: "",
-    telefoneResidencial: "",
+    telefone_residencial: "",
     celular: "",
     endereco: "",
     cep: "",
     cidade: "",
     estado: "",
-    nomeVeterinario: "",
-    telefoneVeterinario: "",
-    celularVeterinario: "",
-    enderecoVeterinario: "",
-    cidadeVeterinario: "",
-    estadoVeterinario: "",
-    contatoAdicional1Nome: "",
-    contatoAdicional1Telefone: "",
-    contatoAdicional2Nome: "",
-    contatoAdicional2Telefone: ""
+    nome_veterinario: "",
+    telefone_veterinario: "",
+    celular_veterinario: "",
+    endereco_veterinario: "",
+    cidade_veterinario: "",
+    estado_veterinario: "",
+    contato_adicional_1_nome: "",
+    contato_adicional_1_telefone: "",
+    contato_adicional_2_nome: "",
+    contato_adicional_2_telefone: ""
   });
 
   const filteredTutors = tutors.filter(tutor =>
@@ -105,87 +43,111 @@ const TutorsManager = () => {
   const resetForm = () => {
     setFormData({
       nome: "",
-      telefoneResidencial: "",
+      telefone_residencial: "",
       celular: "",
       endereco: "",
       cep: "",
       cidade: "",
       estado: "",
-      nomeVeterinario: "",
-      telefoneVeterinario: "",
-      celularVeterinario: "",
-      enderecoVeterinario: "",
-      cidadeVeterinario: "",
-      estadoVeterinario: "",
-      contatoAdicional1Nome: "",
-      contatoAdicional1Telefone: "",
-      contatoAdicional2Nome: "",
-      contatoAdicional2Telefone: ""
+      nome_veterinario: "",
+      telefone_veterinario: "",
+      celular_veterinario: "",
+      endereco_veterinario: "",
+      cidade_veterinario: "",
+      estado_veterinario: "",
+      contato_adicional_1_nome: "",
+      contato_adicional_1_telefone: "",
+      contato_adicional_2_nome: "",
+      contato_adicional_2_telefone: ""
     });
     setEditingTutor(null);
   };
 
-  const handleEdit = (tutor: Tutor) => {
+  const handleEdit = (tutor: any) => {
     setEditingTutor(tutor);
     setFormData({
-      nome: tutor.nome,
-      telefoneResidencial: tutor.telefoneResidencial,
-      celular: tutor.celular,
-      endereco: tutor.endereco,
-      cep: tutor.cep,
-      cidade: tutor.cidade,
-      estado: tutor.estado,
-      nomeVeterinario: tutor.nomeVeterinario,
-      telefoneVeterinario: tutor.telefoneVeterinario,
-      celularVeterinario: tutor.celularVeterinario,
-      enderecoVeterinario: tutor.enderecoVeterinario,
-      cidadeVeterinario: tutor.cidadeVeterinario,
-      estadoVeterinario: tutor.estadoVeterinario,
-      contatoAdicional1Nome: tutor.contatoAdicional1Nome,
-      contatoAdicional1Telefone: tutor.contatoAdicional1Telefone,
-      contatoAdicional2Nome: tutor.contatoAdicional2Nome,
-      contatoAdicional2Telefone: tutor.contatoAdicional2Telefone
+      nome: tutor.nome || "",
+      telefone_residencial: tutor.telefone_residencial || "",
+      celular: tutor.celular || "",
+      endereco: tutor.endereco || "",
+      cep: tutor.cep || "",
+      cidade: tutor.cidade || "",
+      estado: tutor.estado || "",
+      nome_veterinario: tutor.nome_veterinario || "",
+      telefone_veterinario: tutor.telefone_veterinario || "",
+      celular_veterinario: tutor.celular_veterinario || "",
+      endereco_veterinario: tutor.endereco_veterinario || "",
+      cidade_veterinario: tutor.cidade_veterinario || "",
+      estado_veterinario: tutor.estado_veterinario || "",
+      contato_adicional_1_nome: tutor.contato_adicional_1_nome || "",
+      contato_adicional_1_telefone: tutor.contato_adicional_1_telefone || "",
+      contato_adicional_2_nome: tutor.contato_adicional_2_nome || "",
+      contato_adicional_2_telefone: tutor.contato_adicional_2_telefone || ""
     });
     setIsDialogOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (editingTutor) {
-      const updatedTutor: Tutor = {
-        ...editingTutor,
-        ...formData
-      };
-      setTutors(tutors.map(tutor => tutor.id === editingTutor.id ? updatedTutor : tutor));
+    try {
+      if (editingTutor) {
+        await updateTutor(editingTutor.id, formData);
+        toast({
+          title: "Tutor atualizado com sucesso!",
+          description: `${formData.nome} foi atualizado no sistema.`,
+        });
+      } else {
+        await addTutor(formData);
+        toast({
+          title: "Tutor cadastrado com sucesso!",
+          description: `${formData.nome} foi adicionado ao sistema.`,
+        });
+      }
+      
+      resetForm();
+      setIsDialogOpen(false);
+    } catch (error) {
       toast({
-        title: "Tutor atualizado com sucesso!",
-        description: `${formData.nome} foi atualizado no sistema.`,
-      });
-    } else {
-      const newTutor: Tutor = {
-        id: Date.now().toString(),
-        ...formData
-      };
-      setTutors([...tutors, newTutor]);
-      toast({
-        title: "Tutor cadastrado com sucesso!",
-        description: `${formData.nome} foi adicionado ao sistema.`,
+        title: "Erro",
+        description: "Ocorreu um erro ao salvar o tutor.",
+        variant: "destructive"
       });
     }
-    
-    resetForm();
-    setIsDialogOpen(false);
   };
 
-  const handleDelete = (id: string) => {
-    setTutors(tutors.filter(tutor => tutor.id !== id));
-    toast({
-      title: "Tutor removido",
-      description: "O tutor foi removido do sistema.",
-      variant: "destructive"
-    });
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteTutor(id);
+      toast({
+        title: "Tutor removido",
+        description: "O tutor foi removido do sistema.",
+        variant: "destructive"
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro ao remover o tutor.",
+        variant: "destructive"
+      });
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-red-600">Erro ao carregar tutores: {error}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -235,11 +197,11 @@ const TutorsManager = () => {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="telefoneResidencial">Telefone Residencial</Label>
+                    <Label htmlFor="telefone_residencial">Telefone Residencial</Label>
                     <Input
-                      id="telefoneResidencial"
-                      value={formData.telefoneResidencial}
-                      onChange={(e) => setFormData({ ...formData, telefoneResidencial: e.target.value })}
+                      id="telefone_residencial"
+                      value={formData.telefone_residencial}
+                      onChange={(e) => setFormData({ ...formData, telefone_residencial: e.target.value })}
                       placeholder="(41) 3333-4444"
                     />
                   </div>
@@ -284,43 +246,43 @@ const TutorsManager = () => {
                 <h3 className="text-lg font-semibold">Dados do Veterinário</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="nomeVeterinario">Nome do Veterinário</Label>
+                    <Label htmlFor="nome_veterinario">Nome do Veterinário</Label>
                     <Input
-                      id="nomeVeterinario"
-                      value={formData.nomeVeterinario}
-                      onChange={(e) => setFormData({ ...formData, nomeVeterinario: e.target.value })}
+                      id="nome_veterinario"
+                      value={formData.nome_veterinario}
+                      onChange={(e) => setFormData({ ...formData, nome_veterinario: e.target.value })}
                     />
                   </div>
                   <div>
-                    <Label htmlFor="telefoneVeterinario">Telefone do Veterinário</Label>
+                    <Label htmlFor="telefone_veterinario">Telefone do Veterinário</Label>
                     <Input
-                      id="telefoneVeterinario"
-                      value={formData.telefoneVeterinario}
-                      onChange={(e) => setFormData({ ...formData, telefoneVeterinario: e.target.value })}
+                      id="telefone_veterinario"
+                      value={formData.telefone_veterinario}
+                      onChange={(e) => setFormData({ ...formData, telefone_veterinario: e.target.value })}
                     />
                   </div>
                   <div>
-                    <Label htmlFor="celularVeterinario">Celular do Veterinário</Label>
+                    <Label htmlFor="celular_veterinario">Celular do Veterinário</Label>
                     <Input
-                      id="celularVeterinario"
-                      value={formData.celularVeterinario}
-                      onChange={(e) => setFormData({ ...formData, celularVeterinario: e.target.value })}
+                      id="celular_veterinario"
+                      value={formData.celular_veterinario}
+                      onChange={(e) => setFormData({ ...formData, celular_veterinario: e.target.value })}
                     />
                   </div>
                   <div>
-                    <Label htmlFor="cidadeVeterinario">Cidade do Veterinário</Label>
+                    <Label htmlFor="cidade_veterinario">Cidade do Veterinário</Label>
                     <Input
-                      id="cidadeVeterinario"
-                      value={formData.cidadeVeterinario}
-                      onChange={(e) => setFormData({ ...formData, cidadeVeterinario: e.target.value })}
+                      id="cidade_veterinario"
+                      value={formData.cidade_veterinario}
+                      onChange={(e) => setFormData({ ...formData, cidade_veterinario: e.target.value })}
                     />
                   </div>
                   <div className="sm:col-span-2">
-                    <Label htmlFor="enderecoVeterinario">Endereço do Veterinário</Label>
+                    <Label htmlFor="endereco_veterinario">Endereço do Veterinário</Label>
                     <Input
-                      id="enderecoVeterinario"
-                      value={formData.enderecoVeterinario}
-                      onChange={(e) => setFormData({ ...formData, enderecoVeterinario: e.target.value })}
+                      id="endereco_veterinario"
+                      value={formData.endereco_veterinario}
+                      onChange={(e) => setFormData({ ...formData, endereco_veterinario: e.target.value })}
                     />
                   </div>
                 </div>
@@ -330,35 +292,35 @@ const TutorsManager = () => {
                 <h3 className="text-lg font-semibold">Contatos Adicionais</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="contatoAdicional1Nome">Nome do 1º Contato</Label>
+                    <Label htmlFor="contato_adicional_1_nome">Nome do 1º Contato</Label>
                     <Input
-                      id="contatoAdicional1Nome"
-                      value={formData.contatoAdicional1Nome}
-                      onChange={(e) => setFormData({ ...formData, contatoAdicional1Nome: e.target.value })}
+                      id="contato_adicional_1_nome"
+                      value={formData.contato_adicional_1_nome}
+                      onChange={(e) => setFormData({ ...formData, contato_adicional_1_nome: e.target.value })}
                     />
                   </div>
                   <div>
-                    <Label htmlFor="contatoAdicional1Telefone">Telefone do 1º Contato</Label>
+                    <Label htmlFor="contato_adicional_1_telefone">Telefone do 1º Contato</Label>
                     <Input
-                      id="contatoAdicional1Telefone"
-                      value={formData.contatoAdicional1Telefone}
-                      onChange={(e) => setFormData({ ...formData, contatoAdicional1Telefone: e.target.value })}
+                      id="contato_adicional_1_telefone"
+                      value={formData.contato_adicional_1_telefone}
+                      onChange={(e) => setFormData({ ...formData, contato_adicional_1_telefone: e.target.value })}
                     />
                   </div>
                   <div>
-                    <Label htmlFor="contatoAdicional2Nome">Nome do 2º Contato</Label>
+                    <Label htmlFor="contato_adicional_2_nome">Nome do 2º Contato</Label>
                     <Input
-                      id="contatoAdicional2Nome"
-                      value={formData.contatoAdicional2Nome}
-                      onChange={(e) => setFormData({ ...formData, contatoAdicional2Nome: e.target.value })}
+                      id="contato_adicional_2_nome"
+                      value={formData.contato_adicional_2_nome}
+                      onChange={(e) => setFormData({ ...formData, contato_adicional_2_nome: e.target.value })}
                     />
                   </div>
                   <div>
-                    <Label htmlFor="contatoAdicional2Telefone">Telefone do 2º Contato</Label>
+                    <Label htmlFor="contato_adicional_2_telefone">Telefone do 2º Contato</Label>
                     <Input
-                      id="contatoAdicional2Telefone"
-                      value={formData.contatoAdicional2Telefone}
-                      onChange={(e) => setFormData({ ...formData, contatoAdicional2Telefone: e.target.value })}
+                      id="contato_adicional_2_telefone"
+                      value={formData.contato_adicional_2_telefone}
+                      onChange={(e) => setFormData({ ...formData, contato_adicional_2_telefone: e.target.value })}
                     />
                   </div>
                 </div>
@@ -391,54 +353,66 @@ const TutorsManager = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredTutors.map((tutor) => (
-              <Card key={tutor.id} className="hover:shadow-lg transition-all duration-300 bg-white/80">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg">{tutor.nome}</CardTitle>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Phone className="h-4 w-4" />
-                    {tutor.celular}
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <div className="flex items-start gap-2 text-sm">
-                    <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground" />
-                    <div>
-                      <p>{tutor.endereco}</p>
-                      <p className="text-muted-foreground">{tutor.cidade}, {tutor.estado} - {tutor.cep}</p>
+          {filteredTutors.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">Nenhum tutor encontrado.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredTutors.map((tutor) => (
+                <Card key={tutor.id} className="hover:shadow-lg transition-all duration-300 bg-white/80">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg">{tutor.nome}</CardTitle>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Phone className="h-4 w-4" />
+                      {tutor.celular}
                     </div>
-                  </div>
-                  {tutor.nomeVeterinario && (
-                    <div className="text-sm">
-                      <p className="font-medium">Veterinário: {tutor.nomeVeterinario}</p>
-                      <p className="text-muted-foreground text-xs">{tutor.celularVeterinario}</p>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    {tutor.endereco && (
+                      <div className="flex items-start gap-2 text-sm">
+                        <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                        <div>
+                          <p>{tutor.endereco}</p>
+                          {tutor.cidade && tutor.estado && (
+                            <p className="text-muted-foreground">{tutor.cidade}, {tutor.estado} - {tutor.cep}</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    {tutor.nome_veterinario && (
+                      <div className="text-sm">
+                        <p className="font-medium">Veterinário: {tutor.nome_veterinario}</p>
+                        {tutor.celular_veterinario && (
+                          <p className="text-muted-foreground text-xs">{tutor.celular_veterinario}</p>
+                        )}
+                      </div>
+                    )}
+                    {(tutor.contato_adicional_1_nome || tutor.contato_adicional_2_nome) && (
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <UserPlus className="h-3 w-3" />
+                        <span>Contatos adicionais cadastrados</span>
+                      </div>
+                    )}
+                    <div className="flex gap-2 pt-2">
+                      <Button variant="outline" size="sm" className="flex-1" onClick={() => handleEdit(tutor)}>
+                        <Edit className="h-4 w-4 mr-1" />
+                        Editar
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        onClick={() => handleDelete(tutor.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
-                  )}
-                  {(tutor.contatoAdicional1Nome || tutor.contatoAdicional2Nome) && (
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <UserPlus className="h-3 w-3" />
-                      <span>Contatos adicionais cadastrados</span>
-                    </div>
-                  )}
-                  <div className="flex gap-2 pt-2">
-                    <Button variant="outline" size="sm" className="flex-1" onClick={() => handleEdit(tutor)}>
-                      <Edit className="h-4 w-4 mr-1" />
-                      Editar
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                      onClick={() => handleDelete(tutor.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

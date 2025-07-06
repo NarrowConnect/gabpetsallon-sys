@@ -1,13 +1,17 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DollarSign, TrendingUp, TrendingDown, Receipt, CreditCard, FileText } from "lucide-react";
+import { useFinancas } from "@/hooks/useSupabase";
+import { useToast } from "@/hooks/use-toast";
 import CustomIncomeManager from "./CustomIncomeManager";
 import CustomExpenseManager from "./CustomExpenseManager";
 import FinancialReports from "./FinancialReports";
+import { supabase } from "@/integrations/supabase/client";
 
 interface CustomIncome {
   id: string;
@@ -26,35 +30,51 @@ interface CustomExpense {
 }
 
 const FinanceManager = () => {
-  const [expenses, setExpenses] = useState({
-    aluguel: 1200.00,
-    copel: 150.00,
-    sanepar: 80.00,
-    internet: 99.90,
-    segurancaMensalidade: 120.00,
-    mei: 67.00,
-    celularMes: 89.90,
-    lavanderia: 200.00,
-    gasolina: 300.00,
-    tarifaBancaria: 25.00,
-    cartaoSantander: 450.00,
-    cartaoBB: 200.00,
-    cartaoNU: 150.00,
-    cartaoGab: 300.00,
-    boletoBiocom: 180.00,
-    boletoEuroshop: 95.00
-  });
+  const { toast } = useToast();
+  const { contasPagar, valoresRecebidos, loading, error, updateReceitas, updateDespesas } = useFinancas();
+  
+  const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM format
+  
+  // Find current month data or use defaults
+  const currentExpenses = contasPagar.find(item => item.mes_referencia === currentMonth) || {
+    aluguel: 0,
+    copel: 0,
+    sanepar: 0,
+    internet: 0,
+    seguranca_mensalidade: 0,
+    mei: 0,
+    celular_mes: 0,
+    lavanderia: 0,
+    gasolina: 0,
+    tarifa_bancaria: 0,
+    cartao_santander: 0,
+    cartao_bb: 0,
+    cartao_nu: 0,
+    cartao_gab: 0,
+    boleto_biocom: 0,
+    boleto_euroshop: 0
+  };
 
+  const currentIncome = valoresRecebidos.find(item => item.mes_referencia === currentMonth) || {
+    banhos_porte_pequeno: 0,
+    banhos_porte_grande: 0,
+    tosas: 0,
+    hospedagens: 0,
+    roupas: 0,
+    taxi_dog: 0
+  };
+
+  const [expenses, setExpenses] = useState(currentExpenses);
   const [income, setIncome] = useState({
-    banhosPortePequeno: 15,
-    banhosPorteGrande: 12,
-    tosas: 8,
-    hospedagens: 5,
-    roupas: 3,
-    taxiDog: 4
+    banhosPortePequeno: currentIncome.banhos_porte_pequeno || 0,
+    banhosPorteGrande: currentIncome.banhos_porte_grande || 0,
+    tosas: currentIncome.tosas || 0,
+    hospedagens: currentIncome.hospedagens || 0,
+    roupas: currentIncome.roupas || 0,
+    taxiDog: currentIncome.taxi_dog || 0
   });
 
-  const [serviceValues, setServiceValues] = useState({
+  const [serviceValues] = useState({
     banhosPortePequeno: 35.00,
     banhosPorteGrande: 50.00,
     tosas: 80.00,
@@ -67,7 +87,99 @@ const FinanceManager = () => {
   const [customExpenses, setCustomExpenses] = useState<CustomExpense[]>([]);
   const [reportData, setReportData] = useState<any[]>([]);
 
-  const totalExpenses = Object.values(expenses).reduce((sum, value) => sum + value, 0);
+  // Load custom incomes and expenses from Supabase
+  useEffect(() => {
+    loadCustomData();
+  }, []);
+
+  const loadCustomData = async () => {
+    try {
+      // Load custom incomes
+      const { data: receitas } = await supabase
+        .from('receitas_personalizadas')
+        .select('*')
+        .eq('mes_referencia', currentMonth);
+
+      if (receitas) {
+        const mappedIncomes: CustomIncome[] = receitas.map(item => ({
+          id: item.id,
+          description: item.descricao,
+          value: item.valor,
+          date: item.data_receita,
+          category: 'Personalizada'
+        }));
+        setCustomIncomes(mappedIncomes);
+      }
+
+      // Load custom expenses
+      const { data: despesas } = await supabase
+        .from('despesas_personalizadas')
+        .select('*')
+        .eq('mes_referencia', currentMonth);
+
+      if (despesas) {
+        const mappedExpenses: CustomExpense[] = despesas.map(item => ({
+          id: item.id,
+          description: item.descricao,
+          value: item.valor,
+          date: item.data_despesa,
+          category: 'Personalizada'
+        }));
+        setCustomExpenses(mappedExpenses);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar dados personalizados:', error);
+    }
+  };
+
+  // Update expenses in Supabase when they change
+  const handleExpenseChange = async (key: string, value: number) => {
+    const newExpenses = { ...expenses, [key]: value };
+    setExpenses(newExpenses);
+
+    try {
+      const totalSaidas = Object.values(newExpenses).reduce((sum, val) => sum + (val || 0), 0);
+      await updateDespesas(currentMonth, { ...newExpenses, total_saidas: totalSaidas });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao atualizar despesa.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Update income in Supabase when it changes
+  const handleIncomeChange = async (key: string, value: number) => {
+    const newIncome = { ...income, [key]: value };
+    setIncome(newIncome);
+
+    try {
+      const supabaseData = {
+        banhos_porte_pequeno: newIncome.banhosPortePequeno,
+        banhos_porte_grande: newIncome.banhosPorteGrande,
+        tosas: newIncome.tosas,
+        hospedagens: newIncome.hospedagens,
+        roupas: newIncome.roupas,
+        taxi_dog: newIncome.taxiDog
+      };
+
+      const totalEntradas = Object.entries(newIncome).reduce((sum, [key, quantity]) => {
+        const value = serviceValues[key as keyof typeof serviceValues];
+        return sum + (quantity * value);
+      }, 0);
+
+      await updateReceitas(currentMonth, { ...supabaseData, total_entradas: totalEntradas });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao atualizar receita.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const totalExpenses = Object.values(expenses).reduce((sum, value) => sum + (value || 0), 0);
   const totalServiceIncome = Object.entries(income).reduce((sum, [key, quantity]) => {
     const value = serviceValues[key as keyof typeof serviceValues];
     return sum + (quantity * value);
@@ -79,40 +191,156 @@ const FinanceManager = () => {
   const totalAllExpenses = totalExpenses + totalCustomExpenses;
   const netBalance = totalIncome - totalAllExpenses;
 
-  const handleAddCustomIncome = (income: Omit<CustomIncome, 'id'>) => {
-    const newIncome: CustomIncome = {
-      ...income,
-      id: Date.now().toString()
-    };
-    setCustomIncomes([...customIncomes, newIncome]);
+  const handleAddCustomIncome = async (income: Omit<CustomIncome, 'id'>) => {
+    try {
+      const { data, error } = await supabase
+        .from('receitas_personalizadas')
+        .insert([{
+          descricao: income.description,
+          valor: income.value,
+          data_receita: income.date,
+          mes_referencia: currentMonth
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      const newIncome: CustomIncome = {
+        id: data.id,
+        description: data.descricao,
+        value: data.valor,
+        date: data.data_receita,
+        category: 'Personalizada'
+      };
+      setCustomIncomes([...customIncomes, newIncome]);
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao adicionar receita personalizada.",
+        variant: "destructive"
+      });
+    }
   };
 
-  const handleUpdateCustomIncome = (id: string, updates: Partial<CustomIncome>) => {
-    setCustomIncomes(customIncomes.map(income => 
-      income.id === id ? { ...income, ...updates } : income
-    ));
+  const handleUpdateCustomIncome = async (id: string, updates: Partial<CustomIncome>) => {
+    try {
+      const { error } = await supabase
+        .from('receitas_personalizadas')
+        .update({
+          descricao: updates.description,
+          valor: updates.value,
+          data_receita: updates.date
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setCustomIncomes(customIncomes.map(income => 
+        income.id === id ? { ...income, ...updates } : income
+      ));
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao atualizar receita personalizada.",
+        variant: "destructive"
+      });
+    }
   };
 
-  const handleDeleteCustomIncome = (id: string) => {
-    setCustomIncomes(customIncomes.filter(income => income.id !== id));
+  const handleDeleteCustomIncome = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('receitas_personalizadas')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setCustomIncomes(customIncomes.filter(income => income.id !== id));
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao remover receita personalizada.",
+        variant: "destructive"
+      });
+    }
   };
 
-  const handleAddCustomExpense = (expense: Omit<CustomExpense, 'id'>) => {
-    const newExpense: CustomExpense = {
-      ...expense,
-      id: Date.now().toString()
-    };
-    setCustomExpenses([...customExpenses, newExpense]);
+  const handleAddCustomExpense = async (expense: Omit<CustomExpense, 'id'>) => {
+    try {
+      const { data, error } = await supabase
+        .from('despesas_personalizadas')
+        .insert([{
+          descricao: expense.description,
+          valor: expense.value,
+          data_despesa: expense.date,
+          mes_referencia: currentMonth
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      const newExpense: CustomExpense = {
+        id: data.id,
+        description: data.descricao,
+        value: data.valor,
+        date: data.data_despesa,
+        category: 'Personalizada'
+      };
+      setCustomExpenses([...customExpenses, newExpense]);
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao adicionar despesa personalizada.",
+        variant: "destructive"
+      });
+    }
   };
 
-  const handleUpdateCustomExpense = (id: string, updates: Partial<CustomExpense>) => {
-    setCustomExpenses(customExpenses.map(expense => 
-      expense.id === id ? { ...expense, ...updates } : expense
-    ));
+  const handleUpdateCustomExpense = async (id: string, updates: Partial<CustomExpense>) => {
+    try {
+      const { error } = await supabase
+        .from('despesas_personalizadas')
+        .update({
+          descricao: updates.description,
+          valor: updates.value,
+          data_despesa: updates.date
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setCustomExpenses(customExpenses.map(expense => 
+        expense.id === id ? { ...expense, ...updates } : expense
+      ));
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao atualizar despesa personalizada.",
+        variant: "destructive"
+      });
+    }
   };
 
-  const handleDeleteCustomExpense = (id: string) => {
-    setCustomExpenses(customExpenses.filter(expense => expense.id !== id));
+  const handleDeleteCustomExpense = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('despesas_personalizadas')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setCustomExpenses(customExpenses.filter(expense => expense.id !== id));
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao remover despesa personalizada.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleGenerateReport = (month: string, year: string) => {
@@ -140,19 +368,35 @@ const FinanceManager = () => {
     copel: 'COPEL (Energia)',
     sanepar: 'SANEPAR (Água)',
     internet: 'Internet',
-    segurancaMensalidade: 'Segurança',
+    seguranca_mensalidade: 'Segurança',
     mei: 'MEI',
-    celularMes: 'Celular',
+    celular_mes: 'Celular',
     lavanderia: 'Lavanderia',
     gasolina: 'Gasolina',
-    tarifaBancaria: 'Tarifa Bancária',
-    cartaoSantander: 'Cartão Santander',
-    cartaoBB: 'Cartão Banco do Brasil',
-    cartaoNU: 'Cartão Nubank',
-    cartaoGab: 'Cartão Gab',
-    boletoBiocom: 'Boleto Biocom',
-    boletoEuroshop: 'Boleto Euroshop'
+    tarifa_bancaria: 'Tarifa Bancária',
+    cartao_santander: 'Cartão Santander',
+    cartao_bb: 'Cartão Banco do Brasil',
+    cartao_nu: 'Cartão Nubank',
+    cartao_gab: 'Cartão Gab',
+    boleto_biocom: 'Boleto Biocom',
+    boleto_euroshop: 'Boleto Euroshop'
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-red-600">Erro ao carregar dados financeiros: {error}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -238,7 +482,7 @@ const FinanceManager = () => {
                         <Input
                           type="number"
                           value={quantity}
-                          onChange={(e) => setIncome({...income, [key]: parseInt(e.target.value) || 0})}
+                          onChange={(e) => handleIncomeChange(key, parseInt(e.target.value) || 0)}
                           className="w-20 text-center"
                         />
                         <span className="font-medium text-green-600 w-24 text-right">
@@ -278,6 +522,7 @@ const FinanceManager = () => {
               <div className="space-y-4">
                 {Object.entries(expenses).map(([key, value]) => {
                   const expenseName = expenseNames[key as keyof typeof expenseNames];
+                  if (!expenseName) return null;
 
                   return (
                     <div key={key} className="flex items-center justify-between p-4 border rounded-lg bg-white/50 hover:bg-white/80 transition-colors">
@@ -287,8 +532,8 @@ const FinanceManager = () => {
                         <Input
                           type="number"
                           step="0.01"
-                          value={value}
-                          onChange={(e) => setExpenses({...expenses, [key]: parseFloat(e.target.value) || 0})}
+                          value={value || 0}
+                          onChange={(e) => handleExpenseChange(key, parseFloat(e.target.value) || 0)}
                           className="w-24 text-right"
                         />
                       </div>

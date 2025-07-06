@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,106 +9,28 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Badge } from "@/components/ui/badge";
 import { PlusCircle, Search, Heart, Calendar, Weight, Stethoscope, Edit, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
-interface Pet {
-  id: string;
-  nomeTutor: string;
-  nomePet: string;
-  idade: number;
-  especie: string;
-  raca: string;
-  sexo: string;
-  porte: string;
-  castrado: boolean;
-  peso: number;
-  temperamento: string;
-  necessidadesEspeciais: string;
-  rotina: string;
-  saude: string;
-  tomaMedicamentos: boolean;
-  medicamentos: string;
-  vacinasVermifugos: string;
-  controleParasitario: string;
-  nomeVeterinario: string;
-  telefoneVeterinario: string;
-  celularVeterinario: string;
-  enderecoVeterinario: string;
-  cidadeVeterinario: string;
-  estadoVeterinario: string;
-}
+import { usePets } from "@/hooks/useSupabase";
 
 const racasComuns = [
-  "Cane Corso",
-  "Shiba-Inu", 
-  "Akita-Inu",
-  "Husky Siberiano",
-  "Dogo Alemão",
-  "Golden Retriever",
-  "Alabay",
-  "American Bully",
-  "Boder Collie",
-  "Bull Terrier",
-  "Bulldog Francês",
-  "Bulldog Inglês",
-  "Chiuaua",
-  "Chow Chow",
-  "Dogo Argentino",
-  "Fila Brasileiro",
-  "Kangal",
-  "Pastor Alemão",
-  "Pastor Belga",
-  "Pastor de Malinoa",
-  "Pastor Malemano",
-  "Pincher",
-  "Pit Bull",
-  "Pit Monster",
-  "Presa Canário",
-  "Rottweiler Americano",
-  "Rottweiler Inglês",
-  "Sabugio da Bósnia",
-  "Salmoieda",
-  "São Bernardo",
-  "Schnauzer",
-  "Scottish Terrier"
+  "Cane Corso", "Shiba-Inu", "Akita-Inu", "Husky Siberiano", "Dogo Alemão",
+  "Golden Retriever", "Alabay", "American Bully", "Border Collie", "Bull Terrier",
+  "Bulldog Francês", "Bulldog Inglês", "Chihuahua", "Chow Chow", "Dogo Argentino",
+  "Fila Brasileiro", "Kangal", "Pastor Alemão", "Pastor Belga", "Pastor de Malinoa",
+  "Pastor Malemano", "Pincher", "Pit Bull", "Pit Monster", "Presa Canário",
+  "Rottweiler Americano", "Rottweiler Inglês", "Sabugio da Bósnia", "Samoieda",
+  "São Bernardo", "Schnauzer", "Scottish Terrier"
 ];
 
 const PetsManager = () => {
   const { toast } = useToast();
-  const [pets, setPets] = useState<Pet[]>([
-    {
-      id: "1",
-      nomeTutor: "Maria Silva",
-      nomePet: "Rex",
-      idade: 3,
-      especie: "Cão",
-      raca: "Golden Retriever",
-      sexo: "Macho",
-      porte: "Grande",
-      castrado: true,
-      peso: 32.5,
-      temperamento: "Dócil e brincalhão",
-      necessidadesEspeciais: "Nenhuma",
-      rotina: "Passeio 2x ao dia",
-      saude: "Boa",
-      tomaMedicamentos: false,
-      medicamentos: "",
-      vacinasVermifugos: "2024-01-15",
-      controleParasitario: "2024-02-10",
-      nomeVeterinario: "Dr. João Santos",
-      telefoneVeterinario: "(41) 3333-5555",
-      celularVeterinario: "(41) 99999-7777",
-      enderecoVeterinario: "Av. Veterinária, 123",
-      cidadeVeterinario: "Curitiba",
-      estadoVeterinario: "PR"
-    }
-  ]);
-
+  const { pets, loading, error, addPet, updatePet, deletePet } = usePets();
+  
   const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingPet, setEditingPet] = useState<Pet | null>(null);
+  const [editingPet, setEditingPet] = useState<any>(null);
   const [formData, setFormData] = useState({
-    nomeTutor: "",
-    nomePet: "",
+    nome_tutor: "",
+    nome_pet: "",
     idade: "",
     especie: "",
     raca: "",
@@ -118,31 +39,31 @@ const PetsManager = () => {
     castrado: false,
     peso: "",
     temperamento: "",
-    necessidadesEspeciais: "",
+    necessidades_especiais: "",
     rotina: "",
     saude: "",
-    tomaMedicamentos: false,
+    toma_medicamentos: false,
     medicamentos: "",
-    vacinasVermifugos: "",
-    controleParasitario: "",
-    nomeVeterinario: "",
-    telefoneVeterinario: "",
-    celularVeterinario: "",
-    enderecoVeterinario: "",
-    cidadeVeterinario: "",
-    estadoVeterinario: ""
+    vacinas_vermifugos: "",
+    controle_parasitario: "",
+    nome_veterinario: "",
+    telefone_veterinario: "",
+    celular_veterinario: "",
+    endereco_veterinario: "",
+    cidade_veterinario: "",
+    estado_veterinario: ""
   });
 
   const filteredPets = pets.filter(pet =>
-    pet.nomePet.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    pet.nomeTutor.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    pet.raca.toLowerCase().includes(searchTerm.toLowerCase())
+    pet.nome_pet.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    pet.nome_tutor.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (pet.raca && pet.raca.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const resetForm = () => {
     setFormData({
-      nomeTutor: "",
-      nomePet: "",
+      nome_tutor: "",
+      nome_pet: "",
       idade: "",
       especie: "",
       raca: "",
@@ -151,135 +72,140 @@ const PetsManager = () => {
       castrado: false,
       peso: "",
       temperamento: "",
-      necessidadesEspeciais: "",
+      necessidades_especiais: "",
       rotina: "",
       saude: "",
-      tomaMedicamentos: false,
+      toma_medicamentos: false,
       medicamentos: "",
-      vacinasVermifugos: "",
-      controleParasitario: "",
-      nomeVeterinario: "",
-      telefoneVeterinario: "",
-      celularVeterinario: "",
-      enderecoVeterinario: "",
-      cidadeVeterinario: "",
-      estadoVeterinario: ""
+      vacinas_vermifugos: "",
+      controle_parasitario: "",
+      nome_veterinario: "",
+      telefone_veterinario: "",
+      celular_veterinario: "",
+      endereco_veterinario: "",
+      cidade_veterinario: "",
+      estado_veterinario: ""
     });
     setEditingPet(null);
   };
 
-  const handleEdit = (pet: Pet) => {
+  const handleEdit = (pet: any) => {
     setEditingPet(pet);
     setFormData({
-      nomeTutor: pet.nomeTutor,
-      nomePet: pet.nomePet,
-      idade: pet.idade.toString(),
-      especie: pet.especie,
-      raca: pet.raca,
-      sexo: pet.sexo,
-      porte: pet.porte,
-      castrado: pet.castrado,
-      peso: pet.peso.toString(),
-      temperamento: pet.temperamento,
-      necessidadesEspeciais: pet.necessidadesEspeciais,
-      rotina: pet.rotina,
-      saude: pet.saude,
-      tomaMedicamentos: pet.tomaMedicamentos,
-      medicamentos: pet.medicamentos,
-      vacinasVermifugos: pet.vacinasVermifugos,
-      controleParasitario: pet.controleParasitario,
-      nomeVeterinario: pet.nomeVeterinario,
-      telefoneVeterinario: pet.telefoneVeterinario,
-      celularVeterinario: pet.celularVeterinario,
-      enderecoVeterinario: pet.enderecoVeterinario,
-      cidadeVeterinario: pet.cidadeVeterinario,
-      estadoVeterinario: pet.estadoVeterinario
+      nome_tutor: pet.nome_tutor || "",
+      nome_pet: pet.nome_pet || "",
+      idade: pet.idade?.toString() || "",
+      especie: pet.especie || "",
+      raca: pet.raca || "",
+      sexo: pet.sexo || "",
+      porte: pet.porte || "",
+      castrado: pet.castrado || false,
+      peso: pet.peso?.toString() || "",
+      temperamento: pet.temperamento || "",
+      necessidades_especiais: pet.necessidades_especiais || "",
+      rotina: pet.rotina || "",
+      saude: pet.saude || "",
+      toma_medicamentos: pet.toma_medicamentos || false,
+      medicamentos: pet.medicamentos || "",
+      vacinas_vermifugos: pet.vacinas_vermifugos || "",
+      controle_parasitario: pet.controle_parasitario || "",
+      nome_veterinario: pet.nome_veterinario || "",
+      telefone_veterinario: pet.telefone_veterinario || "",
+      celular_veterinario: pet.celular_veterinario || "",
+      endereco_veterinario: pet.endereco_veterinario || "",
+      cidade_veterinario: pet.cidade_veterinario || "",
+      estado_veterinario: pet.estado_veterinario || ""
     });
     setIsDialogOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-    setPets(pets.filter(pet => pet.id !== id));
-    toast({
-      title: "Pet removido",
-      description: "O pet foi removido do sistema.",
-      variant: "destructive"
-    });
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (editingPet) {
-      const updatedPet: Pet = {
-        ...editingPet,
-        nomeTutor: formData.nomeTutor,
-        nomePet: formData.nomePet,
-        idade: parseInt(formData.idade),
-        especie: formData.especie,
-        raca: formData.raca,
-        sexo: formData.sexo,
-        porte: formData.porte,
-        castrado: formData.castrado,
-        peso: parseFloat(formData.peso),
-        temperamento: formData.temperamento,
-        necessidadesEspeciais: formData.necessidadesEspeciais,
-        rotina: formData.rotina,
-        saude: formData.saude,
-        tomaMedicamentos: formData.tomaMedicamentos,
-        medicamentos: formData.medicamentos,
-        vacinasVermifugos: formData.vacinasVermifugos,
-        controleParasitario: formData.controleParasitario,
-        nomeVeterinario: formData.nomeVeterinario,
-        telefoneVeterinario: formData.telefoneVeterinario,
-        celularVeterinario: formData.celularVeterinario,
-        enderecoVeterinario: formData.enderecoVeterinario,
-        cidadeVeterinario: formData.cidadeVeterinario,
-        estadoVeterinario: formData.estadoVeterinario
-      };
-      
-      setPets(pets.map(pet => pet.id === editingPet.id ? updatedPet : pet));
+  const handleDelete = async (id: string) => {
+    try {
+      await deletePet(id);
       toast({
-        title: "Pet atualizado com sucesso!",
-        description: `${formData.nomePet} foi atualizado no sistema.`,
+        title: "Pet removido",
+        description: "O pet foi removido do sistema.",
+        variant: "destructive"
       });
-    } else {
-      const newPet: Pet = {
-        id: Date.now().toString(),
-        nomeTutor: formData.nomeTutor,
-        nomePet: formData.nomePet,
-        idade: parseInt(formData.idade),
-        especie: formData.especie,
-        raca: formData.raca,
-        sexo: formData.sexo,
-        porte: formData.porte,
-        castrado: formData.castrado,
-        peso: parseFloat(formData.peso),
-        temperamento: formData.temperamento,
-        necessidadesEspeciais: formData.necessidadesEspeciais,
-        rotina: formData.rotina,
-        saude: formData.saude,
-        tomaMedicamentos: formData.tomaMedicamentos,
-        medicamentos: formData.medicamentos,
-        vacinasVermifugos: formData.vacinasVermifugos,
-        controleParasitario: formData.controleParasitario,
-        nomeVeterinario: formData.nomeVeterinario,
-        telefoneVeterinario: formData.telefoneVeterinario,
-        celularVeterinario: formData.celularVeterinario,
-        enderecoVeterinario: formData.enderecoVeterinario,
-        cidadeVeterinario: formData.cidadeVeterinario,
-        estadoVeterinario: formData.estadoVeterinario
-      };
-      setPets([...pets, newPet]);
+    } catch (error) {
       toast({
-        title: "Pet cadastrado com sucesso!",
-        description: `${formData.nomePet} foi adicionado ao sistema.`,
+        title: "Erro",
+        description: "Ocorreu um erro ao remover o pet.",
+        variant: "destructive"
       });
     }
-    
-    resetForm();
-    setIsDialogOpen(false);
   };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      const petData = {
+        nome_tutor: formData.nome_tutor,
+        nome_pet: formData.nome_pet,
+        idade: parseInt(formData.idade) || null,
+        especie: formData.especie,
+        raca: formData.raca,
+        sexo: formData.sexo,
+        porte: formData.porte,
+        castrado: formData.castrado,
+        peso: parseFloat(formData.peso) || null,
+        temperamento: formData.temperamento,
+        necessidades_especiais: formData.necessidades_especiais,
+        rotina: formData.rotina,
+        saude: formData.saude,
+        toma_medicamentos: formData.toma_medicamentos,
+        medicamentos: formData.medicamentos,
+        vacinas_vermifugos: formData.vacinas_vermifugos,
+        controle_parasitario: formData.controle_parasitario,
+        nome_veterinario: formData.nome_veterinario,
+        telefone_veterinario: formData.telefone_veterinario,
+        celular_veterinario: formData.celular_veterinario,
+        endereco_veterinario: formData.endereco_veterinario,
+        cidade_veterinario: formData.cidade_veterinario,
+        estado_veterinario: formData.estado_veterinario
+      };
+
+      if (editingPet) {
+        await updatePet(editingPet.id, petData);
+        toast({
+          title: "Pet atualizado com sucesso!",
+          description: `${formData.nome_pet} foi atualizado no sistema.`,
+        });
+      } else {
+        await addPet(petData);
+        toast({
+          title: "Pet cadastrado com sucesso!",
+          description: `${formData.nome_pet} foi adicionado ao sistema.`,
+        });
+      }
+      
+      resetForm();
+      setIsDialogOpen(false);
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro ao salvar o pet.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-red-600">Erro ao carregar pets: {error}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -310,20 +236,20 @@ const PetsManager = () => {
                 <h3 className="text-lg font-semibold">Dados Básicos</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="nomeTutor">Nome do Tutor</Label>
+                    <Label htmlFor="nome_tutor">Nome do Tutor</Label>
                     <Input
-                      id="nomeTutor"
-                      value={formData.nomeTutor}
-                      onChange={(e) => setFormData({ ...formData, nomeTutor: e.target.value })}
+                      id="nome_tutor"
+                      value={formData.nome_tutor}
+                      onChange={(e) => setFormData({ ...formData, nome_tutor: e.target.value })}
                       required
                     />
                   </div>
                   <div>
-                    <Label htmlFor="nomePet">Nome do Pet</Label>
+                    <Label htmlFor="nome_pet">Nome do Pet</Label>
                     <Input
-                      id="nomePet"
-                      value={formData.nomePet}
-                      onChange={(e) => setFormData({ ...formData, nomePet: e.target.value })}
+                      id="nome_pet"
+                      value={formData.nome_pet}
+                      onChange={(e) => setFormData({ ...formData, nome_pet: e.target.value })}
                       required
                     />
                   </div>
@@ -334,7 +260,6 @@ const PetsManager = () => {
                       type="number"
                       value={formData.idade}
                       onChange={(e) => setFormData({ ...formData, idade: e.target.value })}
-                      required
                     />
                   </div>
                   <div>
@@ -411,11 +336,11 @@ const PetsManager = () => {
                     />
                   </div>
                   <div className="sm:col-span-2">
-                    <Label htmlFor="necessidadesEspeciais">Necessidades Especiais</Label>
+                    <Label htmlFor="necessidades_especiais">Necessidades Especiais</Label>
                     <Textarea
-                      id="necessidadesEspeciais"
-                      value={formData.necessidadesEspeciais}
-                      onChange={(e) => setFormData({ ...formData, necessidadesEspeciais: e.target.value })}
+                      id="necessidades_especiais"
+                      value={formData.necessidades_especiais}
+                      onChange={(e) => setFormData({ ...formData, necessidades_especiais: e.target.value })}
                       rows={2}
                     />
                   </div>
@@ -426,43 +351,43 @@ const PetsManager = () => {
                 <h3 className="text-lg font-semibold">Dados do Veterinário</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="nomeVeterinario">Nome do Veterinário</Label>
+                    <Label htmlFor="nome_veterinario">Nome do Veterinário</Label>
                     <Input
-                      id="nomeVeterinario"
-                      value={formData.nomeVeterinario}
-                      onChange={(e) => setFormData({ ...formData, nomeVeterinario: e.target.value })}
+                      id="nome_veterinario"
+                      value={formData.nome_veterinario}
+                      onChange={(e) => setFormData({ ...formData, nome_veterinario: e.target.value })}
                     />
                   </div>
                   <div>
-                    <Label htmlFor="telefoneVeterinario">Telefone do Veterinário</Label>
+                    <Label htmlFor="telefone_veterinario">Telefone do Veterinário</Label>
                     <Input
-                      id="telefoneVeterinario"
-                      value={formData.telefoneVeterinario}
-                      onChange={(e) => setFormData({ ...formData, telefoneVeterinario: e.target.value })}
+                      id="telefone_veterinario"
+                      value={formData.telefone_veterinario}
+                      onChange={(e) => setFormData({ ...formData, telefone_veterinario: e.target.value })}
                     />
                   </div>
                   <div>
-                    <Label htmlFor="celularVeterinario">Celular do Veterinário</Label>
+                    <Label htmlFor="celular_veterinario">Celular do Veterinário</Label>
                     <Input
-                      id="celularVeterinario"
-                      value={formData.celularVeterinario}
-                      onChange={(e) => setFormData({ ...formData, celularVeterinario: e.target.value })}
+                      id="celular_veterinario"
+                      value={formData.celular_veterinario}
+                      onChange={(e) => setFormData({ ...formData, celular_veterinario: e.target.value })}
                     />
                   </div>
                   <div>
-                    <Label htmlFor="cidadeVeterinario">Cidade do Veterinário</Label>
+                    <Label htmlFor="cidade_veterinario">Cidade do Veterinário</Label>
                     <Input
-                      id="cidadeVeterinario"
-                      value={formData.cidadeVeterinario}
-                      onChange={(e) => setFormData({ ...formData, cidadeVeterinario: e.target.value })}
+                      id="cidade_veterinario"
+                      value={formData.cidade_veterinario}
+                      onChange={(e) => setFormData({ ...formData, cidade_veterinario: e.target.value })}
                     />
                   </div>
                   <div className="sm:col-span-2">
-                    <Label htmlFor="enderecoVeterinario">Endereço do Veterinário</Label>
+                    <Label htmlFor="endereco_veterinario">Endereço do Veterinário</Label>
                     <Input
-                      id="enderecoVeterinario"
-                      value={formData.enderecoVeterinario}
-                      onChange={(e) => setFormData({ ...formData, enderecoVeterinario: e.target.value })}
+                      id="endereco_veterinario"
+                      value={formData.endereco_veterinario}
+                      onChange={(e) => setFormData({ ...formData, endereco_veterinario: e.target.value })}
                     />
                   </div>
                 </div>
@@ -495,61 +420,75 @@ const PetsManager = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredPets.map((pet) => (
-              <Card key={pet.id} className="hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-pink-50 to-purple-50 border-pink-200">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Heart className="h-5 w-5 text-pink-500" />
-                      {pet.nomePet}
-                    </CardTitle>
-                    <Badge variant={pet.porte === "Grande" ? "default" : pet.porte === "Médio" ? "secondary" : "outline"}>
-                      {pet.porte}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground">Tutor: {pet.nomeTutor}</p>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div className="flex items-center gap-1">
-                      <Calendar className="h-4 w-4 text-blue-500" />
-                      {pet.idade} anos
+          {filteredPets.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">Nenhum pet encontrado.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredPets.map((pet) => (
+                <Card key={pet.id} className="hover:shadow-lg transition-all duration-300 bg-gradient-to-br from-pink-50 to-purple-50 border-pink-200">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <Heart className="h-5 w-5 text-pink-500" />
+                        {pet.nome_pet}
+                      </CardTitle>
+                      {pet.porte && (
+                        <Badge variant={pet.porte === "Grande" ? "default" : pet.porte === "Médio" ? "secondary" : "outline"}>
+                          {pet.porte}
+                        </Badge>
+                      )}
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Weight className="h-4 w-4 text-green-500" />
-                      {pet.peso}kg
+                    <p className="text-sm text-muted-foreground">Tutor: {pet.nome_tutor}</p>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      {pet.idade && (
+                        <div className="flex items-center gap-1">
+                          <Calendar className="h-4 w-4 text-blue-500" />
+                          {pet.idade} anos
+                        </div>
+                      )}
+                      {pet.peso && (
+                        <div className="flex items-center gap-1">
+                          <Weight className="h-4 w-4 text-green-500" />
+                          {pet.peso}kg
+                        </div>
+                      )}
                     </div>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">{pet.especie} - {pet.raca}</p>
-                    <p className="text-xs text-muted-foreground">{pet.sexo} • {pet.castrado ? "Castrado" : "Não castrado"}</p>
-                  </div>
-                  {pet.tomaMedicamentos && (
-                    <Badge variant="outline" className="text-xs">
-                      <Stethoscope className="h-3 w-3 mr-1" />
-                      Medicamentos
-                    </Badge>
-                  )}
-                  <p className="text-xs text-muted-foreground line-clamp-2">{pet.temperamento}</p>
-                  <div className="flex gap-2 pt-2">
-                    <Button variant="outline" size="sm" className="flex-1" onClick={() => handleEdit(pet)}>
-                      <Edit className="h-4 w-4 mr-1" />
-                      Editar
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                      onClick={() => handleDelete(pet.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                    <div>
+                      <p className="text-sm font-medium">{pet.especie} - {pet.raca}</p>
+                      <p className="text-xs text-muted-foreground">{pet.sexo} • {pet.castrado ? "Castrado" : "Não castrado"}</p>
+                    </div>
+                    {pet.toma_medicamentos && (
+                      <Badge variant="outline" className="text-xs">
+                        <Stethoscope className="h-3 w-3 mr-1" />
+                        Medicamentos
+                      </Badge>
+                    )}
+                    {pet.temperamento && (
+                      <p className="text-xs text-muted-foreground line-clamp-2">{pet.temperamento}</p>
+                    )}
+                    <div className="flex gap-2 pt-2">
+                      <Button variant="outline" size="sm" className="flex-1" onClick={() => handleEdit(pet)}>
+                        <Edit className="h-4 w-4 mr-1" />
+                        Editar
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        onClick={() => handleDelete(pet.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
