@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -37,8 +36,56 @@ const TutorRegistration = ({ onTutorCreated, onCancel }: TutorRegistrationProps)
     contato_adicional_2_telefone: ""
   });
 
+  const validateForm = () => {
+    if (!formData.nome.trim()) {
+      toast({
+        title: "Erro de validação",
+        description: "Nome é obrigatório.",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    if (!formData.celular.trim()) {
+      toast({
+        title: "Erro de validação",
+        description: "Celular é obrigatório.",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    // Validação básica do formato do celular
+    const celularRegex = /^\(\d{2}\)\s\d{4,5}-\d{4}$/;
+    if (!celularRegex.test(formData.celular)) {
+      toast({
+        title: "Formato inválido",
+        description: "Celular deve estar no formato (XX) XXXXX-XXXX.",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    return true;
+  };
+
+  const formatPhone = (value: string) => {
+    // Remove todos os caracteres não numéricos
+    const numbers = value.replace(/\D/g, '');
+    
+    // Aplica a máscara (XX) XXXXX-XXXX ou (XX) XXXX-XXXX
+    if (numbers.length <= 10) {
+      return numbers.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3').trim();
+    } else {
+      return numbers.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3').trim();
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateForm()) return;
+    
     setLoading(true);
 
     try {
@@ -77,6 +124,13 @@ const TutorRegistration = ({ onTutorCreated, onCancel }: TutorRegistrationProps)
   };
 
   const handleChange = (field: string, value: string) => {
+    // Aplicar formatação para campos de telefone
+    if (field === 'celular' || field === 'telefone_residencial' || 
+        field === 'telefone_veterinario' || field === 'celular_veterinario' ||
+        field === 'contato_adicional_1_telefone' || field === 'contato_adicional_2_telefone') {
+      value = formatPhone(value);
+    }
+    
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -131,6 +185,7 @@ const TutorRegistration = ({ onTutorCreated, onCancel }: TutorRegistrationProps)
                       placeholder="(41) 99999-9999"
                       required
                       disabled={loading}
+                      maxLength={15}
                     />
                   </div>
                   <div>
@@ -141,6 +196,7 @@ const TutorRegistration = ({ onTutorCreated, onCancel }: TutorRegistrationProps)
                       onChange={(e) => handleChange('telefone_residencial', e.target.value)}
                       placeholder="(41) 3333-3333"
                       disabled={loading}
+                      maxLength={14}
                     />
                   </div>
                 </div>

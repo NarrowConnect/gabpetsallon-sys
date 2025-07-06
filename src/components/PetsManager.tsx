@@ -10,15 +10,21 @@ import { Badge } from "@/components/ui/badge";
 import { PlusCircle, Search, Heart, Calendar, Weight, Stethoscope, Edit, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { usePets } from "@/hooks/useSupabase";
+import TutorSearch from "./TutorSearch";
 
-const racasComuns = [
-  "Cane Corso", "Shiba-Inu", "Akita-Inu", "Husky Siberiano", "Dogo Alemão",
+const racasCao = [
+  "SRD", "Cane Corso", "Shiba-Inu", "Akita-Inu", "Husky Siberiano", "Dogo Alemão",
   "Golden Retriever", "Alabay", "American Bully", "Border Collie", "Bull Terrier",
   "Bulldog Francês", "Bulldog Inglês", "Chihuahua", "Chow Chow", "Dogo Argentino",
   "Fila Brasileiro", "Kangal", "Pastor Alemão", "Pastor Belga", "Pastor de Malinoa",
   "Pastor Malemano", "Pincher", "Pit Bull", "Pit Monster", "Presa Canário",
   "Rottweiler Americano", "Rottweiler Inglês", "Sabugio da Bósnia", "Samoieda",
   "São Bernardo", "Schnauzer", "Scottish Terrier"
+];
+
+const racasGato = [
+  "SRD", "Persa", "Siamês", "Maine Coon", "British Shorthair", "Ragdoll",
+  "Sphynx", "Bengal", "Angorá", "Abissínio"
 ];
 
 const PetsManager = () => {
@@ -28,6 +34,8 @@ const PetsManager = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPet, setEditingPet] = useState<any>(null);
+  const [selectedTutor, setSelectedTutor] = useState<any>(null);
+  const [showTutorSearch, setShowTutorSearch] = useState(true);
   const [formData, setFormData] = useState({
     nome_tutor: "",
     nome_pet: "",
@@ -87,6 +95,26 @@ const PetsManager = () => {
       estado_veterinario: ""
     });
     setEditingPet(null);
+    setSelectedTutor(null);
+    setShowTutorSearch(true);
+  };
+
+  const handleTutorSelected = (tutor: any) => {
+    setSelectedTutor(tutor);
+    setFormData(prev => ({
+      ...prev,
+      nome_tutor: tutor.nome
+    }));
+    setShowTutorSearch(false);
+  };
+
+  const handleCreateNewTutor = () => {
+    setSelectedTutor(null);
+    setShowTutorSearch(false);
+    setFormData(prev => ({
+      ...prev,
+      nome_tutor: ""
+    }));
   };
 
   const handleEdit = (pet: any) => {
@@ -116,6 +144,7 @@ const PetsManager = () => {
       cidade_veterinario: pet.cidade_veterinario || "",
       estado_veterinario: pet.estado_veterinario || ""
     });
+    setShowTutorSearch(false);
     setIsDialogOpen(true);
   };
 
@@ -136,16 +165,49 @@ const PetsManager = () => {
     }
   };
 
+  const validateForm = () => {
+    if (!formData.nome_tutor.trim()) {
+      toast({
+        title: "Erro de validação",
+        description: "Nome do tutor é obrigatório.",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    if (!formData.nome_pet.trim()) {
+      toast({
+        title: "Erro de validação",
+        description: "Nome do pet é obrigatório.",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    if (!formData.especie) {
+      toast({
+        title: "Erro de validação",
+        description: "Espécie é obrigatória.",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!validateForm()) return;
+
     try {
       const petData = {
         nome_tutor: formData.nome_tutor,
         nome_pet: formData.nome_pet,
         idade: parseInt(formData.idade) || null,
         especie: formData.especie,
-        raca: formData.raca,
+        raca: formData.raca || null,
         sexo: formData.sexo,
         porte: formData.porte,
         castrado: formData.castrado,
@@ -164,7 +226,7 @@ const PetsManager = () => {
         endereco_veterinario: formData.endereco_veterinario,
         cidade_veterinario: formData.cidade_veterinario,
         estado_veterinario: formData.estado_veterinario,
-        tutor_id: null
+        tutor_id: selectedTutor?.id || null
       };
 
       if (editingPet) {
@@ -190,6 +252,21 @@ const PetsManager = () => {
         variant: "destructive"
       });
     }
+  };
+
+  const getRacasOptions = () => {
+    switch (formData.especie) {
+      case "Cão":
+        return racasCao;
+      case "Gato":
+        return racasGato;
+      default:
+        return [];
+    }
+  };
+
+  const shouldShowRaca = () => {
+    return formData.especie === "Cão" || formData.especie === "Gato";
   };
 
   if (loading) {
@@ -234,10 +311,16 @@ const PetsManager = () => {
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold">Dados Básicos</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <h3 className="text-lg font-semibold">Dados do Tutor</h3>
+                {!editingPet && showTutorSearch ? (
+                  <TutorSearch
+                    onTutorSelected={handleTutorSelected}
+                    onCreateNew={handleCreateNewTutor}
+                    selectedTutor={selectedTutor}
+                  />
+                ) : (
                   <div>
-                    <Label htmlFor="nome_tutor">Nome do Tutor</Label>
+                    <Label htmlFor="nome_tutor">Nome do Tutor *</Label>
                     <Input
                       id="nome_tutor"
                       value={formData.nome_tutor}
@@ -245,8 +328,14 @@ const PetsManager = () => {
                       required
                     />
                   </div>
+                )}
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Dados do Pet</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="nome_pet">Nome do Pet</Label>
+                    <Label htmlFor="nome_pet">Nome do Pet *</Label>
                     <Input
                       id="nome_pet"
                       value={formData.nome_pet}
@@ -264,8 +353,11 @@ const PetsManager = () => {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="especie">Espécie</Label>
-                    <Select value={formData.especie} onValueChange={(value) => setFormData({ ...formData, especie: value })}>
+                    <Label htmlFor="especie">Espécie *</Label>
+                    <Select 
+                      value={formData.especie} 
+                      onValueChange={(value) => setFormData({ ...formData, especie: value, raca: "" })}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione a espécie" />
                       </SelectTrigger>
@@ -277,19 +369,21 @@ const PetsManager = () => {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div>
-                    <Label htmlFor="raca">Raça</Label>
-                    <Select value={formData.raca} onValueChange={(value) => setFormData({ ...formData, raca: value })}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione a raça" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {racasComuns.map((raca) => (
-                          <SelectItem key={raca} value={raca}>{raca}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  {shouldShowRaca() && (
+                    <div>
+                      <Label htmlFor="raca">Raça</Label>
+                      <Select value={formData.raca} onValueChange={(value) => setFormData({ ...formData, raca: value })}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione a raça" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {getRacasOptions().map((raca) => (
+                            <SelectItem key={raca} value={raca}>{raca}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
                   <div>
                     <Label htmlFor="sexo">Sexo</Label>
                     <Select value={formData.sexo} onValueChange={(value) => setFormData({ ...formData, sexo: value })}>
@@ -312,6 +406,7 @@ const PetsManager = () => {
                         <SelectItem value="Pequeno">Pequeno</SelectItem>
                         <SelectItem value="Médio">Médio</SelectItem>
                         <SelectItem value="Grande">Grande</SelectItem>
+                        <SelectItem value="Gigante">Gigante</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -326,6 +421,7 @@ const PetsManager = () => {
                     />
                   </div>
                 </div>
+                
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="sm:col-span-2">
                     <Label htmlFor="temperamento">Temperamento</Label>

@@ -3,39 +3,28 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DollarSign, TrendingUp, TrendingDown, Receipt, CreditCard, FileText } from "lucide-react";
-import { useFinancas } from "@/hooks/useSupabase";
 import { useToast } from "@/hooks/use-toast";
+import { useFinancas } from "@/hooks/useSupabase";
 import CustomIncomeManager from "./CustomIncomeManager";
 import CustomExpenseManager from "./CustomExpenseManager";
-import FinancialReports from "./FinancialReports";
-import { supabase } from "@/integrations/supabase/client";
-
-interface CustomIncome {
-  id: string;
-  description: string;
-  value: number;
-  date: string;
-  category: string;
-}
-
-interface CustomExpense {
-  id: string;
-  description: string;
-  value: number;
-  date: string;
-  category: string;
-}
 
 const FinanceManager = () => {
   const { toast } = useToast();
   const { contasPagar, valoresRecebidos, loading, error, updateReceitas, updateDespesas } = useFinancas();
   
-  const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM format
+  const currentMonth = new Date().toISOString().slice(0, 7);
   
-  // Find current month data or use defaults
-  const currentExpenses = contasPagar.find(item => item.mes_referencia === currentMonth) || {
+  const [income, setIncome] = useState({
+    banhos_porte_pequeno: 0,
+    banhos_porte_grande: 0,
+    banhos_medicamentosos: 0,
+    tosas: 0,
+    hospedagens: 0,
+    taxi_dog: 0,
+    roupas: 0
+  });
+
+  const [expenses, setExpenses] = useState({
     aluguel: 0,
     copel: 0,
     sanepar: 0,
@@ -52,350 +41,113 @@ const FinanceManager = () => {
     cartao_gab: 0,
     boleto_biocom: 0,
     boleto_euroshop: 0
-  };
-
-  const currentIncome = valoresRecebidos.find(item => item.mes_referencia === currentMonth) || {
-    banhos_porte_pequeno: 0,
-    banhos_porte_grande: 0,
-    tosas: 0,
-    hospedagens: 0,
-    roupas: 0,
-    taxi_dog: 0
-  };
-
-  const [expenses, setExpenses] = useState(currentExpenses);
-  const [income, setIncome] = useState({
-    banhosPortePequeno: Number(currentIncome.banhos_porte_pequeno) || 0,
-    banhosPorteGrande: Number(currentIncome.banhos_porte_grande) || 0,
-    tosas: Number(currentIncome.tosas) || 0,
-    hospedagens: Number(currentIncome.hospedagens) || 0,
-    roupas: Number(currentIncome.roupas) || 0,
-    taxiDog: Number(currentIncome.taxi_dog) || 0
   });
 
-  const [serviceValues] = useState({
-    banhosPortePequeno: 35.00,
-    banhosPorteGrande: 50.00,
-    tosas: 80.00,
-    hospedagens: 45.00,
-    roupas: 25.00,
-    taxiDog: 30.00
-  });
+  const [customIncomes, setCustomIncomes] = useState<Array<{ id: string; descricao: string; valor: number; data_receita: string }>>([]);
+  const [customExpenses, setCustomExpenses] = useState<Array<{ id: string; descricao: string; valor: number; data_despesa: string }>>([]);
 
-  const [customIncomes, setCustomIncomes] = useState<CustomIncome[]>([]);
-  const [customExpenses, setCustomExpenses] = useState<CustomExpense[]>([]);
-  const [reportData, setReportData] = useState<any[]>([]);
+  const serviceValues = {
+    banhos_porte_pequeno: 35,
+    banhos_porte_grande: 50,
+    banhos_medicamentosos: 60,
+    tosas: 40,
+    hospedagens: 80,
+    taxi_dog: 25,
+    roupas: 15
+  };
 
-  // Load custom incomes and expenses from Supabase
   useEffect(() => {
-    loadCustomData();
-  }, []);
+    if (valoresRecebidos && valoresRecebidos.length > 0) {
+      const currentMonthData = valoresRecebidos.find(item => item.mes_referencia === currentMonth);
+      if (currentMonthData) {
+        setIncome({
+          banhos_porte_pequeno: currentMonthData.banhos_porte_pequeno || 0,
+          banhos_porte_grande: currentMonthData.banhos_porte_grande || 0,
+          banhos_medicamentosos: currentMonthData.banhos_medicamentosos || 0,
+          tosas: currentMonthData.tosas || 0,
+          hospedagens: currentMonthData.hospedagens || 0,
+          taxi_dog: currentMonthData.taxi_dog || 0,
+          roupas: currentMonthData.roupas || 0
+        });
+      }
+    }
 
-  const loadCustomData = async () => {
+    if (contasPagar && contasPagar.length > 0) {
+      const currentMonthData = contasPagar.find(item => item.mes_referencia === currentMonth);
+      if (currentMonthData) {
+        setExpenses({
+          aluguel: currentMonthData.aluguel || 0,
+          copel: currentMonthData.copel || 0,
+          sanepar: currentMonthData.sanepar || 0,
+          internet: currentMonthData.internet || 0,
+          seguranca_mensalidade: currentMonthData.seguranca_mensalidade || 0,
+          mei: currentMonthData.mei || 0,
+          celular_mes: currentMonthData.celular_mes || 0,
+          lavanderia: currentMonthData.lavanderia || 0,
+          gasolina: currentMonthData.gasolina || 0,
+          tarifa_bancaria: currentMonthData.tarifa_bancaria || 0,
+          cartao_santander: currentMonthData.cartao_santander || 0,
+          cartao_bb: currentMonthData.cartao_bb || 0,
+          cartao_nu: currentMonthData.cartao_nu || 0,
+          cartao_gab: currentMonthData.cartao_gab || 0,
+          boleto_biocom: currentMonthData.boleto_biocom || 0,
+          boleto_euroshop: currentMonthData.boleto_euroshop || 0
+        });
+      }
+    }
+  }, [valoresRecebidos, contasPagar, currentMonth]);
+
+  const handleIncomeChange = (field: string, value: string) => {
+    setIncome(prev => ({ ...prev, [field]: Number(value) || 0 }));
+  };
+
+  const handleExpenseChange = (field: string, value: string) => {
+    setExpenses(prev => ({ ...prev, [field]: Number(value) || 0 }));
+  };
+
+  const saveIncome = async () => {
     try {
-      // Load custom incomes
-      const { data: receitas } = await supabase
-        .from('receitas_personalizadas')
-        .select('*')
-        .eq('mes_referencia', currentMonth);
-
-      if (receitas) {
-        const mappedIncomes: CustomIncome[] = receitas.map(item => ({
-          id: item.id,
-          description: item.descricao,
-          value: Number(item.valor),
-          date: item.data_receita,
-          category: 'Personalizada'
-        }));
-        setCustomIncomes(mappedIncomes);
-      }
-
-      // Load custom expenses
-      const { data: despesas } = await supabase
-        .from('despesas_personalizadas')
-        .select('*')
-        .eq('mes_referencia', currentMonth);
-
-      if (despesas) {
-        const mappedExpenses: CustomExpense[] = despesas.map(item => ({
-          id: item.id,
-          description: item.descricao,
-          value: Number(item.valor),
-          date: item.data_despesa,
-          category: 'Personalizada'
-        }));
-        setCustomExpenses(mappedExpenses);
-      }
+      const totalEntradas = Object.entries(income).reduce((sum: number, [key, quantity]) => {
+        const value = serviceValues[key as keyof typeof serviceValues];
+        return sum + (Number(quantity) * Number(value));
+      }, 0);
+      
+      await updateReceitas(currentMonth, { ...income, total_entradas: totalEntradas });
+      toast({
+        title: "Receitas salvas!",
+        description: "Os dados de receita foram salvos com sucesso.",
+      });
     } catch (error) {
-      console.error('Erro ao carregar dados personalizados:', error);
+      toast({
+        title: "Erro ao salvar receitas",
+        description: "Ocorreu um erro ao salvar os dados de receita.",
+        variant: "destructive"
+      });
     }
   };
 
-  // Update expenses in Supabase when they change
-  const handleExpenseChange = async (key: string, value: number) => {
-    const newExpenses = { ...expenses, [key]: value };
+  const saveExpenses = async () => {
+    const newExpenses = { ...expenses };
     setExpenses(newExpenses);
 
     try {
       const totalSaidas = Object.values(newExpenses).reduce((sum: number, val: string | number) => {
-        return sum + Number(val || 0);
+        return sum + (Number(val) || 0);
       }, 0);
       await updateDespesas(currentMonth, { ...newExpenses, total_saidas: totalSaidas });
     } catch (error) {
       toast({
-        title: "Erro",
-        description: "Erro ao atualizar despesa.",
+        title: "Erro ao salvar despesas",
+        description: "Ocorreu um erro ao salvar os dados de despesa.",
         variant: "destructive"
       });
     }
-  };
-
-  // Update income in Supabase when it changes
-  const handleIncomeChange = async (key: string, value: number) => {
-    const newIncome = { ...income, [key]: value };
-    setIncome(newIncome);
-
-    try {
-      const supabaseData = {
-        banhos_porte_pequeno: newIncome.banhosPortePequeno,
-        banhos_porte_grande: newIncome.banhosPorteGrande,
-        tosas: newIncome.tosas,
-        hospedagens: newIncome.hospedagens,
-        roupas: newIncome.roupas,
-        taxi_dog: newIncome.taxiDog
-      };
-
-      const totalEntradas = Object.entries(newIncome).reduce((sum: number, [key, quantity]) => {
-        const value = serviceValues[key as keyof typeof serviceValues];
-        return sum + (Number(quantity) * Number(value));
-      }, 0);
-
-      await updateReceitas(currentMonth, { ...supabaseData, total_entradas: totalEntradas });
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Erro ao atualizar receita.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const totalExpenses = Object.values(expenses).reduce((sum: number, value: string | number) => {
-    return sum + Number(value || 0);
-  }, 0);
-  
-  const totalServiceIncome = Object.entries(income).reduce((sum: number, [key, quantity]) => {
-    const value = serviceValues[key as keyof typeof serviceValues];
-    return sum + (Number(quantity) * Number(value));
-  }, 0);
-  
-  const totalCustomIncome = customIncomes.reduce((sum: number, income) => {
-    return sum + Number(income.value);
-  }, 0);
-  
-  const totalCustomExpenses = customExpenses.reduce((sum: number, expense) => {
-    return sum + Number(expense.value);
-  }, 0);
-  
-  const totalIncome = totalServiceIncome + totalCustomIncome;
-  const totalAllExpenses = totalExpenses + totalCustomExpenses;
-  const netBalance = totalIncome - totalAllExpenses;
-
-  const handleAddCustomIncome = async (income: Omit<CustomIncome, 'id'>) => {
-    try {
-      const { data, error } = await supabase
-        .from('receitas_personalizadas')
-        .insert([{
-          descricao: income.description,
-          valor: income.value,
-          data_receita: income.date,
-          mes_referencia: currentMonth
-        }])
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      const newIncome: CustomIncome = {
-        id: data.id,
-        description: data.descricao,
-        value: data.valor,
-        date: data.data_receita,
-        category: 'Personalizada'
-      };
-      setCustomIncomes([...customIncomes, newIncome]);
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Erro ao adicionar receita personalizada.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleUpdateCustomIncome = async (id: string, updates: Partial<CustomIncome>) => {
-    try {
-      const { error } = await supabase
-        .from('receitas_personalizadas')
-        .update({
-          descricao: updates.description,
-          valor: updates.value,
-          data_receita: updates.date
-        })
-        .eq('id', id);
-
-      if (error) throw error;
-
-      setCustomIncomes(customIncomes.map(income => 
-        income.id === id ? { ...income, ...updates } : income
-      ));
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Erro ao atualizar receita personalizada.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleDeleteCustomIncome = async (id: string) => {
-    try {
-      const { error } = await supabase
-        .from('receitas_personalizadas')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-
-      setCustomIncomes(customIncomes.filter(income => income.id !== id));
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Erro ao remover receita personalizada.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleAddCustomExpense = async (expense: Omit<CustomExpense, 'id'>) => {
-    try {
-      const { data, error } = await supabase
-        .from('despesas_personalizadas')
-        .insert([{
-          descricao: expense.description,
-          valor: expense.value,
-          data_despesa: expense.date,
-          mes_referencia: currentMonth
-        }])
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      const newExpense: CustomExpense = {
-        id: data.id,
-        description: data.descricao,
-        value: data.valor,
-        date: data.data_despesa,
-        category: 'Personalizada'
-      };
-      setCustomExpenses([...customExpenses, newExpense]);
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Erro ao adicionar despesa personalizada.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleUpdateCustomExpense = async (id: string, updates: Partial<CustomExpense>) => {
-    try {
-      const { error } = await supabase
-        .from('despesas_personalizadas')
-        .update({
-          descricao: updates.description,
-          valor: updates.value,
-          data_despesa: updates.date
-        })
-        .eq('id', id);
-
-      if (error) throw error;
-
-      setCustomExpenses(customExpenses.map(expense => 
-        expense.id === id ? { ...expense, ...updates } : expense
-      ));
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Erro ao atualizar despesa personalizada.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleDeleteCustomExpense = async (id: string) => {
-    try {
-      const { error } = await supabase
-        .from('despesas_personalizadas')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-
-      setCustomExpenses(customExpenses.filter(expense => expense.id !== id));
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Erro ao remover despesa personalizada.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleGenerateReport = (month: string, year: string) => {
-    const newReport = {
-      month,
-      year,
-      totalIncome,
-      totalExpenses: totalAllExpenses,
-      netBalance
-    };
-    setReportData([...reportData, newReport]);
-  };
-
-  const serviceNames = {
-    banhosPortePequeno: 'Banhos Porte Pequeno',
-    banhosPorteGrande: 'Banhos Porte Grande',
-    tosas: 'Tosas',
-    hospedagens: 'Hospedagens',
-    roupas: 'Roupas',
-    taxiDog: 'Taxi Dog'
-  };
-
-  const expenseNames = {
-    aluguel: 'Aluguel',
-    copel: 'COPEL (Energia)',
-    sanepar: 'SANEPAR (Água)',
-    internet: 'Internet',
-    seguranca_mensalidade: 'Segurança',
-    mei: 'MEI',
-    celular_mes: 'Celular',
-    lavanderia: 'Lavanderia',
-    gasolina: 'Gasolina',
-    tarifa_bancaria: 'Tarifa Bancária',
-    cartao_santander: 'Cartão Santander',
-    cartao_bb: 'Cartão Banco do Brasil',
-    cartao_nu: 'Cartão Nubank',
-    cartao_gab: 'Cartão Gab',
-    boleto_biocom: 'Boleto Biocom',
-    boleto_euroshop: 'Boleto Euroshop'
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
       </div>
     );
   }
@@ -408,175 +160,324 @@ const FinanceManager = () => {
     );
   }
 
+  const totalExpenses = Object.values(expenses).reduce((sum: number, value: string | number) => {
+    return sum + (Number(value) || 0);
+  }, 0);
+  
+  const totalServiceIncome = Object.entries(income).reduce((sum: number, [key, quantity]) => {
+    const value = serviceValues[key as keyof typeof serviceValues];
+    return sum + (Number(quantity) * Number(value));
+  }, 0);
+  
+  const totalCustomIncome = customIncomes.reduce((sum: number, income) => {
+    return sum + (Number(income.valor) || 0);
+  }, 0);
+  
+  const totalCustomExpenses = customExpenses.reduce((sum: number, expense) => {
+    return sum + (Number(expense.valor) || 0);
+  }, 0);
+  
+  const totalIncome = totalServiceIncome + totalCustomIncome;
+  const totalAllExpenses = totalExpenses + totalCustomExpenses;
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h2 className="text-3xl font-bold text-gray-900">Controle Financeiro</h2>
-          <p className="text-muted-foreground">Gerencie receitas e despesas do petshop</p>
-        </div>
+      <div className="text-center mb-8">
+        <h2 className="text-3xl font-bold text-gray-900">Gestão Financeira</h2>
+        <p className="text-muted-foreground">Acompanhe as finanças do seu negócio</p>
       </div>
 
-      {/* Financial Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white border-0 shadow-lg">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium opacity-90">Receitas do Mês</CardTitle>
-            <TrendingUp className="h-4 w-4 opacity-90" />
+      <Card className="bg-white/70 backdrop-blur-sm">
+        <CardHeader>
+          <CardTitle>Receitas de Serviços - {currentMonth}</CardTitle>
+          <CardDescription>
+            Informe a quantidade de serviços realizados no mês.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4">
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <Label htmlFor="banhos_porte_pequeno">Banhos Peq. (R$35)</Label>
+              <Input
+                type="number"
+                id="banhos_porte_pequeno"
+                value={income.banhos_porte_pequeno.toString()}
+                onChange={(e) => handleIncomeChange('banhos_porte_pequeno', e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="banhos_porte_grande">Banhos Gde. (R$50)</Label>
+              <Input
+                type="number"
+                id="banhos_porte_grande"
+                value={income.banhos_porte_grande.toString()}
+                onChange={(e) => handleIncomeChange('banhos_porte_grande', e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="banhos_medicamentosos">Banhos Med. (R$60)</Label>
+              <Input
+                type="number"
+                id="banhos_medicamentosos"
+                value={income.banhos_medicamentosos.toString()}
+                onChange={(e) => handleIncomeChange('banhos_medicamentosos', e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="tosas">Tosas (R$40)</Label>
+              <Input
+                type="number"
+                id="tosas"
+                value={income.tosas.toString()}
+                onChange={(e) => handleIncomeChange('tosas', e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="hospedagens">Hospedagens (R$80)</Label>
+              <Input
+                type="number"
+                id="hospedagens"
+                value={income.hospedagens.toString()}
+                onChange={(e) => handleIncomeChange('hospedagens', e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="taxi_dog">Taxi Dog (R$25)</Label>
+              <Input
+                type="number"
+                id="taxi_dog"
+                value={income.taxi_dog.toString()}
+                onChange={(e) => handleIncomeChange('taxi_dog', e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="roupas">Roupas (R$15)</Label>
+              <Input
+                type="number"
+                id="roupas"
+                value={income.roupas.toString()}
+                onChange={(e) => handleIncomeChange('roupas', e.target.value)}
+              />
+            </div>
+          </div>
+          <Button onClick={saveIncome}>Salvar Receitas</Button>
+          <div className="font-bold text-green-600">
+            Total de Receitas de Serviços: R$ {totalServiceIncome.toFixed(2)}
+          </div>
+        </CardContent>
+      </Card>
+
+      <CustomIncomeManager customIncomes={customIncomes} setCustomIncomes={setCustomIncomes} />
+
+      <Card className="bg-white/70 backdrop-blur-sm">
+        <CardHeader>
+          <CardTitle>Despesas Mensais Fixas - {currentMonth}</CardTitle>
+          <CardDescription>
+            Informe os valores das despesas fixas do mês.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4">
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <Label htmlFor="aluguel">Aluguel</Label>
+              <Input
+                type="number"
+                id="aluguel"
+                value={expenses.aluguel.toString()}
+                onChange={(e) => handleExpenseChange('aluguel', e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="copel">Copel</Label>
+              <Input
+                type="number"
+                id="copel"
+                value={expenses.copel.toString()}
+                onChange={(e) => handleExpenseChange('copel', e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="sanepar">Sanepar</Label>
+              <Input
+                type="number"
+                id="sanepar"
+                value={expenses.sanepar.toString()}
+                onChange={(e) => handleExpenseChange('sanepar', e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="internet">Internet</Label>
+              <Input
+                type="number"
+                id="internet"
+                value={expenses.internet.toString()}
+                onChange={(e) => handleExpenseChange('internet', e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="seguranca_mensalidade">Segurança</Label>
+              <Input
+                type="number"
+                id="seguranca_mensalidade"
+                value={expenses.seguranca_mensalidade.toString()}
+                onChange={(e) => handleExpenseChange('seguranca_mensalidade', e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="mei">MEI</Label>
+              <Input
+                type="number"
+                id="mei"
+                value={expenses.mei.toString()}
+                onChange={(e) => handleExpenseChange('mei', e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="celular_mes">Celular</Label>
+              <Input
+                type="number"
+                id="celular_mes"
+                value={expenses.celular_mes.toString()}
+                onChange={(e) => handleExpenseChange('celular_mes', e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="lavanderia">Lavanderia</Label>
+              <Input
+                type="number"
+                id="lavanderia"
+                value={expenses.lavanderia.toString()}
+                onChange={(e) => handleExpenseChange('lavanderia', e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="gasolina">Gasolina</Label>
+              <Input
+                type="number"
+                id="gasolina"
+                value={expenses.gasolina.toString()}
+                onChange={(e) => handleExpenseChange('gasolina', e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="tarifa_bancaria">Tarifa Bancária</Label>
+              <Input
+                type="number"
+                id="tarifa_bancaria"
+                value={expenses.tarifa_bancaria.toString()}
+                onChange={(e) => handleExpenseChange('tarifa_bancaria', e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="cartao_santander">Cartão Santander</Label>
+              <Input
+                type="number"
+                id="cartao_santander"
+                value={expenses.cartao_santander.toString()}
+                onChange={(e) => handleExpenseChange('cartao_santander', e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="cartao_bb">Cartão BB</Label>
+              <Input
+                type="number"
+                id="cartao_bb"
+                value={expenses.cartao_bb.toString()}
+                onChange={(e) => handleExpenseChange('cartao_bb', e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="cartao_nu">Cartão Nu</Label>
+              <Input
+                type="number"
+                id="cartao_nu"
+                value={expenses.cartao_nu.toString()}
+                onChange={(e) => handleExpenseChange('cartao_nu', e.target.value)}
+              />
+            </div>
+             <div>
+              <Label htmlFor="cartao_gab">Cartão Gab</Label>
+              <Input
+                type="number"
+                id="cartao_gab"
+                value={expenses.cartao_gab.toString()}
+                onChange={(e) => handleExpenseChange('cartao_gab', e.target.value)}
+              />
+            </div>
+             <div>
+              <Label htmlFor="boleto_biocom">Boleto Biocom</Label>
+              <Input
+                type="number"
+                id="boleto_biocom"
+                value={expenses.boleto_biocom.toString()}
+                onChange={(e) => handleExpenseChange('boleto_biocom', e.target.value)}
+              />
+            </div>
+             <div>
+              <Label htmlFor="boleto_euroshop">Boleto Euroshop</Label>
+              <Input
+                type="number"
+                id="boleto_euroshop"
+                value={expenses.boleto_euroshop.toString()}
+                onChange={(e) => handleExpenseChange('boleto_euroshop', e.target.value)}
+              />
+            </div>
+          </div>
+          <Button onClick={saveExpenses}>Salvar Despesas</Button>
+          <div className="font-bold text-red-600">
+            Total de Despesas Fixas: R$ {totalExpenses.toFixed(2)}
+          </div>
+        </CardContent>
+      </Card>
+
+      <CustomExpenseManager customExpenses={customExpenses} setCustomExpenses={setCustomExpenses} />
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card className="bg-white/70 backdrop-blur-sm">
+          <CardHeader>
+            <CardTitle>Total de Receitas</CardTitle>
+            <CardDescription>
+              Soma das receitas de serviços e receitas adicionais.
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">R$ {totalIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-            <p className="text-xs opacity-75">Serviços + Receitas personalizadas</p>
+            <div className="text-2xl font-bold text-green-700">
+              R$ {totalIncome.toFixed(2)}
+            </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-red-500 to-red-600 text-white border-0 shadow-lg">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium opacity-90">Despesas do Mês</CardTitle>
-            <TrendingDown className="h-4 w-4 opacity-90" />
+        <Card className="bg-white/70 backdrop-blur-sm">
+          <CardHeader>
+            <CardTitle>Total de Despesas</CardTitle>
+            <CardDescription>
+              Soma das despesas fixas e despesas adicionais.
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">R$ {totalAllExpenses.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-            <p className="text-xs opacity-75">Fixas + Adicionais</p>
-          </CardContent>
-        </Card>
-
-        <Card className={`${netBalance >= 0 ? 'bg-gradient-to-br from-blue-500 to-blue-600' : 'bg-gradient-to-br from-orange-500 to-orange-600'} text-white border-0 shadow-lg`}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium opacity-90">Saldo Atual</CardTitle>
-            <DollarSign className="h-4 w-4 opacity-90" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">R$ {netBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-            <p className="text-xs opacity-75">{netBalance >= 0 ? 'Lucro do mês' : 'Déficit do mês'}</p>
+            <div className="text-2xl font-bold text-red-700">
+              R$ {totalAllExpenses.toFixed(2)}
+            </div>
           </CardContent>
         </Card>
       </div>
 
-      <Tabs defaultValue="income" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-6 bg-white/50 backdrop-blur-sm">
-          <TabsTrigger value="income" className="flex items-center gap-2">
-            <Receipt className="h-4 w-4" />
-            Receitas
-          </TabsTrigger>
-          <TabsTrigger value="expenses" className="flex items-center gap-2">
-            <CreditCard className="h-4 w-4" />
-            Despesas
-          </TabsTrigger>
-          <TabsTrigger value="reports" className="flex items-center gap-2">
-            <FileText className="h-4 w-4" />
-            Relatórios
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="income" className="space-y-6">
-          <Card className="bg-white/70 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle>Receitas por Serviço</CardTitle>
-              <CardDescription>Quantidade de serviços realizados no mês</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {Object.entries(income).map(([key, quantity]) => {
-                  const serviceName = serviceNames[key as keyof typeof serviceNames];
-                  const unitValue = serviceValues[key as keyof typeof serviceValues];
-                  const totalValue = Number(quantity) * Number(unitValue);
-
-                  return (
-                    <div key={key} className="flex items-center justify-between p-4 border rounded-lg bg-white/50 hover:bg-white/80 transition-colors">
-                      <div className="flex flex-col">
-                        <span className="font-medium">{serviceName}</span>
-                        <span className="text-sm text-muted-foreground">R$ {unitValue.toFixed(2)} cada</span>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <Input
-                          type="number"
-                          value={quantity}
-                          onChange={(e) => handleIncomeChange(key, parseInt(e.target.value) || 0)}
-                          className="w-20 text-center"
-                        />
-                        <span className="font-medium text-green-600 w-24 text-right">
-                          R$ {totalValue.toFixed(2)}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
-                <div className="border-t pt-4 mt-4">
-                  <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
-                    <span className="font-bold text-lg">Total de Serviços</span>
-                    <span className="font-bold text-lg text-green-600">
-                      R$ {totalServiceIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <CustomIncomeManager
-            customIncomes={customIncomes}
-            onAddIncome={handleAddCustomIncome}
-            onUpdateIncome={handleUpdateCustomIncome}
-            onDeleteIncome={handleDeleteCustomIncome}
-          />
-        </TabsContent>
-
-        <TabsContent value="expenses" className="space-y-6">
-          <Card className="bg-white/70 backdrop-blur-sm">
-            <CardHeader>
-              <CardTitle>Contas a Pagar</CardTitle>
-              <CardDescription>Despesas fixas mensais</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {Object.entries(expenses).map(([key, value]) => {
-                  const expenseName = expenseNames[key as keyof typeof expenseNames];
-                  if (!expenseName) return null;
-
-                  return (
-                    <div key={key} className="flex items-center justify-between p-4 border rounded-lg bg-white/50 hover:bg-white/80 transition-colors">
-                      <span className="font-medium">{expenseName}</span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-muted-foreground">R$</span>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          value={Number(value) || 0}
-                          onChange={(e) => handleExpenseChange(key, parseFloat(e.target.value) || 0)}
-                          className="w-24 text-right"
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
-                <div className="border-t pt-4 mt-4">
-                  <div className="flex items-center justify-between p-4 bg-red-50 rounded-lg">
-                    <span className="font-bold text-lg">Total de Despesas Fixas</span>
-                    <span className="font-bold text-lg text-red-600">
-                      R$ {totalExpenses.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <CustomExpenseManager
-            customExpenses={customExpenses}
-            onAddExpense={handleAddCustomExpense}
-            onUpdateExpense={handleUpdateCustomExpense}
-            onDeleteExpense={handleDeleteCustomExpense}
-          />
-        </TabsContent>
-
-        <TabsContent value="reports">
-          <FinancialReports
-            reportData={reportData}
-            onGenerateReport={handleGenerateReport}
-          />
-        </TabsContent>
-      </Tabs>
+      <Card className="bg-white/70 backdrop-blur-sm">
+        <CardHeader>
+          <CardTitle>Resultado Financeiro</CardTitle>
+          <CardDescription>
+            Receitas totais menos despesas totais.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className={`text-3xl font-extrabold ${totalIncome - totalAllExpenses >= 0 ? 'text-green-800' : 'text-red-800'}`}>
+            R$ {(totalIncome - totalAllExpenses).toFixed(2)}
+          </div>
+          <p className="text-sm text-muted-foreground mt-2">
+            {totalIncome - totalAllExpenses >= 0 ? 'Lucro' : 'Prejuízo'} no mês de {currentMonth}.
+          </p>
+        </CardContent>
+      </Card>
     </div>
   );
 };
