@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
@@ -205,7 +204,7 @@ export const usePets = () => {
   };
 };
 
-// Hook para gerenciar agendamentos com ambas as tabelas
+// Hook para gerenciar agendamentos com ambas as tabelas e melhor sincronização
 export const useAgendamentos = () => {
   const [agendamentos, setAgendamentos] = useState<AgendamentoDB[]>([]);
   const [agendamentosTutores, setAgendamentosTutores] = useState<AgendamentoTutorDB[]>([]);
@@ -280,6 +279,25 @@ export const useAgendamentos = () => {
     }
   };
 
+  const updateAgendamentoTutor = async (id: string, updates: Partial<AgendamentoTutorDB>) => {
+    try {
+      const { data, error } = await supabase
+        .from('agendamentos_tutores')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      setAgendamentosTutores(prev => prev.map(a => a.id === id ? data : a));
+      return data;
+    } catch (err) {
+      console.error('Erro ao atualizar agendamento do tutor:', err);
+      setError(err instanceof Error ? err.message : 'Erro ao atualizar agendamento do tutor');
+      throw err;
+    }
+  };
+
   const deleteAgendamento = async (id: string) => {
     try {
       const { error } = await supabase
@@ -298,6 +316,43 @@ export const useAgendamentos = () => {
 
   useEffect(() => {
     fetchAgendamentos();
+
+    // Configurar realtime subscription para agendamentos
+    const agendamentosSubscription = supabase
+      .channel('agendamentos-changes')
+      .on('postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'agendamentos'
+        }, 
+        (payload) => {
+          console.log('Mudança detectada nos agendamentos:', payload);
+          fetchAgendamentos();
+        }
+      )
+      .subscribe();
+
+    // Configurar realtime subscription para agendamentos_tutores
+    const tutoresSubscription = supabase
+      .channel('agendamentos-tutores-changes')
+      .on('postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'agendamentos_tutores'
+        }, 
+        (payload) => {
+          console.log('Mudança detectada nos agendamentos de tutores:', payload);
+          fetchAgendamentos();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      agendamentosSubscription.unsubscribe();
+      tutoresSubscription.unsubscribe();
+    };
   }, []);
 
   return {
@@ -307,6 +362,7 @@ export const useAgendamentos = () => {
     error,
     addAgendamento,
     updateAgendamento,
+    updateAgendamentoTutor,
     deleteAgendamento,
     refetch: fetchAgendamentos
   };

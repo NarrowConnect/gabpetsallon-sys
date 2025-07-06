@@ -7,6 +7,23 @@ import { useToast } from "@/hooks/use-toast";
 import { useFinancas } from "@/hooks/useSupabase";
 import CustomIncomeManager from "./CustomIncomeManager";
 import CustomExpenseManager from "./CustomExpenseManager";
+import { supabase } from "@/integrations/supabase/client";
+
+interface CustomIncome {
+  id: string;
+  description: string;
+  value: number;
+  date: string;
+  category: string;
+}
+
+interface CustomExpense {
+  id: string;
+  description: string;
+  value: number;
+  date: string;
+  category: string;
+}
 
 const FinanceManager = () => {
   const { toast } = useToast();
@@ -43,8 +60,9 @@ const FinanceManager = () => {
     boleto_euroshop: 0
   });
 
-  const [customIncomes, setCustomIncomes] = useState<Array<{ id: string; descricao: string; valor: number; data_receita: string }>>([]);
-  const [customExpenses, setCustomExpenses] = useState<Array<{ id: string; descricao: string; valor: number; data_despesa: string }>>([]);
+  const [customIncomes, setCustomIncomes] = useState<CustomIncome[]>([]);
+  const [customExpenses, setCustomExpenses] = useState<CustomExpense[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
 
   const serviceValues = {
     banhos_porte_pequeno: 35,
@@ -54,6 +72,48 @@ const FinanceManager = () => {
     hospedagens: 80,
     taxi_dog: 25,
     roupas: 15
+  };
+
+  // Carregar receitas e despesas personalizadas
+  const loadCustomData = async () => {
+    try {
+      // Carregar receitas personalizadas
+      const { data: receitasData, error: receitasError } = await supabase
+        .from('receitas_personalizadas')
+        .select('*')
+        .eq('mes_referencia', currentMonth);
+
+      if (receitasError) throw receitasError;
+
+      const mappedReceitas: CustomIncome[] = (receitasData || []).map(item => ({
+        id: item.id,
+        description: item.descricao,
+        value: Number(item.valor),
+        date: item.data_receita || '',
+        category: 'Receita Personalizada'
+      }));
+      setCustomIncomes(mappedReceitas);
+
+      // Carregar despesas personalizadas
+      const { data: despesasData, error: despesasError } = await supabase
+        .from('despesas_personalizadas')
+        .select('*')
+        .eq('mes_referencia', currentMonth);
+
+      if (despesasError) throw despesasError;
+
+      const mappedDespesas: CustomExpense[] = (despesasData || []).map(item => ({
+        id: item.id,
+        description: item.descricao,
+        value: Number(item.valor),
+        date: item.data_despesa || '',
+        category: 'Despesa Personalizada'
+      }));
+      setCustomExpenses(mappedDespesas);
+
+    } catch (error) {
+      console.error('Erro ao carregar dados personalizados:', error);
+    }
   };
 
   useEffect(() => {
@@ -95,6 +155,8 @@ const FinanceManager = () => {
         });
       }
     }
+
+    loadCustomData();
   }, [valoresRecebidos, contasPagar, currentMonth]);
 
   const handleIncomeChange = (field: string, value: string) => {
@@ -105,40 +167,207 @@ const FinanceManager = () => {
     setExpenses(prev => ({ ...prev, [field]: Number(value) || 0 }));
   };
 
-  const saveIncome = async () => {
+  const saveAllChanges = async () => {
+    setIsSaving(true);
     try {
+      // Salvar receitas
       const totalEntradas = Object.entries(income).reduce((sum: number, [key, quantity]) => {
         const value = serviceValues[key as keyof typeof serviceValues];
         return sum + (Number(quantity) * Number(value));
       }, 0);
       
       await updateReceitas(currentMonth, { ...income, total_entradas: totalEntradas });
+
+      // Salvar despesas
+      const totalSaidas = Object.values(expenses).reduce((sum: number, val: string | number) => {
+        return sum + (Number(val) || 0);
+      }, 0);
+      
+      await updateDespesas(currentMonth, { ...expenses, total_saidas: totalSaidas });
+
       toast({
-        title: "Receitas salvas!",
-        description: "Os dados de receita foram salvos com sucesso.",
+        title: "Alterações salvas!",
+        description: "Todas as receitas e despesas foram atualizadas com sucesso.",
       });
     } catch (error) {
+      console.error('Erro ao salvar alterações:', error);
       toast({
-        title: "Erro ao salvar receitas",
-        description: "Ocorreu um erro ao salvar os dados de receita.",
+        title: "Erro ao salvar",
+        description: "Ocorreu um erro ao salvar as alterações.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Funções para gerenciar receitas personalizadas
+  const handleAddIncome = async (incomeData: Omit<CustomIncome, 'id'>) => {
+    try {
+      const { data, error } = await supabase
+        .from('receitas_personalizadas')
+        .insert([{
+          descricao: incomeData.description,
+          valor: incomeData.value,
+          data_receita: incomeData.date,
+          mes_referencia: currentMonth
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      const newIncome: CustomIncome = {
+        id: data.id,
+        description: data.descricao,
+        value: Number(data.valor),
+        date: data.data_receita || '',
+        category: 'Receita Personalizada'
+      };
+
+      setCustomIncomes(prev => [...prev, newIncome]);
+    } catch (error) {
+      console.error('Erro ao adicionar receita:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível adicionar a receita.",
         variant: "destructive"
       });
     }
   };
 
-  const saveExpenses = async () => {
-    const newExpenses = { ...expenses };
-    setExpenses(newExpenses);
-
+  const handleUpdateIncome = async (id: string, updates: Partial<CustomIncome>) => {
     try {
-      const totalSaidas = Object.values(newExpenses).reduce((sum: number, val: string | number) => {
-        return sum + (Number(val) || 0);
-      }, 0);
-      await updateDespesas(currentMonth, { ...newExpenses, total_saidas: totalSaidas });
+      const { error } = await supabase
+        .from('receitas_personalizadas')
+        .update({
+          descricao: updates.description,
+          valor: updates.value,
+          data_receita: updates.date
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setCustomIncomes(prev => prev.map(item => 
+        item.id === id ? { ...item, ...updates } : item
+      ));
     } catch (error) {
+      console.error('Erro ao atualizar receita:', error);
       toast({
-        title: "Erro ao salvar despesas",
-        description: "Ocorreu um erro ao salvar os dados de despesa.",
+        title: "Erro",
+        description: "Não foi possível atualizar a receita.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleDeleteIncome = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('receitas_personalizadas')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setCustomIncomes(prev => prev.filter(item => item.id !== id));
+      
+      toast({
+        title: "Receita removida",
+        description: "A receita foi removida com sucesso.",
+      });
+    } catch (error) {
+      console.error('Erro ao deletar receita:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível remover a receita.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Funções para gerenciar despesas personalizadas
+  const handleAddExpense = async (expenseData: Omit<CustomExpense, 'id'>) => {
+    try {
+      const { data, error } = await supabase
+        .from('despesas_personalizadas')
+        .insert([{
+          descricao: expenseData.description,
+          valor: expenseData.value,
+          data_despesa: expenseData.date,
+          mes_referencia: currentMonth
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      const newExpense: CustomExpense = {
+        id: data.id,
+        description: data.descricao,
+        value: Number(data.valor),
+        date: data.data_despesa || '',
+        category: 'Despesa Personalizada'
+      };
+
+      setCustomExpenses(prev => [...prev, newExpense]);
+    } catch (error) {
+      console.error('Erro ao adicionar despesa:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível adicionar a despesa.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleUpdateExpense = async (id: string, updates: Partial<CustomExpense>) => {
+    try {
+      const { error } = await supabase
+        .from('despesas_personalizadas')
+        .update({
+          descricao: updates.description,
+          valor: updates.value,
+          data_despesa: updates.date
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setCustomExpenses(prev => prev.map(item => 
+        item.id === id ? { ...item, ...updates } : item
+      ));
+    } catch (error) {
+      console.error('Erro ao atualizar despesa:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar a despesa.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleDeleteExpense = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('despesas_personalizadas')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setCustomExpenses(prev => prev.filter(item => item.id !== id));
+      
+      toast({
+        title: "Despesa removida",
+        description: "A despesa foi removida com sucesso.",
+      });
+    } catch (error) {
+      console.error('Erro ao deletar despesa:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível remover a despesa.",
         variant: "destructive"
       });
     }
@@ -170,11 +399,11 @@ const FinanceManager = () => {
   }, 0);
   
   const totalCustomIncome = customIncomes.reduce((sum: number, income) => {
-    return sum + (Number(income.valor) || 0);
+    return sum + (Number(income.value) || 0);
   }, 0);
   
   const totalCustomExpenses = customExpenses.reduce((sum: number, expense) => {
-    return sum + (Number(expense.valor) || 0);
+    return sum + (Number(expense.value) || 0);
   }, 0);
   
   const totalIncome = totalServiceIncome + totalCustomIncome;
@@ -185,6 +414,18 @@ const FinanceManager = () => {
       <div className="text-center mb-8">
         <h2 className="text-3xl font-bold text-gray-900">Gestão Financeira</h2>
         <p className="text-muted-foreground">Acompanhe as finanças do seu negócio</p>
+      </div>
+
+      {/* Botão de Salvar Alterações */}
+      <div className="flex justify-center">
+        <Button 
+          onClick={saveAllChanges} 
+          disabled={isSaving}
+          size="lg"
+          className="bg-green-600 hover:bg-green-700"
+        >
+          {isSaving ? "Salvando..." : "Salvar Todas as Alterações"}
+        </Button>
       </div>
 
       <Card className="bg-white/70 backdrop-blur-sm">
@@ -260,14 +501,18 @@ const FinanceManager = () => {
               />
             </div>
           </div>
-          <Button onClick={saveIncome}>Salvar Receitas</Button>
           <div className="font-bold text-green-600">
             Total de Receitas de Serviços: R$ {totalServiceIncome.toFixed(2)}
           </div>
         </CardContent>
       </Card>
 
-      <CustomIncomeManager customIncomes={customIncomes} setCustomIncomes={setCustomIncomes} />
+      <CustomIncomeManager 
+        customIncomes={customIncomes} 
+        onAddIncome={handleAddIncome}
+        onUpdateIncome={handleUpdateIncome}
+        onDeleteIncome={handleDeleteIncome}
+      />
 
       <Card className="bg-white/70 backdrop-blur-sm">
         <CardHeader>
@@ -423,14 +668,18 @@ const FinanceManager = () => {
               />
             </div>
           </div>
-          <Button onClick={saveExpenses}>Salvar Despesas</Button>
           <div className="font-bold text-red-600">
             Total de Despesas Fixas: R$ {totalExpenses.toFixed(2)}
           </div>
         </CardContent>
       </Card>
 
-      <CustomExpenseManager customExpenses={customExpenses} setCustomExpenses={setCustomExpenses} />
+      <CustomExpenseManager 
+        customExpenses={customExpenses} 
+        onAddExpense={handleAddExpense}
+        onUpdateExpense={handleUpdateExpense}
+        onDeleteExpense={handleDeleteExpense}
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card className="bg-white/70 backdrop-blur-sm">
