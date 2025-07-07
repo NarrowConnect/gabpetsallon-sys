@@ -42,6 +42,9 @@ const EVENT_TYPES = [
   { value: 'agendamento.deleted', label: 'Agendamento Deletado' },
 ];
 
+// Usar a chave anon do Supabase
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp3eWt2eHR1Zmtjb3ZxeWlmaGZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE1OTkxODAsImV4cCI6MjA2NzE3NTE4MH0.jZos1WwH4o1HqkkAiZsmmYpARATVZDe01E0p4lPOxHE';
+
 export default function WebhookManager() {
   const [webhooks, setWebhooks] = useState<WebhookConfig[]>([]);
   const [logs, setLogs] = useState<WebhookLog[]>([]);
@@ -160,7 +163,7 @@ export default function WebhookManager() {
       const response = await fetch('/functions/v1/webhook-processor', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${supabase.supabaseKey}`,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
         },
       });
 

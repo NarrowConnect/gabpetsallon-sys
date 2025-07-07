@@ -95,6 +95,9 @@ const API_ENDPOINTS = [
   }
 ];
 
+// Usar a chave anon do Supabase
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp3eWt2eHR1Zmtjb3ZxeWlmaGZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE1OTkxODAsImV4cCI6MjA2NzE3NTE4MH0.jZos1WwH4o1HqkkAiZsmmYpARATVZDe01E0p4lPOxHE';
+
 export default function ApiTester() {
   const [selectedEndpoint, setSelectedEndpoint] = useState(API_ENDPOINTS[0]);
   const [requestBody, setRequestBody] = useState('');
@@ -141,7 +144,7 @@ export default function ApiTester() {
           method: selectedEndpoint.method,
           headers: {
             ...headers,
-            'Authorization': `Bearer ${supabase.supabaseKey}`,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
           },
           body: selectedEndpoint.method !== 'GET' ? requestBody : undefined,
         });
@@ -155,8 +158,8 @@ export default function ApiTester() {
           method: selectedEndpoint.method,
           headers: {
             ...headers,
-            'apikey': supabase.supabaseKey,
-            'Authorization': `Bearer ${supabase.supabaseKey}`,
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
           },
         };
 
@@ -354,8 +357,8 @@ export default function ApiTester() {
               <h4 className="text-sm font-semibold mb-2 text-green-400"># Listar tutores</h4>
               <code className="text-sm break-all">
                 curl -X GET "https://zwykvxtufkcovqyifhfg.supabase.co/rest/v1/tutores" \<br/>
-                &nbsp;&nbsp;-H "apikey: {supabase.supabaseKey}" \<br/>
-                &nbsp;&nbsp;-H "Authorization: Bearer {supabase.supabaseKey}"
+                &nbsp;&nbsp;-H "apikey: {SUPABASE_ANON_KEY}" \<br/>
+                &nbsp;&nbsp;-H "Authorization: Bearer {SUPABASE_ANON_KEY}"
               </code>
             </div>
 
@@ -363,8 +366,8 @@ export default function ApiTester() {
               <h4 className="text-sm font-semibold mb-2 text-green-400"># Criar novo tutor</h4>
               <code className="text-sm break-all">
                 curl -X POST "https://zwykvxtufkcovqyifhfg.supabase.co/rest/v1/tutores" \<br/>
-                &nbsp;&nbsp;-H "apikey: {supabase.supabaseKey}" \<br/>
-                &nbsp;&nbsp;-H "Authorization: Bearer {supabase.supabaseKey}" \<br/>
+                &nbsp;&nbsp;-H "apikey: {SUPABASE_ANON_KEY}" \<br/>
+                &nbsp;&nbsp;-H "Authorization: Bearer {SUPABASE_ANON_KEY}" \<br/>
                 &nbsp;&nbsp;-H "Content-Type: application/json" \<br/>
                 &nbsp;&nbsp;-d '{JSON.stringify({ nome: "João Silva", celular: "41999999999" })}'
               </code>
