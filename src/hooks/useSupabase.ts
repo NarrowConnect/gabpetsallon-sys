@@ -528,13 +528,42 @@ export const useFinancas = () => {
   // Função para atualizar receitas
   const updateReceitas = async (mesReferencia: string, updates: Partial<ValoresRecebidosDB>) => {
     try {
-      const { data, error } = await supabase
+      // Primeiro, verificar se já existe um registro para este mês
+      const { data: existingData, error: selectError } = await supabase
         .from('valores_recebidos')
-        .upsert([{ mes_referencia: mesReferencia, ...updates }])
-        .select()
+        .select('*')
+        .eq('mes_referencia', mesReferencia)
         .single();
+
+      let data;
       
-      if (error) throw error;
+      if (selectError && selectError.code !== 'PGRST116') {
+        // Erro diferente de "nenhum resultado encontrado"
+        throw selectError;
+      }
+
+      if (existingData) {
+        // Registro existe, fazer UPDATE
+        const { data: updateData, error: updateError } = await supabase
+          .from('valores_recebidos')
+          .update(updates)
+          .eq('mes_referencia', mesReferencia)
+          .select()
+          .single();
+        
+        if (updateError) throw updateError;
+        data = updateData;
+      } else {
+        // Registro não existe, fazer INSERT
+        const { data: insertData, error: insertError } = await supabase
+          .from('valores_recebidos')
+          .insert([{ mes_referencia: mesReferencia, ...updates }])
+          .select()
+          .single();
+        
+        if (insertError) throw insertError;
+        data = insertData;
+      }
       
       setValoresRecebidos(prev => {
         const index = prev.findIndex(item => item.mes_referencia === mesReferencia);
@@ -557,13 +586,42 @@ export const useFinancas = () => {
   // Função para atualizar despesas
   const updateDespesas = async (mesReferencia: string, updates: Partial<ContasAPagarDB>) => {
     try {
-      const { data, error } = await supabase
+      // Primeiro, verificar se já existe um registro para este mês
+      const { data: existingData, error: selectError } = await supabase
         .from('contas_a_pagar')
-        .upsert([{ mes_referencia: mesReferencia, ...updates }])
-        .select()
+        .select('*')
+        .eq('mes_referencia', mesReferencia)
         .single();
+
+      let data;
       
-      if (error) throw error;
+      if (selectError && selectError.code !== 'PGRST116') {
+        // Erro diferente de "nenhum resultado encontrado"
+        throw selectError;
+      }
+
+      if (existingData) {
+        // Registro existe, fazer UPDATE
+        const { data: updateData, error: updateError } = await supabase
+          .from('contas_a_pagar')
+          .update(updates)
+          .eq('mes_referencia', mesReferencia)
+          .select()
+          .single();
+        
+        if (updateError) throw updateError;
+        data = updateData;
+      } else {
+        // Registro não existe, fazer INSERT
+        const { data: insertData, error: insertError } = await supabase
+          .from('contas_a_pagar')
+          .insert([{ mes_referencia: mesReferencia, ...updates }])
+          .select()
+          .single();
+        
+        if (insertError) throw insertError;
+        data = insertData;
+      }
       
       setContasPagar(prev => {
         const index = prev.findIndex(item => item.mes_referencia === mesReferencia);
