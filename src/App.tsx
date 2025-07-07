@@ -35,6 +35,25 @@ function App() {
     { id: 'tutor-scheduling', label: 'Agendamento Público', icon: UserPlus },
   ];
 
+  // Transform agendamentos data for CalendarView component
+  const transformedAppointments = agendamentos?.map(apt => ({
+    id: apt.id,
+    nomeTutor: apt.tutor_nome,
+    nomePet: apt.pet_nome,
+    dataServico: apt.data_servico,
+    horaServico: apt.hora_servico,
+    servicoRealizar: apt.servico,
+    status: apt.status as "Agendado" | "Confirmado" | "Em andamento" | "Concluído" | "Cancelado",
+    valor: apt.valor || 0
+  })) || [];
+
+  // Get first tutor for components that need tutorData
+  const firstTutor = tutors && tutors.length > 0 ? {
+    id: tutors[0].id,
+    nome: tutors[0].nome,
+    celular: tutors[0].celular
+  } : { id: '', nome: '', celular: '' };
+
   const renderContent = () => {
     switch (currentView) {
       case 'dashboard':
@@ -46,19 +65,19 @@ function App() {
       case 'schedule':
         return <ScheduleManager />;
       case 'appointments':
-        return <TutorAppointments tutorData={tutors} />;
+        return <TutorAppointments tutorData={firstTutor} />;
       case 'finance':
         return <FinanceManager />;
       case 'reports':
         return <FinancialReports reportData={[]} onGenerateReport={() => {}} />;
       case 'calendar':
-        return <CalendarView appointments={agendamentos} />;
+        return <CalendarView appointments={transformedAppointments} />;
       case 'webhooks':
         return <WebhookManager />;
       case 'api-tester':
         return <ApiTester />;
       case 'tutor-scheduling':
-        return <TutorScheduling tutorData={tutors} onLogout={() => setCurrentView('dashboard')} />;
+        return <TutorScheduling tutorData={firstTutor} onLogout={() => setCurrentView('dashboard')} />;
       default:
         return <Dashboard />;
     }
