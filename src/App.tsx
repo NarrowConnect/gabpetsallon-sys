@@ -13,12 +13,13 @@ import { Toaster } from 'sonner';
 import { BarChart3, Users, Heart, Calendar, Clock, DollarSign, FileText, CalendarDays, Webhook, Code, UserPlus, Menu, X } from 'lucide-react';
 import WebhookManager from '@/components/WebhookManager';
 import ApiTester from '@/components/ApiTester';
-import { useSupabase } from '@/hooks/useSupabase';
+import { useTutors, useAgendamentos } from '@/hooks/useSupabase';
 
 function App() {
   const [currentView, setCurrentView] = useState('dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { tutores, agendamentos } = useSupabase();
+  const { tutors } = useTutors();
+  const { agendamentos } = useAgendamentos();
 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
@@ -45,7 +46,7 @@ function App() {
       case 'schedule':
         return <ScheduleManager />;
       case 'appointments':
-        return <TutorAppointments tutorData={tutores} />;
+        return <TutorAppointments tutorData={tutors} />;
       case 'finance':
         return <FinanceManager />;
       case 'reports':
@@ -57,7 +58,7 @@ function App() {
       case 'api-tester':
         return <ApiTester />;
       case 'tutor-scheduling':
-        return <TutorScheduling tutorData={tutores} onLogout={() => setCurrentView('dashboard')} />;
+        return <TutorScheduling tutorData={tutors} onLogout={() => setCurrentView('dashboard')} />;
       default:
         return <Dashboard />;
     }
