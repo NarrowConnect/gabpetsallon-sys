@@ -1,226 +1,261 @@
 
-import { useState, useEffect } from "react";
+import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, DollarSign, Users, Heart, TrendingUp, Clock, Scissors, Home } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { Users, PawPrint, Calendar, DollarSign, TrendingUp, Activity } from "lucide-react";
+import { useTutors, usePets, useAgendamentos, useFinancas } from '@/hooks/useSupabase';
 
-const Dashboard = () => {
-  const [stats, setStats] = useState({
-    totalTutors: 0,
-    totalPets: 0,
-    todayAppointments: 0,
-    monthlyRevenue: 0,
-    pendingPayments: 0,
-    thisWeekServices: 0
-  });
-  const [recentAppointments, setRecentAppointments] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+export default function Dashboard() {
+  const { tutors, loading: tutorsLoading } = useTutors();
+  const { pets, loading: petsLoading } = usePets();
+  const { agendamentos, agendamentosTutores, loading: agendamentosLoading } = useAgendamentos();
+  const { valoresRecebidos, contasPagar, loading: financasLoading } = useFinancas();
 
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
+  // Calcular métricas
+  const totalTutores = tutors.length;
+  const totalPets = pets.length;
+  const totalAgendamentos = agendamentos.length;
+  const totalSolicitacoes = agendamentosTutores.filter(a => a.status === 'Solicitado').length;
 
-  const fetchDashboardData = async () => {
-    try {
-      setLoading(true);
-      
-      // Fetch tutors count
-      const { count: tutorsCount } = await supabase
-        .from('tutores')
-        .select('*', { count: 'exact', head: true });
+  // Calcular receita do mês atual
+  const mesAtual = new Date().toISOString().slice(0, 7);
+  const receitaMesAtual = valoresRecebidos
+    .find(r => r.mes_referencia === mesAtual)?.total_entradas || 0;
 
-      // Fetch pets count
-      const { count: petsCount } = await supabase
-        .from('pets')
-        .select('*', { count: 'exact', head: true });
+  const despesaMesAtual = contasPagar
+    .find(d => d.mes_referencia === mesAtual)?.total_saidas || 0;
 
-      // Fetch today's appointments
-      const today = new Date().toISOString().split('T')[0];
-      const { count: todayAppointmentsCount } = await supabase
-        .from('agendamentos')
-        .select('*', { count: 'exact', head: true })
-        .eq('data_servico', today);
+  const saldoMensal = receitaMesAtual - despesaMesAtual;
 
-      // Fetch recent appointments for display
-      const { data: appointments } = await supabase
-        .from('agendamentos')
-        .select('*')
-        .order('data_servico', { ascending: true })
-        .limit(5);
-
-      // Fetch this month's financial data
-      const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM format
-      const { data: monthlyIncome } = await supabase
-        .from('valores_recebidos')
-        .select('total_entradas')
-        .eq('mes_referencia', currentMonth)
-        .single();
-
-      const { data: monthlyExpenses } = await supabase
-        .from('contas_a_pagar')
-        .select('total_saidas')
-        .eq('mes_referencia', currentMonth)
-        .single();
-
-      // Count this week's services
-      const weekAgo = new Date();
-      weekAgo.setDate(weekAgo.getDate() - 7);
-      const weekAgoString = weekAgo.toISOString().split('T')[0];
-      
-      const { count: weekServicesCount } = await supabase
-        .from('agendamentos')
-        .select('*', { count: 'exact', head: true })
-        .gte('data_servico', weekAgoString)
-        .eq('status', 'Realizado');
-
-      setStats({
-        totalTutors: tutorsCount || 0,
-        totalPets: petsCount || 0,
-        todayAppointments: todayAppointmentsCount || 0,
-        monthlyRevenue: monthlyIncome?.total_entradas || 0,
-        pendingPayments: monthlyExpenses?.total_saidas || 0,
-        thisWeekServices: weekServicesCount || 0
-      });
-
-      setRecentAppointments(appointments?.map(apt => ({
-        tutor: apt.tutor_nome,
-        pet: apt.pet_nome,
-        service: apt.servico,
-        time: apt.hora_servico,
-        status: apt.status
-      })) || []);
-
-    } catch (error) {
-      console.error('Erro ao carregar dados do dashboard:', error);
-    } finally {
-      setLoading(false);
+  const stats = [
+    {
+      title: "Total de Tutores",
+      value: totalTutores,
+      icon: Users,
+      loading: tutorsLoading,
+      color: "text-blue-600",
+      bgColor: "bg-blue-50"
+    },
+    {
+      title: "Total de Pets",
+      value: totalPets,
+      icon: PawPrint,
+      loading: petsLoading,
+      color: "text-green-600",
+      bgColor: "bg-green-50"
+    },
+    {
+      title: "Agendamentos",
+      value: totalAgendamentos,
+      icon: Calendar,
+      loading: agendamentosLoading,
+      color: "text-purple-600",
+      bgColor: "bg-purple-50"
+    },
+    {
+      title: "Solicitações Pendentes",
+      value: totalSolicitacoes,
+      icon: Activity,
+      loading: agendamentosLoading,
+      color: "text-orange-600",
+      bgColor: "bg-orange-50"
+    },
+    {
+      title: "Receita Mês Atual",
+      value: `R$ ${receitaMesAtual.toFixed(2)}`,
+      icon: TrendingUp,
+      loading: financasLoading,
+      color: "text-emerald-600",
+      bgColor: "bg-emerald-50"
+    },
+    {
+      title: "Saldo Mensal",
+      value: `R$ ${saldoMensal.toFixed(2)}`,
+      icon: DollarSign,
+      loading: financasLoading,
+      color: saldoMensal >= 0 ? "text-green-600" : "text-red-600",
+      bgColor: saldoMensal >= 0 ? "bg-green-50" : "bg-red-50"
     }
-  };
-
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <div className="text-center py-8">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-cyan mx-auto"></div>
-          <p className="mt-4 text-gray-600">Carregando dados...</p>
-        </div>
-      </div>
-    );
-  }
+  ];
 
   return (
-    <div className="space-y-6">
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium opacity-90">Total de Tutores</CardTitle>
-            <Users className="h-4 w-4 opacity-90" />
+    <div className="container mx-auto p-4 space-y-6">
+      <div className="flex flex-col space-y-2">
+        <h1 className="text-2xl sm:text-3xl font-bold">Dashboard</h1>
+        <p className="text-gray-600 text-sm sm:text-base">Visão geral do sistema de gestão pet</p>
+      </div>
+
+      {/* Stats Grid - Responsivo */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+        {stats.map((stat, index) => (
+          <Card key={index} className="hover:shadow-md transition-shadow">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs sm:text-sm font-medium text-gray-600 truncate">
+                    {stat.title}
+                  </p>
+                  <div className="mt-1">
+                    {stat.loading ? (
+                      <div className="h-6 sm:h-8 bg-gray-200 animate-pulse rounded w-16"></div>
+                    ) : (
+                      <p className="text-xl sm:text-2xl font-bold text-gray-900">
+                        {stat.value}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div className={`p-2 sm:p-3 rounded-full ${stat.bgColor} flex-shrink-0`}>
+                  <stat.icon className={`h-4 w-4 sm:h-6 sm:w-6 ${stat.color}`} />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Quick Actions - Mobile Friendly */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <Card className="hover:shadow-md transition-shadow">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Users className="h-5 w-5 text-blue-600" />
+              Gestão de Tutores
+            </CardTitle>
+            <CardDescription className="text-sm">
+              Cadastre e gerencie informações dos tutores
+            </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalTutors}</div>
-            <p className="text-xs opacity-75">Tutores cadastrados</p>
+          <CardContent className="pt-0">
+            <div className="text-2xl font-bold text-blue-600 mb-2">
+              {tutorsLoading ? '...' : totalTutores}
+            </div>
+            <p className="text-sm text-gray-600">tutores cadastrados</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium opacity-90">Total de Pets</CardTitle>
-            <Heart className="h-4 w-4 opacity-90" />
+        <Card className="hover:shadow-md transition-shadow">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <PawPrint className="h-5 w-5 text-green-600" />
+              Gestão de Pets
+            </CardTitle>
+            <CardDescription className="text-sm">
+              Cadastre pets e suas informações de saúde
+            </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalPets}</div>
-            <p className="text-xs opacity-75">Pets cadastrados</p>
+          <CardContent className="pt-0">
+            <div className="text-2xl font-bold text-green-600 mb-2">
+              {petsLoading ? '...' : totalPets}
+            </div>
+            <p className="text-sm text-gray-600">pets cadastrados</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium opacity-90">Receita Mensal</CardTitle>
-            <DollarSign className="h-4 w-4 opacity-90" />
+        <Card className="hover:shadow-md transition-shadow">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-purple-600" />
+              Agendamentos
+            </CardTitle>
+            <CardDescription className="text-sm">
+              Gerencie agendamentos e solicitações
+            </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">R$ {stats.monthlyRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-            <p className="text-xs opacity-75">Mês atual</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-orange-500 to-orange-600 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium opacity-90">Agendamentos Hoje</CardTitle>
-            <Calendar className="h-4 w-4 opacity-90" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.todayAppointments}</div>
-            <p className="text-xs opacity-75">Serviços programados</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-red-500 to-red-600 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium opacity-90">Despesas Mensais</CardTitle>
-            <TrendingUp className="h-4 w-4 opacity-90" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">R$ {stats.pendingPayments.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
-            <p className="text-xs opacity-75">Mês atual</p>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-teal-500 to-teal-600 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium opacity-90">Serviços da Semana</CardTitle>
-            <Scissors className="h-4 w-4 opacity-90" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.thisWeekServices}</div>
-            <p className="text-xs opacity-75">Serviços realizados</p>
+          <CardContent className="pt-0">
+            <div className="flex justify-between items-end">
+              <div>
+                <div className="text-2xl font-bold text-purple-600 mb-1">
+                  {agendamentosLoading ? '...' : totalAgendamentos}
+                </div>
+                <p className="text-sm text-gray-600">agendamentos</p>
+              </div>
+              {totalSolicitacoes > 0 && (
+                <div className="text-right">
+                  <div className="text-lg font-semibold text-orange-600">
+                    {totalSolicitacoes}
+                  </div>
+                  <p className="text-xs text-gray-500">pendentes</p>
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Recent Appointments */}
-      <Card className="bg-white/70 backdrop-blur-sm shadow-lg">
+      {/* Financial Summary - Mobile Optimized */}
+      <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Clock className="h-5 w-5 text-purple-600" />
-            Próximos Agendamentos
+          <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
+            <DollarSign className="h-5 w-5 text-green-600" />
+            Resumo Financeiro - {new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
           </CardTitle>
-          <CardDescription>Serviços programados</CardDescription>
+          <CardDescription>Situação financeira do mês atual</CardDescription>
         </CardHeader>
         <CardContent>
-          {recentAppointments.length === 0 ? (
-            <div className="text-center py-8">
-              <Calendar className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-              <p className="text-gray-600">Nenhum agendamento encontrado.</p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="text-center p-4 bg-green-50 rounded-lg">
+              <div className="text-lg sm:text-2xl font-bold text-green-600">
+                {financasLoading ? '...' : `R$ ${receitaMesAtual.toFixed(2)}`}
+              </div>
+              <p className="text-sm text-gray-600">Receitas</p>
             </div>
-          ) : (
-            <div className="space-y-4">
-              {recentAppointments.map((appointment, index) => (
-                <div key={index} className="flex items-center justify-between p-4 border rounded-lg bg-white/50 hover:bg-white/80 transition-colors">
-                  <div className="flex flex-col">
-                    <p className="font-medium">{appointment.tutor} - {appointment.pet}</p>
-                    <p className="text-sm text-muted-foreground">{appointment.service}</p>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <span className="font-medium">{appointment.time}</span>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      appointment.status === 'Confirmado' ? 'bg-green-100 text-green-800' :
-                      appointment.status === 'Em andamento' ? 'bg-blue-100 text-blue-800' :
-                      appointment.status === 'Realizado' ? 'bg-purple-100 text-purple-800' :
-                      'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      {appointment.status}
-                    </span>
-                  </div>
+            
+            <div className="text-center p-4 bg-red-50 rounded-lg">
+              <div className="text-lg sm:text-2xl font-bold text-red-600">
+                {financasLoading ? '...' : `R$ ${despesaMesAtual.toFixed(2)}`}
+              </div>
+              <p className="text-sm text-gray-600">Despesas</p>
+            </div>
+            
+            <div className={`text-center p-4 rounded-lg ${saldoMensal >= 0 ? 'bg-emerald-50' : 'bg-red-50'}`}>
+              <div className={`text-lg sm:text-2xl font-bold ${saldoMensal >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                {financasLoading ? '...' : `R$ ${saldoMensal.toFixed(2)}`}
+              </div>
+              <p className="text-sm text-gray-600">Saldo</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Recent Activity - Mobile Friendly */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg sm:text-xl">Atividade Recente</CardTitle>
+          <CardDescription>Últimas ações no sistema</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {agendamentosTutores.slice(0, 5).map((agendamento, index) => (
+              <div key={index} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-gray-50 rounded-lg gap-2">
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm sm:text-base truncate">
+                    {agendamento.tutor_nome} - {agendamento.pet_nome}
+                  </p>
+                  <p className="text-xs sm:text-sm text-gray-600">
+                    {agendamento.servico} • {new Date(agendamento.data_servico).toLocaleDateString('pt-BR')}
+                  </p>
                 </div>
-              ))}
-            </div>
-          )}
+                <div className="flex-shrink-0">
+                  <span className={`px-2 py-1 text-xs rounded-full font-medium ${
+                    agendamento.status === 'Solicitado' ? 'bg-yellow-100 text-yellow-800' :
+                    agendamento.status === 'Confirmado' ? 'bg-green-100 text-green-800' :
+                    'bg-red-100 text-red-800'
+                  }`}>
+                    {agendamento.status}
+                  </span>
+                </div>
+              </div>
+            ))}
+            
+            {agendamentosTutores.length === 0 && (
+              <div className="text-center py-8 text-gray-500">
+                <Activity className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>Nenhuma atividade recente</p>
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>
   );
-};
-
-export default Dashboard;
+}

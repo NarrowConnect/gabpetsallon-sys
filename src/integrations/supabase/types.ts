@@ -542,12 +542,89 @@ export type Database = {
         }
         Relationships: []
       }
+      webhook_configurations: {
+        Row: {
+          created_at: string | null
+          event_type: string
+          id: string
+          is_active: boolean | null
+          secret_key: string | null
+          updated_at: string | null
+          webhook_url: string
+        }
+        Insert: {
+          created_at?: string | null
+          event_type: string
+          id?: string
+          is_active?: boolean | null
+          secret_key?: string | null
+          updated_at?: string | null
+          webhook_url: string
+        }
+        Update: {
+          created_at?: string | null
+          event_type?: string
+          id?: string
+          is_active?: boolean | null
+          secret_key?: string | null
+          updated_at?: string | null
+          webhook_url?: string
+        }
+        Relationships: []
+      }
+      webhook_logs: {
+        Row: {
+          error_message: string | null
+          event_data: Json | null
+          event_type: string
+          http_status: number | null
+          id: string
+          response_body: string | null
+          sent_at: string | null
+          webhook_config_id: string | null
+          webhook_url: string
+        }
+        Insert: {
+          error_message?: string | null
+          event_data?: Json | null
+          event_type: string
+          http_status?: number | null
+          id?: string
+          response_body?: string | null
+          sent_at?: string | null
+          webhook_config_id?: string | null
+          webhook_url: string
+        }
+        Update: {
+          error_message?: string | null
+          event_data?: Json | null
+          event_type?: string
+          http_status?: number | null
+          id?: string
+          response_body?: string | null
+          sent_at?: string | null
+          webhook_config_id?: string | null
+          webhook_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_logs_webhook_config_id_fkey"
+            columns: ["webhook_config_id"]
+            isOneToOne: false
+            referencedRelation: "webhook_configurations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      trigger_webhook: {
+        Args: { p_event_type: string; p_event_data: Json }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

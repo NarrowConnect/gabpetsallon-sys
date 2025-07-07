@@ -10,6 +10,8 @@ export type AgendamentoTutorDB = Database['public']['Tables']['agendamentos_tuto
 export type ContasAPagarDB = Database['public']['Tables']['contas_a_pagar']['Row'];
 export type ValoresRecebidosDB = Database['public']['Tables']['valores_recebidos']['Row'];
 export type ControleFinanceiroDB = Database['public']['Tables']['controle_financeiro']['Row'];
+export type WebhookConfigurationDB = Database['public']['Tables']['webhook_configurations']['Row'];
+export type WebhookLogDB = Database['public']['Tables']['webhook_logs']['Row'];
 
 // Hook para gerenciar tutores com melhor integração
 export const useTutors = () => {
@@ -204,6 +206,119 @@ export const usePets = () => {
   };
 };
 
+// Hook para gerenciar webhooks
+export const useWebhooks = () => {
+  const [webhookConfigs, setWebhookConfigs] = useState<WebhookConfigurationDB[]>([]);
+  const [webhookLogs, setWebhookLogs] = useState<WebhookLogDB[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchWebhookConfigs = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const { data, error } = await supabase
+        .from('webhook_configurations')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      setWebhookConfigs(data || []);
+    } catch (err) {
+      console.error('Erro ao buscar configurações de webhook:', err);
+      setError(err instanceof Error ? err.message : 'Erro desconhecido');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchWebhookLogs = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('webhook_logs')
+        .select('*')
+        .order('sent_at', { ascending: false })
+        .limit(100);
+      
+      if (error) throw error;
+      setWebhookLogs(data || []);
+    } catch (err) {
+      console.error('Erro ao buscar logs de webhook:', err);
+      setError(err instanceof Error ? err.message : 'Erro ao buscar logs');
+    }
+  };
+
+  const addWebhookConfig = async (config: Omit<WebhookConfigurationDB, 'id' | 'created_at' | 'updated_at'>) => {
+    try {
+      const { data, error } = await supabase
+        .from('webhook_configurations')
+        .insert([config])
+        .select()
+        .single();
+      
+      if (error) throw error;
+      setWebhookConfigs(prev => [data, ...prev]);
+      return data;
+    } catch (err) {
+      console.error('Erro ao adicionar configuração de webhook:', err);
+      setError(err instanceof Error ? err.message : 'Erro ao adicionar webhook');
+      throw err;
+    }
+  };
+
+  const updateWebhookConfig = async (id: string, updates: Partial<WebhookConfigurationDB>) => {
+    try {
+      const { data, error } = await supabase
+        .from('webhook_configurations')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      setWebhookConfigs(prev => prev.map(w => w.id === id ? data : w));
+      return data;
+    } catch (err) {
+      console.error('Erro ao atualizar configuração de webhook:', err);
+      setError(err instanceof Error ? err.message : 'Erro ao atualizar webhook');
+      throw err;
+    }
+  };
+
+  const deleteWebhookConfig = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('webhook_configurations')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+      setWebhookConfigs(prev => prev.filter(w => w.id !== id));
+    } catch (err) {
+      console.error('Erro ao deletar configuração de webhook:', err);
+      setError(err instanceof Error ? err.message : 'Erro ao deletar webhook');
+      throw err;
+    }
+  };
+
+  useEffect(() => {
+    fetchWebhookConfigs();
+    fetchWebhookLogs();
+  }, []);
+
+  return {
+    webhookConfigs,
+    webhookLogs,
+    loading,
+    error,
+    addWebhookConfig,
+    updateWebhookConfig,
+    deleteWebhookConfig,
+    refetchConfigs: fetchWebhookConfigs,
+    refetchLogs: fetchWebhookLogs
+  };
+};
+
 // Hook para gerenciar agendamentos com ambas as tabelas e melhor sincronização
 export const useAgendamentos = () => {
   const [agendamentos, setAgendamentos] = useState<AgendamentoDB[]>([]);
@@ -220,7 +335,7 @@ export const useAgendamentos = () => {
       const { data: agendamentosData, error: agendamentosError } = await supabase
         .from('agendamentos')
         .select('*')
-        .order('data_servico');
+        .order('data_servico', { ascending: false });
       
       if (agendamentosError) throw agendamentosError;
 
@@ -228,7 +343,7 @@ export const useAgendamentos = () => {
       const { data: tutoresData, error: tutoresError } = await supabase
         .from('agendamentos_tutores')
         .select('*')
-        .order('data_servico');
+        .order('data_servico', { ascending: false });
       
       if (tutoresError) throw tutoresError;
 
@@ -251,7 +366,7 @@ export const useAgendamentos = () => {
         .single();
       
       if (error) throw error;
-      setAgendamentos(prev => [...prev, data]);
+      setAgendamentos(prev => [data, ...prev]);
       return data;
     } catch (err) {
       console.error('Erro ao adicionar agendamento:', err);
@@ -317,9 +432,9 @@ export const useAgendamentos = () => {
   useEffect(() => {
     fetchAgendamentos();
 
-    // Configurar realtime subscription para agendamentos
-    const agendamentosSubscription = supabase
-      .channel('agendamentos-changes')
+    // Configurar realtime subscription mais robusta
+    const channel = supabase
+      .channel('agendamentos-realtime')
       .on('postgres_changes', 
         { 
           event: '*', 
@@ -327,15 +442,17 @@ export const useAgendamentos = () => {
           table: 'agendamentos'
         }, 
         (payload) => {
-          console.log('Mudança detectada nos agendamentos:', payload);
-          fetchAgendamentos();
+          console.log('Mudança nos agendamentos:', payload);
+          
+          if (payload.eventType === 'INSERT') {
+            setAgendamentos(prev => [payload.new as AgendamentoDB, ...prev]);
+          } else if (payload.eventType === 'UPDATE') {
+            setAgendamentos(prev => prev.map(a => a.id === payload.new.id ? payload.new as AgendamentoDB : a));
+          } else if (payload.eventType === 'DELETE') {
+            setAgendamentos(prev => prev.filter(a => a.id !== payload.old.id));
+          }
         }
       )
-      .subscribe();
-
-    // Configurar realtime subscription para agendamentos_tutores
-    const tutoresSubscription = supabase
-      .channel('agendamentos-tutores-changes')
       .on('postgres_changes', 
         { 
           event: '*', 
@@ -343,15 +460,21 @@ export const useAgendamentos = () => {
           table: 'agendamentos_tutores'
         }, 
         (payload) => {
-          console.log('Mudança detectada nos agendamentos de tutores:', payload);
-          fetchAgendamentos();
+          console.log('Mudança nos agendamentos de tutores:', payload);
+          
+          if (payload.eventType === 'INSERT') {
+            setAgendamentosTutores(prev => [payload.new as AgendamentoTutorDB, ...prev]);
+          } else if (payload.eventType === 'UPDATE') {
+            setAgendamentosTutores(prev => prev.map(a => a.id === payload.new.id ? payload.new as AgendamentoTutorDB : a));
+          } else if (payload.eventType === 'DELETE') {
+            setAgendamentosTutores(prev => prev.filter(a => a.id !== payload.old.id));
+          }
         }
       )
       .subscribe();
 
     return () => {
-      agendamentosSubscription.unsubscribe();
-      tutoresSubscription.unsubscribe();
+      supabase.removeChannel(channel);
     };
   }, []);
 
