@@ -1,9 +1,8 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ResponsiveContainer } from "@/components/ui/responsive-container";
 import Dashboard from '@/components/Dashboard';
 import TutorsManager from '@/components/TutorsManager';
@@ -17,7 +16,7 @@ import LoginPage from '@/components/LoginPage';
 import WebhookManager from '@/components/WebhookManager';
 import ApiTester from '@/components/ApiTester';
 import { Toaster } from 'sonner';
-import { BarChart3, Users, Heart, Calendar, Clock, DollarSign, FileText, Settings, LogOut } from 'lucide-react';
+import { BarChart3, Users, Heart, Calendar, Clock, DollarSign, FileText, Settings, LogOut, ClipboardCheck } from 'lucide-react';
 import { useTutors } from '@/hooks/useTutors';
 import { useAgendamentos } from '@/hooks/useAgendamentos';
 
@@ -28,7 +27,6 @@ function App() {
   const { tutors } = useTutors();
   const { agendamentos } = useAgendamentos();
 
-  // Transform agendamentos data for components
   const transformedAppointments = agendamentos?.map(apt => ({
     id: apt.id,
     nomeTutor: apt.tutor_nome,
@@ -40,7 +38,6 @@ function App() {
     valor: apt.valor || 0
   })) || [];
 
-  // Get first tutor for components that need tutorData
   const firstTutor = tutors && tutors.length > 0 ? {
     id: tutors[0].id,
     nome: tutors[0].nome,
@@ -56,12 +53,10 @@ function App() {
     setActiveTab("dashboard");
   };
 
-  // Se não estiver logado, mostrar página de login
   if (!user.type) {
     return <LoginPage onLogin={handleLogin} />;
   }
 
-  // Se for tutor, mostrar apenas interface de agendamento
   if (user.type === 'tutor') {
     return <TutorScheduling tutorData={user.data} onLogout={handleLogout} />;
   }
@@ -76,6 +71,8 @@ function App() {
         return <PetsManager />;
       case 'schedule':
         return <ScheduleManager />;
+      case 'requests':
+        return <TutorAppointments />;
       case 'finance':
         return <FinanceManager />;
       case 'reports':
@@ -104,14 +101,11 @@ function App() {
           </div>
           
           <div className="flex items-center gap-2">
-            {/* Settings Dialog */}
             <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline" className="flex items-center gap-2 border-brand-cyan hover:bg-brand-cyan hover:text-white transition-colors">
-                  <Settings className="h-4 w-4" />
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[600px]">
+              <Button variant="outline" onClick={() => setIsSettingsOpen(true)} className="flex items-center gap-2 border-brand-cyan hover:bg-brand-cyan hover:text-white transition-colors font-poppins">
+                <Settings className="h-4 w-4" />
+              </Button>
+              <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle className="font-poppins">Configurações Avançadas</DialogTitle>
                   <DialogDescription className="font-poppins">
@@ -133,7 +127,7 @@ function App() {
               </DialogContent>
             </Dialog>
 
-            <Button variant="outline" onClick={handleLogout} className="flex items-center gap-2 border-brand-cyan hover:bg-brand-cyan hover:text-white transition-colors">
+            <Button variant="outline" onClick={handleLogout} className="flex items-center gap-2 border-brand-cyan hover:bg-brand-cyan hover:text-white transition-colors font-poppins">
               <LogOut className="h-4 w-4" />
               <span className="font-poppins">Sair</span>
             </Button>
@@ -142,7 +136,7 @@ function App() {
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <div className="mb-6 sm:mb-8 overflow-x-auto">
-            <TabsList className="grid w-full min-w-max grid-cols-6 bg-white/80 backdrop-blur-sm border border-gray-200">
+            <TabsList className="grid w-full min-w-max grid-cols-7 bg-white/80 backdrop-blur-sm border border-gray-200">
               <TabsTrigger value="dashboard" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4 data-[state=active]:bg-brand-cyan data-[state=active]:text-white font-poppins">
                 <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4" />
                 <span className="hidden sm:inline">Dashboard</span>
@@ -160,6 +154,11 @@ function App() {
                 <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
                 <span className="hidden sm:inline">Agendamentos</span>
                 <span className="sm:hidden">Agenda</span>
+              </TabsTrigger>
+              <TabsTrigger value="requests" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4 data-[state=active]:bg-brand-orange data-[state=active]:text-white font-poppins">
+                <ClipboardCheck className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">Solicitações</span>
+                <span className="sm:hidden">Solic.</span>
               </TabsTrigger>
               <TabsTrigger value="finance" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4 data-[state=active]:bg-brand-yellow data-[state=active]:text-gray-800 font-poppins">
                 <DollarSign className="h-3 w-3 sm:h-4 sm:w-4" />
@@ -187,6 +186,10 @@ function App() {
           </TabsContent>
 
           <TabsContent value="schedule">
+            {renderTabContent()}
+          </TabsContent>
+
+          <TabsContent value="requests">
             {renderTabContent()}
           </TabsContent>
 

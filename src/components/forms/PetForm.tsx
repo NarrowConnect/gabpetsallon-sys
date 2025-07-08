@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
 import type { PetDB, PetInsert } from '@/hooks/usePets';
 
 interface PetFormProps {
@@ -19,6 +20,19 @@ interface PetFormProps {
   description?: string;
   submitLabel?: string;
 }
+
+const racasCao = [
+  'Akita', 'Basset Hound', 'Beagle', 'Border Collie', 'Boxer', 'Bulldog Francês', 'Bulldog Inglês',
+  'Chihuahua', 'Cocker Spaniel', 'Dachshund', 'Dálmata', 'Doberman', 'Fila Brasileiro', 'German Shepherd',
+  'Golden Retriever', 'Husky Siberiano', 'Jack Russell Terrier', 'Labrador', 'Lhasa Apso', 'Maltês',
+  'Pastor Alemão', 'Pinscher', 'Pitbull', 'Poodle', 'Pug', 'Rottweiler', 'Schnauzer', 'Shih Tzu',
+  'Spitz Alemão', 'Teckel', 'Vira-Lata', 'Yorkshire', 'Outros'
+];
+
+const racasGato = [
+  'Abissínio', 'Angorá', 'Bengal', 'British Shorthair', 'Chartreux', 'Maine Coon', 'Munchkin',
+  'Persa', 'Ragdoll', 'Russian Blue', 'Scottish Fold', 'Siamês', 'Sphynx', 'Vira-Lata', 'Outros'
+];
 
 const PetForm: React.FC<PetFormProps> = ({
   isOpen,
@@ -71,6 +85,25 @@ const PetForm: React.FC<PetFormProps> = ({
     }));
   };
 
+  const handleEspecieChange = (especie: string) => {
+    setFormData(prev => ({
+      ...prev,
+      especie,
+      raca: null // Reset raça quando muda espécie
+    }));
+  };
+
+  const getRacasDisponiveis = () => {
+    switch (formData.especie) {
+      case 'Cão':
+        return racasCao;
+      case 'Gato':
+        return racasGato;
+      default:
+        return ['Outros'];
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
@@ -92,7 +125,7 @@ const PetForm: React.FC<PetFormProps> = ({
             </div>
             <div>
               <Label htmlFor="especie" className="font-poppins">Espécie</Label>
-              <Select value={formData.especie || 'Cão'} onValueChange={(value) => handleChange('especie', value)}>
+              <Select value={formData.especie || 'Cão'} onValueChange={handleEspecieChange}>
                 <SelectTrigger className="font-poppins">
                   <SelectValue />
                 </SelectTrigger>
@@ -105,12 +138,18 @@ const PetForm: React.FC<PetFormProps> = ({
             </div>
             <div>
               <Label htmlFor="raca" className="font-poppins">Raça</Label>
-              <Input
-                id="raca"
-                value={formData.raca || ''}
-                onChange={(e) => handleChange('raca', e.target.value)}
-                className="font-poppins"
-              />
+              <Select value={formData.raca || ''} onValueChange={(value) => handleChange('raca', value)}>
+                <SelectTrigger className="font-poppins">
+                  <SelectValue placeholder="Selecione a raça" />
+                </SelectTrigger>
+                <SelectContent>
+                  {getRacasDisponiveis().map((raca) => (
+                    <SelectItem key={raca} value={raca} className="font-poppins">
+                      {raca}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <Label htmlFor="sexo" className="font-poppins">Sexo</Label>
@@ -178,6 +217,44 @@ const PetForm: React.FC<PetFormProps> = ({
               />
               <Label htmlFor="toma_medicamentos" className="font-poppins">Toma Medicamentos</Label>
             </div>
+          </div>
+
+          {formData.toma_medicamentos && (
+            <div>
+              <Label htmlFor="medicamentos" className="font-poppins">Quais Medicamentos?</Label>
+              <Textarea
+                id="medicamentos"
+                value={formData.medicamentos || ''}
+                onChange={(e) => handleChange('medicamentos', e.target.value)}
+                placeholder="Descreva os medicamentos que o pet toma..."
+                className="font-poppins"
+                rows={3}
+              />
+            </div>
+          )}
+
+          <div>
+            <Label htmlFor="temperamento" className="font-poppins">Temperamento</Label>
+            <Textarea
+              id="temperamento"
+              value={formData.temperamento || ''}
+              onChange={(e) => handleChange('temperamento', e.target.value)}
+              placeholder="Descreva o temperamento do pet..."
+              className="font-poppins"
+              rows={2}
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="necessidades_especiais" className="font-poppins">Necessidades Especiais</Label>
+            <Textarea
+              id="necessidades_especiais"
+              value={formData.necessidades_especiais || ''}
+              onChange={(e) => handleChange('necessidades_especiais', e.target.value)}
+              placeholder="Descreva necessidades especiais do pet..."
+              className="font-poppins"
+              rows={2}
+            />
           </div>
           
           <Button type="submit" className="w-full font-poppins">
