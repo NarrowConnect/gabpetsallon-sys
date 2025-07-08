@@ -18,7 +18,8 @@ import WebhookManager from '@/components/WebhookManager';
 import ApiTester from '@/components/ApiTester';
 import { Toaster } from 'sonner';
 import { BarChart3, Users, Heart, Calendar, Clock, DollarSign, FileText, Settings, LogOut } from 'lucide-react';
-import { useTutors, useAgendamentos } from '@/hooks/useSupabase';
+import { useTutors } from '@/hooks/useTutors';
+import { useAgendamentos } from '@/hooks/useAgendamentos';
 
 function App() {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -75,8 +76,6 @@ function App() {
         return <PetsManager />;
       case 'schedule':
         return <ScheduleManager />;
-      case 'requests':
-        return <TutorAppointments tutorData={firstTutor} />;
       case 'finance':
         return <FinanceManager />;
       case 'reports':

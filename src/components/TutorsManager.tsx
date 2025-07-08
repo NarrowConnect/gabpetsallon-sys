@@ -1,17 +1,19 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { PlusCircle, Search, Edit, Trash2, Phone, MapPin, UserPlus, Eye } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { PlusCircle, Search, Edit, Trash2, Phone, MapPin, UserPlus, Eye, Heart } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useTutors, usePets } from "@/hooks/useSupabase";
+import { useTutors } from "@/hooks/useTutors";
+import { usePets } from "@/hooks/usePets";
+import TutorForm from "@/components/forms/TutorForm";
 
 const TutorsManager = () => {
   const { toast } = useToast();
   const { tutors, loading, error, addTutor, updateTutor, deleteTutor } = useTutors();
-  const { pets } = usePets();
+  const { pets, getPetsByTutor } = usePets();
   
   const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -19,93 +21,25 @@ const TutorsManager = () => {
   const [selectedTutorPets, setSelectedTutorPets] = useState<any[]>([]);
   const [selectedTutorName, setSelectedTutorName] = useState("");
   const [editingTutor, setEditingTutor] = useState<any>(null);
-  
-  const [formData, setFormData] = useState({
-    nome: "",
-    telefone_residencial: "",
-    celular: "",
-    endereco: "",
-    cep: "",
-    cidade: "",
-    estado: "",
-    nome_veterinario: "",
-    telefone_veterinario: "",
-    celular_veterinario: "",
-    endereco_veterinario: "",
-    cidade_veterinario: "",
-    estado_veterinario: "",
-    contato_adicional_1_nome: "",
-    contato_adicional_1_telefone: "",
-    contato_adicional_2_nome: "",
-    contato_adicional_2_telefone: ""
-  });
 
   const filteredTutors = tutors.filter(tutor =>
     tutor.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
     tutor.celular.includes(searchTerm)
   );
 
-  // Função para visualizar pets do tutor
   const viewTutorPets = (tutor: any) => {
-    const tutorPets = pets.filter(pet => 
-      pet.tutor_id === tutor.id || 
-      pet.nome_tutor?.toLowerCase() === tutor.nome.toLowerCase()
-    );
+    const tutorPets = getPetsByTutor(tutor.id);
     setSelectedTutorPets(tutorPets);
     setSelectedTutorName(tutor.nome);
     setIsPetsDialogOpen(true);
   };
 
-  const resetForm = () => {
-    setFormData({
-      nome: "",
-      telefone_residencial: "",
-      celular: "",
-      endereco: "",
-      cep: "",
-      cidade: "",
-      estado: "",
-      nome_veterinario: "",
-      telefone_veterinario: "",
-      celular_veterinario: "",
-      endereco_veterinario: "",
-      cidade_veterinario: "",
-      estado_veterinario: "",
-      contato_adicional_1_nome: "",
-      contato_adicional_1_telefone: "",
-      contato_adicional_2_nome: "",
-      contato_adicional_2_telefone: ""
-    });
-    setEditingTutor(null);
-  };
-
   const handleEdit = (tutor: any) => {
     setEditingTutor(tutor);
-    setFormData({
-      nome: tutor.nome || "",
-      telefone_residencial: tutor.telefone_residencial || "",
-      celular: tutor.celular || "",
-      endereco: tutor.endereco || "",
-      cep: tutor.cep || "",
-      cidade: tutor.cidade || "",
-      estado: tutor.estado || "",
-      nome_veterinario: tutor.nome_veterinario || "",
-      telefone_veterinario: tutor.telefone_veterinario || "",
-      celular_veterinario: tutor.celular_veterinario || "",
-      endereco_veterinario: tutor.endereco_veterinario || "",
-      cidade_veterinario: tutor.cidade_veterinario || "",
-      estado_veterinario: tutor.estado_veterinario || "",
-      contato_adicional_1_nome: tutor.contato_adicional_1_nome || "",
-      contato_adicional_1_telefone: tutor.contato_adicional_1_telefone || "",
-      contato_adicional_2_nome: tutor.contato_adicional_2_nome || "",
-      contato_adicional_2_telefone: tutor.contato_adicional_2_telefone || ""
-    });
     setIsDialogOpen(true);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const handleSubmit = async (formData: any) => {
     try {
       if (editingTutor) {
         await updateTutor(editingTutor.id, formData);
@@ -121,7 +55,7 @@ const TutorsManager = () => {
         });
       }
       
-      resetForm();
+      setEditingTutor(null);
       setIsDialogOpen(false);
     } catch (error) {
       toast({
@@ -173,199 +107,27 @@ const TutorsManager = () => {
           <p className="text-muted-foreground font-poppins">Gerencie os dados dos tutores dos pets</p>
         </div>
         
-        <Dialog open={isDialogOpen} onOpenChange={(open) => {
-          setIsDialogOpen(open);
-          if (!open) resetForm();
-        }}>
-          <DialogTrigger asChild>
-            <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 font-poppins">
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Novo Tutor
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="font-poppins">{editingTutor ? "Editar Tutor" : "Cadastrar Novo Tutor"}</DialogTitle>
-              <DialogDescription className="font-poppins">
-                {editingTutor ? "Edite os dados do tutor." : "Preencha os dados do tutor para cadastrá-lo no sistema."}
-              </DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold font-poppins">Dados Pessoais</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="nome" className="font-poppins">Nome Completo</Label>
-                    <Input
-                      id="nome"
-                      value={formData.nome}
-                      onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
-                      required
-                      className="font-poppins"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="celular" className="font-poppins">Celular</Label>
-                    <Input
-                      id="celular"
-                      value={formData.celular}
-                      onChange={(e) => setFormData({ ...formData, celular: e.target.value })}
-                      placeholder="(41) 99999-9999"
-                      required
-                      className="font-poppins"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="telefone_residencial" className="font-poppins">Telefone Residencial</Label>
-                    <Input
-                      id="telefone_residencial"
-                      value={formData.telefone_residencial}
-                      onChange={(e) => setFormData({ ...formData, telefone_residencial: e.target.value })}
-                      placeholder="(41) 3333-4444"
-                      className="font-poppins"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="cep" className="font-poppins">CEP</Label>
-                    <Input
-                      id="cep"
-                      value={formData.cep}
-                      onChange={(e) => setFormData({ ...formData, cep: e.target.value })}
-                      placeholder="80000-000"
-                      className="font-poppins"
-                    />
-                  </div>
-                  <div className="sm:col-span-2">
-                    <Label htmlFor="endereco" className="font-poppins">Endereço</Label>
-                    <Input
-                      id="endereco"
-                      value={formData.endereco}
-                      onChange={(e) => setFormData({ ...formData, endereco: e.target.value })}
-                      className="font-poppins"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="cidade" className="font-poppins">Cidade</Label>
-                    <Input
-                      id="cidade"
-                      value={formData.cidade}
-                      onChange={(e) => setFormData({ ...formData, cidade: e.target.value })}
-                      className="font-poppins"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="estado" className="font-poppins">Estado</Label>
-                    <Input
-                      id="estado"
-                      value={formData.estado}
-                      onChange={(e) => setFormData({ ...formData, estado: e.target.value })}
-                      placeholder="PR"
-                      className="font-poppins"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold font-poppins">Dados do Veterinário</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="nome_veterinario" className="font-poppins">Nome do Veterinário</Label>
-                    <Input
-                      id="nome_veterinario"
-                      value={formData.nome_veterinario}
-                      onChange={(e) => setFormData({ ...formData, nome_veterinario: e.target.value })}
-                      className="font-poppins"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="telefone_veterinario" className="font-poppins">Telefone do Veterinário</Label>
-                    <Input
-                      id="telefone_veterinario"
-                      value={formData.telefone_veterinario}
-                      onChange={(e) => setFormData({ ...formData, telefone_veterinario: e.target.value })}
-                      className="font-poppins"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="celular_veterinario" className="font-poppins">Celular do Veterinário</Label>
-                    <Input
-                      id="celular_veterinario"
-                      value={formData.celular_veterinario}
-                      onChange={(e) => setFormData({ ...formData, celular_veterinario: e.target.value })}
-                      className="font-poppins"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="cidade_veterinario" className="font-poppins">Cidade do Veterinário</Label>
-                    <Input
-                      id="cidade_veterinario"
-                      value={formData.cidade_veterinario}
-                      onChange={(e) => setFormData({ ...formData, cidade_veterinario: e.target.value })}
-                      className="font-poppins"
-                    />
-                  </div>
-                  <div className="sm:col-span-2">
-                    <Label htmlFor="endereco_veterinario" className="font-poppins">Endereço do Veterinário</Label>
-                    <Input
-                      id="endereco_veterinario"
-                      value={formData.endereco_veterinario}
-                      onChange={(e) => setFormData({ ...formData, endereco_veterinario: e.target.value })}
-                      className="font-poppins"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold font-poppins">Contatos Adicionais</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="contato_adicional_1_nome" className="font-poppins">Nome do 1º Contato</Label>
-                    <Input
-                      id="contato_adicional_1_nome"
-                      value={formData.contato_adicional_1_nome}
-                      onChange={(e) => setFormData({ ...formData, contato_adicional_1_nome: e.target.value })}
-                      className="font-poppins"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="contato_adicional_1_telefone" className="font-poppins">Telefone do 1º Contato</Label>
-                    <Input
-                      id="contato_adicional_1_telefone"
-                      value={formData.contato_adicional_1_telefone}
-                      onChange={(e) => setFormData({ ...formData, contato_adicional_1_telefone: e.target.value })}
-                      className="font-poppins"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="contato_adicional_2_nome" className="font-poppins">Nome do 2º Contato</Label>
-                    <Input
-                      id="contato_adicional_2_nome"
-                      value={formData.contato_adicional_2_nome}
-                      onChange={(e) => setFormData({ ...formData, contato_adicional_2_nome: e.target.value })}
-                      className="font-poppins"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="contato_adicional_2_telefone" className="font-poppins">Telefone do 2º Contato</Label>
-                    <Input
-                      id="contato_adicional_2_telefone"
-                      value={formData.contato_adicional_2_telefone}
-                      onChange={(e) => setFormData({ ...formData, contato_adicional_2_telefone: e.target.value })}
-                      className="font-poppins"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <Button type="submit" className="w-full font-poppins">
-                {editingTutor ? "Atualizar Tutor" : "Cadastrar Tutor"}
-              </Button>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <Button 
+          onClick={() => setIsDialogOpen(true)}
+          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 font-poppins"
+        >
+          <PlusCircle className="mr-2 h-4 w-4" />
+          Novo Tutor
+        </Button>
       </div>
+
+      <TutorForm
+        isOpen={isDialogOpen}
+        onClose={() => {
+          setIsDialogOpen(false);
+          setEditingTutor(null);
+        }}
+        onSubmit={handleSubmit}
+        initialData={editingTutor}
+        title={editingTutor ? "Editar Tutor" : "Cadastrar Novo Tutor"}
+        description={editingTutor ? "Edite os dados do tutor." : "Preencha os dados do tutor para cadastrá-lo no sistema."}
+        submitLabel={editingTutor ? "Atualizar Tutor" : "Cadastrar Tutor"}
+      />
 
       <Dialog open={isPetsDialogOpen} onOpenChange={setIsPetsDialogOpen}>
         <DialogContent className="sm:max-w-[600px]">
