@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ResponsiveContainer } from "@/components/ui/responsive-container";
 import Dashboard from '@/components/Dashboard';
 import TutorsManager from '@/components/TutorsManager';
@@ -11,22 +12,22 @@ import ScheduleManager from '@/components/ScheduleManager';
 import TutorAppointments from '@/components/TutorAppointments';
 import FinanceManager from '@/components/FinanceManager';
 import FinancialReports from '@/components/FinancialReports';
-import CalendarView from '@/components/CalendarView';
 import TutorScheduling from '@/components/TutorScheduling';
 import LoginPage from '@/components/LoginPage';
 import WebhookManager from '@/components/WebhookManager';
 import ApiTester from '@/components/ApiTester';
 import { Toaster } from 'sonner';
-import { BarChart3, Users, Heart, Calendar, Clock, DollarSign, FileText, CalendarDays, Webhook, Code, UserPlus, LogOut } from 'lucide-react';
+import { BarChart3, Users, Heart, Calendar, Clock, DollarSign, FileText, Settings, LogOut } from 'lucide-react';
 import { useTutors, useAgendamentos } from '@/hooks/useSupabase';
 
 function App() {
   const [activeTab, setActiveTab] = useState("dashboard");
-  const [user, setUser] = useState<{ type: 'admin' | 'tutor' | null; data?: any }>({ type: 'admin' }); // Start as admin for now
+  const [user, setUser] = useState<{ type: 'admin' | 'tutor' | null; data?: any }>({ type: null });
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const { tutors } = useTutors();
   const { agendamentos } = useAgendamentos();
 
-  // Transform agendamentos data for CalendarView component
+  // Transform agendamentos data for components
   const transformedAppointments = agendamentos?.map(apt => ({
     id: apt.id,
     nomeTutor: apt.tutor_nome,
@@ -54,10 +55,12 @@ function App() {
     setActiveTab("dashboard");
   };
 
+  // Se não estiver logado, mostrar página de login
   if (!user.type) {
     return <LoginPage onLogin={handleLogin} />;
   }
 
+  // Se for tutor, mostrar apenas interface de agendamento
   if (user.type === 'tutor') {
     return <TutorScheduling tutorData={user.data} onLogout={handleLogout} />;
   }
@@ -72,27 +75,19 @@ function App() {
         return <PetsManager />;
       case 'schedule':
         return <ScheduleManager />;
-      case 'appointments':
+      case 'requests':
         return <TutorAppointments tutorData={firstTutor} />;
       case 'finance':
         return <FinanceManager />;
       case 'reports':
         return <FinancialReports reportData={[]} onGenerateReport={() => {}} />;
-      case 'calendar':
-        return <CalendarView appointments={transformedAppointments} />;
-      case 'webhooks':
-        return <WebhookManager />;
-      case 'api-tester':
-        return <ApiTester />;
-      case 'tutor-scheduling':
-        return <TutorScheduling tutorData={firstTutor} onLogout={() => setActiveTab('dashboard')} />;
       default:
         return <Dashboard />;
     }
   };
 
   return (
-    <div className="min-h-screen bg-background font-poppins">
+    <div className="min-h-screen bg-[#f6f6f6] font-poppins">
       <ResponsiveContainer className="py-4 sm:py-6">
         <div className="mb-6 sm:mb-8 flex justify-between items-center">
           <div className="text-center flex-1">
@@ -102,73 +97,80 @@ function App() {
                 alt="GabPetSallon" 
                 className="h-12 sm:h-16"
               />
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold font-pacify bg-gradient-to-r from-brand-cyan to-brand-orange bg-clip-text text-transparent">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold font-poppins bg-gradient-to-r from-brand-cyan to-brand-orange bg-clip-text text-transparent">
                 GabPetSallon
               </h1>
             </div>
-            <p className="text-sm sm:text-base text-gray-600">Sistema para controle da empresa</p>
+            <p className="text-sm sm:text-base text-gray-600 font-poppins">Sistema Administrativo</p>
           </div>
-          <Button variant="outline" onClick={handleLogout} className="flex items-center gap-2 border-brand-cyan hover:bg-brand-cyan hover:text-white transition-colors">
-            <LogOut className="h-4 w-4" />
-            Sair
-          </Button>
+          
+          <div className="flex items-center gap-2">
+            {/* Settings Dialog */}
+            <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="flex items-center gap-2 border-brand-cyan hover:bg-brand-cyan hover:text-white transition-colors">
+                  <Settings className="h-4 w-4" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[600px]">
+                <DialogHeader>
+                  <DialogTitle className="font-poppins">Configurações Avançadas</DialogTitle>
+                  <DialogDescription className="font-poppins">
+                    Gerenciar webhooks e testar APIs
+                  </DialogDescription>
+                </DialogHeader>
+                <Tabs defaultValue="webhooks" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="webhooks" className="font-poppins">Webhooks</TabsTrigger>
+                    <TabsTrigger value="api-tester" className="font-poppins">API Tester</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="webhooks" className="mt-4">
+                    <WebhookManager />
+                  </TabsContent>
+                  <TabsContent value="api-tester" className="mt-4">
+                    <ApiTester />
+                  </TabsContent>
+                </Tabs>
+              </DialogContent>
+            </Dialog>
+
+            <Button variant="outline" onClick={handleLogout} className="flex items-center gap-2 border-brand-cyan hover:bg-brand-cyan hover:text-white transition-colors">
+              <LogOut className="h-4 w-4" />
+              <span className="font-poppins">Sair</span>
+            </Button>
+          </div>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <div className="mb-6 sm:mb-8 overflow-x-auto">
-            <TabsList className="grid w-full min-w-max grid-cols-11 bg-white/80 backdrop-blur-sm border border-gray-200">
-              <TabsTrigger value="dashboard" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4 data-[state=active]:bg-brand-cyan data-[state=active]:text-white">
+            <TabsList className="grid w-full min-w-max grid-cols-6 bg-white/80 backdrop-blur-sm border border-gray-200">
+              <TabsTrigger value="dashboard" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4 data-[state=active]:bg-brand-cyan data-[state=active]:text-white font-poppins">
                 <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4" />
                 <span className="hidden sm:inline">Dashboard</span>
                 <span className="sm:hidden">Dash</span>
               </TabsTrigger>
-              <TabsTrigger value="tutors" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4 data-[state=active]:bg-brand-orange data-[state=active]:text-white">
+              <TabsTrigger value="tutors" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4 data-[state=active]:bg-brand-orange data-[state=active]:text-white font-poppins">
                 <Users className="h-3 w-3 sm:h-4 sm:w-4" />
                 <span>Tutores</span>
               </TabsTrigger>
-              <TabsTrigger value="pets" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4 data-[state=active]:bg-brand-yellow data-[state=active]:text-gray-800">
+              <TabsTrigger value="pets" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4 data-[state=active]:bg-brand-yellow data-[state=active]:text-gray-800 font-poppins">
                 <Heart className="h-3 w-3 sm:h-4 sm:w-4" />
                 <span>Pets</span>
               </TabsTrigger>
-              <TabsTrigger value="schedule" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4 data-[state=active]:bg-brand-cyan data-[state=active]:text-white">
+              <TabsTrigger value="schedule" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4 data-[state=active]:bg-brand-cyan data-[state=active]:text-white font-poppins">
                 <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
                 <span className="hidden sm:inline">Agendamentos</span>
                 <span className="sm:hidden">Agenda</span>
               </TabsTrigger>
-              <TabsTrigger value="appointments" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4 data-[state=active]:bg-brand-orange data-[state=active]:text-white">
-                <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="hidden sm:inline">Solicitações</span>
-                <span className="sm:hidden">Sol.</span>
-              </TabsTrigger>
-              <TabsTrigger value="finance" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4 data-[state=active]:bg-brand-yellow data-[state=active]:text-gray-800">
+              <TabsTrigger value="finance" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4 data-[state=active]:bg-brand-yellow data-[state=active]:text-gray-800 font-poppins">
                 <DollarSign className="h-3 w-3 sm:h-4 sm:w-4" />
                 <span className="hidden sm:inline">Financeiro</span>
                 <span className="sm:hidden">$</span>
               </TabsTrigger>
-              <TabsTrigger value="reports" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4 data-[state=active]:bg-brand-cyan data-[state=active]:text-white">
+              <TabsTrigger value="reports" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4 data-[state=active]:bg-brand-cyan data-[state=active]:text-white font-poppins">
                 <FileText className="h-3 w-3 sm:h-4 sm:w-4" />
                 <span className="hidden sm:inline">Relatórios</span>
                 <span className="sm:hidden">Rel.</span>
-              </TabsTrigger>
-              <TabsTrigger value="calendar" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4 data-[state=active]:bg-brand-orange data-[state=active]:text-white">
-                <CalendarDays className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="hidden sm:inline">Calendário</span>
-                <span className="sm:hidden">Cal.</span>
-              </TabsTrigger>
-              <TabsTrigger value="webhooks" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4 data-[state=active]:bg-brand-yellow data-[state=active]:text-gray-800">
-                <Webhook className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="hidden sm:inline">Webhooks</span>
-                <span className="sm:hidden">Web</span>
-              </TabsTrigger>
-              <TabsTrigger value="api-tester" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4 data-[state=active]:bg-brand-cyan data-[state=active]:text-white">
-                <Code className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="hidden sm:inline">API Tester</span>
-                <span className="sm:hidden">API</span>
-              </TabsTrigger>
-              <TabsTrigger value="tutor-scheduling" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4 data-[state=active]:bg-brand-orange data-[state=active]:text-white">
-                <UserPlus className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="hidden sm:inline">Agendamento Público</span>
-                <span className="sm:hidden">Pub.</span>
               </TabsTrigger>
             </TabsList>
           </div>
@@ -189,31 +191,11 @@ function App() {
             {renderTabContent()}
           </TabsContent>
 
-          <TabsContent value="appointments">
-            {renderTabContent()}
-          </TabsContent>
-
           <TabsContent value="finance">
             {renderTabContent()}
           </TabsContent>
 
           <TabsContent value="reports">
-            {renderTabContent()}
-          </TabsContent>
-
-          <TabsContent value="calendar">
-            {renderTabContent()}
-          </TabsContent>
-
-          <TabsContent value="webhooks">
-            {renderTabContent()}
-          </TabsContent>
-
-          <TabsContent value="api-tester">
-            {renderTabContent()}
-          </TabsContent>
-
-          <TabsContent value="tutor-scheduling">
             {renderTabContent()}
           </TabsContent>
         </Tabs>
