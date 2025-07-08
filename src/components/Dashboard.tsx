@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
@@ -20,20 +21,53 @@ const Dashboard = () => {
     return dataAgendamento === hoje;
   }).length || 0;
 
-  const monthlyData = [
-    { name: 'Jan', agendamentos: 45, receita: 2400 },
-    { name: 'Fev', agendamentos: 52, receita: 2800 },
-    { name: 'Mar', agendamentos: 48, receita: 2600 },
-    { name: 'Abr', agendamentos: 61, receita: 3200 },
-    { name: 'Mai', agendamentos: 55, receita: 2900 },
-    { name: 'Jun', agendamentos: 67, receita: 3500 },
-  ];
+  // Dados mensais baseados nos agendamentos reais
+  const monthlyData = React.useMemo(() => {
+    if (!agendamentos || agendamentos.length === 0) return [];
+    
+    const monthCounts: { [key: string]: number } = {};
+    
+    agendamentos.forEach(agendamento => {
+      const date = new Date(agendamento.data_servico);
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      monthCounts[monthKey] = (monthCounts[monthKey] || 0) + 1;
+    });
 
-  const serviceData = [
-    { name: 'Banho e Tosa', value: 45, color: '#8884d8' },
-    { name: 'Banho Simples', value: 35, color: '#82ca9d' },
-    { name: 'Tosa', value: 20, color: '#ffc658' },
-  ];
+    return Object.entries(monthCounts)
+      .map(([monthKey, count]) => {
+        const [year, month] = monthKey.split('-');
+        const monthName = new Date(parseInt(year), parseInt(month) - 1).toLocaleDateString('pt-BR', { month: 'short' });
+        return {
+          name: monthName,
+          agendamentos: count,
+          receita: count * 50 // Estimativa de R$ 50 por serviço
+        };
+      })
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .slice(-6); // Últimos 6 meses
+  }, [agendamentos]);
+
+  // Dados de serviços baseados nos agendamentos reais
+  const serviceData = React.useMemo(() => {
+    if (!agendamentos || agendamentos.length === 0) return [];
+    
+    const serviceCounts: { [key: string]: number } = {};
+    
+    agendamentos.forEach(agendamento => {
+      serviceCounts[agendamento.servico] = (serviceCounts[agendamento.servico] || 0) + 1;
+    });
+
+    const colors = ['#8884d8', '#82ca9d', '#ffc658', '#ff7c7c', '#8dd1e1'];
+    
+    return Object.entries(serviceCounts)
+      .map(([servico, count], index) => ({
+        name: servico,
+        value: count,
+        color: colors[index % colors.length]
+      }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 5); // Top 5 serviços
+  }, [agendamentos]);
 
   if (tutorsLoading || petsLoading || agendamentosLoading) {
     return (
@@ -86,7 +120,7 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold font-poppins">{totalAgendamentos}</div>
-            <p className="text-xs text-muted-foreground font-poppins">Este mês</p>
+            <p className="text-xs text-muted-foreground font-poppins">Total geral</p>
           </CardContent>
         </Card>
       </div>
@@ -98,16 +132,22 @@ const Dashboard = () => {
             <CardDescription className="font-poppins">Evolução mensal dos agendamentos</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={monthlyData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="agendamentos" fill="#8884d8" />
-              </BarChart>
-            </ResponsiveContainer>
+            {monthlyData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={monthlyData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip formatter={(value, name) => [value, name === 'agendamentos' ? 'Agendamentos' : 'Receita (R$)']} />
+                  <Legend />
+                  <Bar dataKey="agendamentos" fill="#8884d8" name="Agendamentos" />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-[300px] text-gray-500 font-poppins">
+                Nenhum agendamento encontrado
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -117,25 +157,31 @@ const Dashboard = () => {
             <CardDescription className="font-poppins">Distribuição dos tipos de serviço</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={serviceData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                  label={({name, percent}) => `${name} ${(percent * 100).toFixed(0)}%`}
-                >
-                  {serviceData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
+            {serviceData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={serviceData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                    label={({name, percent}) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  >
+                    {serviceData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-[300px] text-gray-500 font-poppins">
+                Nenhum serviço encontrado
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
