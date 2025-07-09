@@ -8,7 +8,6 @@ import TutorsManager from '@/components/TutorsManager';
 import PetsManager from '@/components/PetsManager';
 import ScheduleManager from '@/components/ScheduleManager';
 import FinanceManager from '@/components/FinanceManager';
-import TutorScheduling from '@/components/TutorScheduling';
 import TutorAppointments from '@/components/TutorAppointments';
 import WebhookManager from '@/components/WebhookManager';
 import ApiTester from '@/components/ApiTester';
@@ -30,7 +29,6 @@ function App() {
           </div>
 
           <Routes>
-            <Route path="/agendamento" element={<TutorScheduling />} />
             <Route path="/" element={
               <Tabs defaultValue="dashboard" className="w-full">
                 <TabsList className="grid w-full grid-cols-9 font-poppins">
