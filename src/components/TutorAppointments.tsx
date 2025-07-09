@@ -17,6 +17,8 @@ interface TutorAppointmentsProps {
   };
 }
 
+type AppointmentStatus = "Agendado" | "Confirmado" | "Em andamento" | "Concluído" | "Cancelado";
+
 const TutorAppointments = ({ tutorData }: TutorAppointmentsProps) => {
   const { agendamentosTutores, loading: loadingTutores, error: errorTutores, updateAgendamentoTutor } = useAgendamentosTutores();
   const { agendamentos, loading: loadingAgendamentos, error: errorAgendamentos } = useAgendamentos();
@@ -38,6 +40,15 @@ const TutorAppointments = ({ tutorData }: TutorAppointmentsProps) => {
       )
     : agendamentos;
 
+  // Helper function to ensure valid status
+  const getValidStatus = (status: string | null | undefined): AppointmentStatus => {
+    const validStatuses: AppointmentStatus[] = ["Agendado", "Confirmado", "Em andamento", "Concluído", "Cancelado"];
+    if (status && validStatuses.includes(status as AppointmentStatus)) {
+      return status as AppointmentStatus;
+    }
+    return "Agendado"; // Default fallback
+  };
+
   // Combine and transform appointments for calendar view
   const calendarAppointments = [
     // Agendamentos confirmados da tabela principal
@@ -48,7 +59,7 @@ const TutorAppointments = ({ tutorData }: TutorAppointmentsProps) => {
       dataServico: apt.data_servico,
       horaServico: apt.hora_servico,
       servicoRealizar: apt.servico,
-      status: apt.status || "Agendado" as "Agendado" | "Confirmado" | "Em andamento" | "Concluído" | "Cancelado",
+      status: getValidStatus(apt.status),
       valor: apt.valor || 0,
       origem: "agendamentos"
     })),
@@ -62,7 +73,7 @@ const TutorAppointments = ({ tutorData }: TutorAppointmentsProps) => {
         dataServico: apt.data_servico,
         horaServico: apt.hora_servico,
         servicoRealizar: apt.servico,
-        status: "Confirmado" as "Agendado" | "Confirmado" | "Em andamento" | "Concluído" | "Cancelado",
+        status: "Confirmado" as AppointmentStatus,
         valor: 0,
         origem: "tutores"
       }))
