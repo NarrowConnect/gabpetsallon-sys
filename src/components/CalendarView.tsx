@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, Scissors, Home, Car, Droplets } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, Scissors, Home, Car, Droplets, Stethoscope } from "lucide-react";
 import { format, addDays, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, addMonths, subMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -18,6 +18,7 @@ interface Appointment {
   servicoRealizar: string;
   status: "Agendado" | "Confirmado" | "Em andamento" | "Concluído" | "Cancelado";
   valor: number;
+  origem?: string;
 }
 
 interface CalendarViewProps {
@@ -32,20 +33,22 @@ const CalendarView = ({ appointments }: CalendarViewProps) => {
     "Banho": Droplets,
     "Tosa": Scissors,
     "Banho e Tosa": Droplets,
+    "Banho Medicamentoso": Stethoscope,
     "Hospedagem": Home,
     "Pet Sitter": Home,
     "Taxi Dog": Car
   };
 
   const statusColors = {
-    "Agendado": "bg-yellow-100 text-yellow-800",
-    "Confirmado": "bg-green-100 text-green-800",
-    "Em andamento": "bg-blue-100 text-blue-800",
-    "Concluído": "bg-gray-100 text-gray-800",
-    "Cancelado": "bg-red-100 text-red-800"
+    "Agendado": "bg-yellow-100 text-yellow-800 border-yellow-300",
+    "Confirmado": "bg-green-100 text-green-800 border-green-300",
+    "Em andamento": "bg-blue-100 text-blue-800 border-blue-300",
+    "Concluído": "bg-gray-100 text-gray-800 border-gray-300",
+    "Cancelado": "bg-red-100 text-red-800 border-red-300"
   };
 
-  const workingHours = Array.from({ length: 8 }, (_, i) => i + 10); // 10h às 17h
+  // Horários de atendimento: 8h às 17h
+  const workingHours = Array.from({ length: 10 }, (_, i) => i + 8);
 
   const getAppointmentsForDate = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
@@ -63,7 +66,6 @@ const CalendarView = ({ appointments }: CalendarViewProps) => {
   const renderMonthView = () => {
     return (
       <div className="space-y-4">
-        {/* Controles externos de navegação */}
         <div className="flex items-center justify-between bg-white/80 backdrop-blur-sm p-4 rounded-lg border border-brand-cyan/20">
           <h3 className="text-lg font-semibold text-brand-cyan">
             {format(selectedDate, 'MMMM yyyy', { locale: ptBR })}
@@ -128,6 +130,11 @@ const CalendarView = ({ appointments }: CalendarViewProps) => {
                     <div>
                       <p className="font-medium text-sm">{appointment.nomeTutor} - {appointment.nomePet}</p>
                       <p className="text-xs text-muted-foreground">{appointment.servicoRealizar}</p>
+                      {appointment.origem && (
+                        <Badge variant="outline" className="text-xs mt-1">
+                          {appointment.origem === 'tutores' ? 'Solicitação Tutor' : 'Agendamento Admin'}
+                        </Badge>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -209,6 +216,11 @@ const CalendarView = ({ appointments }: CalendarViewProps) => {
                       <div key={apt.id} className="text-xs bg-brand-cyan/20 text-brand-cyan p-1 rounded mb-1 truncate">
                         <div className="font-medium">{apt.nomePet}</div>
                         <div className="text-gray-600">{apt.servicoRealizar}</div>
+                        {apt.origem && (
+                          <div className="text-xs bg-brand-orange/20 text-brand-orange px-1 rounded mt-1">
+                            {apt.origem === 'tutores' ? 'Tutor' : 'Admin'}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -276,6 +288,11 @@ const CalendarView = ({ appointments }: CalendarViewProps) => {
                               <div>
                                 <p className="font-medium">{appointment.nomeTutor} - {appointment.nomePet}</p>
                                 <p className="text-sm text-muted-foreground">{appointment.servicoRealizar}</p>
+                                {appointment.origem && (
+                                  <Badge variant="outline" className="text-xs mt-1">
+                                    {appointment.origem === 'tutores' ? 'Solicitação Tutor' : 'Agendamento Admin'}
+                                  </Badge>
+                                )}
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
@@ -283,7 +300,9 @@ const CalendarView = ({ appointments }: CalendarViewProps) => {
                               <Badge className={statusColors[appointment.status]}>
                                 {appointment.status}
                               </Badge>
-                              <span className="font-medium text-green-600">R$ {appointment.valor.toFixed(2)}</span>
+                              {appointment.valor > 0 && (
+                                <span className="font-medium text-green-600">R$ {appointment.valor.toFixed(2)}</span>
+                              )}
                             </div>
                           </div>
                         );
@@ -308,7 +327,9 @@ const CalendarView = ({ appointments }: CalendarViewProps) => {
           <CalendarIcon className="h-5 w-5" />
           Calendário de Agendamentos
         </CardTitle>
-        <CardDescription>Visualize os agendamentos por mês, semana ou dia</CardDescription>
+        <CardDescription>
+          Visualize os agendamentos confirmados e solicitações aprovadas por mês, semana ou dia
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as "month" | "week" | "day")}>

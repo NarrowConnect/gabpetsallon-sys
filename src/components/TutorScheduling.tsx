@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, Clock, PawPrint, LogOut, Plus, Eye, AlertCircle } from "lucide-react";
+import { Calendar, Clock, PawPrint, LogOut, Plus, Eye, AlertCircle, CalendarIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import TutorAppointments from "./TutorAppointments";
@@ -235,7 +235,7 @@ const TutorScheduling = ({ tutorData, onLogout }: TutorSchedulingProps) => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-6 bg-white/80 backdrop-blur-sm">
+          <TabsList className="grid w-full grid-cols-3 mb-6 bg-white/80 backdrop-blur-sm">
             <TabsTrigger value="novo" className="flex items-center gap-2 data-[state=active]:bg-brand-cyan data-[state=active]:text-white">
               <Plus className="h-4 w-4" />
               Novo Agendamento
@@ -243,6 +243,10 @@ const TutorScheduling = ({ tutorData, onLogout }: TutorSchedulingProps) => {
             <TabsTrigger value="meus" className="flex items-center gap-2 data-[state=active]:bg-brand-orange data-[state=active]:text-white">
               <Eye className="h-4 w-4" />
               Meus Agendamentos
+            </TabsTrigger>
+            <TabsTrigger value="calendario" className="flex items-center gap-2 data-[state=active]:bg-brand-yellow data-[state=active]:text-gray-800">
+              <CalendarIcon className="h-4 w-4" />
+              Calendário
             </TabsTrigger>
           </TabsList>
 
@@ -378,7 +382,7 @@ const TutorScheduling = ({ tutorData, onLogout }: TutorSchedulingProps) => {
                           <SelectValue placeholder="Selecione o horário" />
                         </SelectTrigger>
                         <SelectContent>
-                          {["08:00", "09:00", "10:00", "11:00", "13:00", "14:00", "15:00", "16:00", "17:00"].map((hora) => (
+                          {["08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"].map((hora) => (
                             <SelectItem key={hora} value={hora}>{hora}</SelectItem>
                           ))}
                         </SelectContent>
@@ -419,6 +423,10 @@ const TutorScheduling = ({ tutorData, onLogout }: TutorSchedulingProps) => {
           </TabsContent>
 
           <TabsContent value="meus">
+            <TutorAppointments tutorData={tutorData} />
+          </TabsContent>
+
+          <TabsContent value="calendario">
             <TutorAppointments tutorData={tutorData} />
           </TabsContent>
         </Tabs>
