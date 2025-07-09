@@ -8,6 +8,7 @@ import { useFinancas } from "@/hooks/useSupabase";
 import CustomIncomeManager from "./CustomIncomeManager";
 import CustomExpenseManager from "./CustomExpenseManager";
 import { supabase } from "@/integrations/supabase/client";
+import { TrendingUp, TrendingDown, DollarSign, PiggyBank, Receipt, CreditCard, Calculator, AlertTriangle } from "lucide-react";
 
 interface CustomIncome {
   id: string;
@@ -74,10 +75,8 @@ const FinanceManager = () => {
     roupas: 15
   };
 
-  // Carregar receitas e despesas personalizadas
   const loadCustomData = async () => {
     try {
-      // Carregar receitas personalizadas
       const { data: receitasData, error: receitasError } = await supabase
         .from('receitas_personalizadas')
         .select('*')
@@ -94,7 +93,6 @@ const FinanceManager = () => {
       }));
       setCustomIncomes(mappedReceitas);
 
-      // Carregar despesas personalizadas
       const { data: despesasData, error: despesasError } = await supabase
         .from('despesas_personalizadas')
         .select('*')
@@ -170,7 +168,6 @@ const FinanceManager = () => {
   const saveAllChanges = async () => {
     setIsSaving(true);
     try {
-      // Salvar receitas
       const totalEntradas = Object.entries(income).reduce((sum: number, [key, quantity]) => {
         const value = serviceValues[key as keyof typeof serviceValues];
         return sum + (Number(quantity) * Number(value));
@@ -178,7 +175,6 @@ const FinanceManager = () => {
       
       await updateReceitas(currentMonth, { ...income, total_entradas: totalEntradas });
 
-      // Salvar despesas
       const totalSaidas = Object.values(expenses).reduce((sum: number, val: string | number) => {
         return sum + (Number(val) || 0);
       }, 0);
@@ -201,7 +197,6 @@ const FinanceManager = () => {
     }
   };
 
-  // Funções para gerenciar receitas personalizadas
   const handleAddIncome = async (incomeData: Omit<CustomIncome, 'id'>) => {
     try {
       const { data, error } = await supabase
@@ -287,7 +282,6 @@ const FinanceManager = () => {
     }
   };
 
-  // Funções para gerenciar despesas personalizadas
   const handleAddExpense = async (expenseData: Omit<CustomExpense, 'id'>) => {
     try {
       const { data, error } = await supabase
@@ -375,16 +369,23 @@ const FinanceManager = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+      <div className="flex items-center justify-center py-12">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-cyan"></div>
+          <p className="text-gray-600 font-poppins">Carregando dados financeiros...</p>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="text-center py-8">
-        <p className="text-red-600">Erro ao carregar dados financeiros: {error}</p>
+      <div className="text-center py-12">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md mx-auto">
+          <AlertTriangle className="h-8 w-8 text-red-600 mx-auto mb-4" />
+          <p className="text-red-600 font-poppins font-semibold mb-2">Erro ao carregar dados financeiros</p>
+          <p className="text-red-500 font-poppins text-sm">{error}</p>
+        </div>
       </div>
     );
   }
@@ -408,101 +409,155 @@ const FinanceManager = () => {
   
   const totalIncome = totalServiceIncome + totalCustomIncome;
   const totalAllExpenses = totalExpenses + totalCustomExpenses;
+  const finalBalance = totalIncome - totalAllExpenses;
 
   return (
-    <div className="space-y-6">
-      <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-gray-900">Gestão Financeira</h2>
-        <p className="text-muted-foreground">Acompanhe as finanças do seu negócio</p>
+    <div className="space-y-8">
+      <div className="text-center">
+        <div className="flex items-center justify-center gap-3 mb-4">
+          <div className="bg-gradient-to-r from-brand-cyan to-brand-orange p-3 rounded-full">
+            <Calculator className="h-8 w-8 text-white" />
+          </div>
+          <h2 className="text-3xl font-bold text-gray-900 font-poppins">Gestão Financeira</h2>
+        </div>
+        <p className="text-gray-600 font-poppins text-lg">Controle completo das finanças do seu negócio</p>
+        <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-md mx-auto">
+          <p className="text-blue-800 font-poppins font-medium">Mês de referência: {new Date(currentMonth + '-01').toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}</p>
+        </div>
       </div>
 
-      {/* Botão de Salvar Alterações */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-green-700 font-poppins font-medium text-sm">Total de Receitas</p>
+                <p className="text-3xl font-bold text-green-800 font-poppins">
+                  R$ {totalIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </p>
+              </div>
+              <div className="bg-green-200 p-3 rounded-full">
+                <TrendingUp className="h-6 w-6 text-green-700" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-red-50 to-red-100 border-red-200">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-red-700 font-poppins font-medium text-sm">Total de Despesas</p>
+                <p className="text-3xl font-bold text-red-800 font-poppins">
+                  R$ {totalAllExpenses.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </p>
+              </div>
+              <div className="bg-red-200 p-3 rounded-full">
+                <TrendingDown className="h-6 w-6 text-red-700" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className={`bg-gradient-to-br ${finalBalance >= 0 ? 'from-blue-50 to-blue-100 border-blue-200' : 'from-orange-50 to-orange-100 border-orange-200'}`}>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className={`${finalBalance >= 0 ? 'text-blue-700' : 'text-orange-700'} font-poppins font-medium text-sm`}>Saldo Final</p>
+                <p className={`text-3xl font-bold ${finalBalance >= 0 ? 'text-blue-800' : 'text-orange-800'} font-poppins`}>
+                  R$ {finalBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </p>
+              </div>
+              <div className={`${finalBalance >= 0 ? 'bg-blue-200' : 'bg-orange-200'} p-3 rounded-full`}>
+                <PiggyBank className={`h-6 w-6 ${finalBalance >= 0 ? 'text-blue-700' : 'text-orange-700'}`} />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-purple-700 font-poppins font-medium text-sm">Margem</p>
+                <p className="text-3xl font-bold text-purple-800 font-poppins">
+                  {totalIncome > 0 ? ((finalBalance / totalIncome) * 100).toFixed(1) : '0.0'}%
+                </p>
+              </div>
+              <div className="bg-purple-200 p-3 rounded-full">
+                <Calculator className="h-6 w-6 text-purple-700" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       <div className="flex justify-center">
         <Button 
           onClick={saveAllChanges} 
           disabled={isSaving}
           size="lg"
-          className="bg-green-600 hover:bg-green-700"
+          className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-8 py-3 font-poppins font-semibold shadow-lg"
         >
-          {isSaving ? "Salvando..." : "Salvar Todas as Alterações"}
+          {isSaving ? (
+            <div className="flex items-center gap-2">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              Salvando...
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5" />
+              Salvar Todas as Alterações
+            </div>
+          )}
         </Button>
       </div>
 
-      <Card className="bg-white/70 backdrop-blur-sm">
-        <CardHeader>
-          <CardTitle>Receitas de Serviços - {currentMonth}</CardTitle>
-          <CardDescription>
-            Informe a quantidade de serviços realizados no mês.
+      <Card className="bg-gradient-to-br from-blue-50/50 to-cyan-50/50 border-blue-200">
+        <CardHeader className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-t-lg">
+          <CardTitle className="flex items-center gap-2 font-poppins">
+            <Receipt className="h-5 w-5" />
+            Receitas de Serviços - {currentMonth}
+          </CardTitle>
+          <CardDescription className="text-blue-100 font-poppins">
+            Informe a quantidade de serviços realizados no mês
           </CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-4">
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <Label htmlFor="banhos_porte_pequeno">Banhos Peq. (R$35)</Label>
-              <Input
-                type="number"
-                id="banhos_porte_pequeno"
-                value={income.banhos_porte_pequeno.toString()}
-                onChange={(e) => handleIncomeChange('banhos_porte_pequeno', e.target.value)}
-              />
-            </div>
-            <div>
-              <Label htmlFor="banhos_porte_grande">Banhos Gde. (R$50)</Label>
-              <Input
-                type="number"
-                id="banhos_porte_grande"
-                value={income.banhos_porte_grande.toString()}
-                onChange={(e) => handleIncomeChange('banhos_porte_grande', e.target.value)}
-              />
-            </div>
-            <div>
-              <Label htmlFor="banhos_medicamentosos">Banhos Med. (R$60)</Label>
-              <Input
-                type="number"
-                id="banhos_medicamentosos"
-                value={income.banhos_medicamentosos.toString()}
-                onChange={(e) => handleIncomeChange('banhos_medicamentosos', e.target.value)}
-              />
-            </div>
-            <div>
-              <Label htmlFor="tosas">Tosas (R$40)</Label>
-              <Input
-                type="number"
-                id="tosas"
-                value={income.tosas.toString()}
-                onChange={(e) => handleIncomeChange('tosas', e.target.value)}
-              />
-            </div>
-            <div>
-              <Label htmlFor="hospedagens">Hospedagens (R$80)</Label>
-              <Input
-                type="number"
-                id="hospedagens"
-                value={income.hospedagens.toString()}
-                onChange={(e) => handleIncomeChange('hospedagens', e.target.value)}
-              />
-            </div>
-            <div>
-              <Label htmlFor="taxi_dog">Taxi Dog (R$25)</Label>
-              <Input
-                type="number"
-                id="taxi_dog"
-                value={income.taxi_dog.toString()}
-                onChange={(e) => handleIncomeChange('taxi_dog', e.target.value)}
-              />
-            </div>
-            <div>
-              <Label htmlFor="roupas">Roupas (R$15)</Label>
-              <Input
-                type="number"
-                id="roupas"
-                value={income.roupas.toString()}
-                onChange={(e) => handleIncomeChange('roupas', e.target.value)}
-              />
-            </div>
+        <CardContent className="p-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {Object.entries(serviceValues).map(([key, value]) => (
+              <div key={key} className="space-y-2">
+                <Label htmlFor={key} className="font-poppins font-medium text-gray-700">
+                  {key === 'banhos_porte_pequeno' && 'Banhos Pequeno'}
+                  {key === 'banhos_porte_grande' && 'Banhos Grande'}
+                  {key === 'banhos_medicamentosos' && 'Banhos Medicamentosos'}
+                  {key === 'tosas' && 'Tosas'}
+                  {key === 'hospedagens' && 'Hospedagens'}
+                  {key === 'taxi_dog' && 'Taxi Dog'}
+                  {key === 'roupas' && 'Roupas'}
+                  <span className="text-green-600 font-semibold ml-2">(R${value})</span>
+                </Label>
+                <Input
+                  type="number"
+                  id={key}
+                  value={income[key as keyof typeof income].toString()}
+                  onChange={(e) => handleIncomeChange(key, e.target.value)}
+                  className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                  min="0"
+                />
+                <p className="text-sm text-gray-600 font-poppins">
+                  Subtotal: R$ {(income[key as keyof typeof income] * value).toFixed(2)}
+                </p>
+              </div>
+            ))}
           </div>
-          <div className="font-bold text-green-600">
-            Total de Receitas de Serviços: R$ {totalServiceIncome.toFixed(2)}
+          <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-green-800 font-poppins text-lg">Total de Receitas de Serviços:</span>
+              <span className="font-bold text-green-800 font-poppins text-2xl">
+                R$ {totalServiceIncome.toFixed(2)}
+              </span>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -514,162 +569,42 @@ const FinanceManager = () => {
         onDeleteIncome={handleDeleteIncome}
       />
 
-      <Card className="bg-white/70 backdrop-blur-sm">
-        <CardHeader>
-          <CardTitle>Despesas Mensais Fixas - {currentMonth}</CardTitle>
-          <CardDescription>
-            Informe os valores das despesas fixas do mês.
+      <Card className="bg-gradient-to-br from-red-50/50 to-orange-50/50 border-red-200">
+        <CardHeader className="bg-gradient-to-r from-red-600 to-orange-600 text-white rounded-t-lg">
+          <CardTitle className="flex items-center gap-2 font-poppins">
+            <CreditCard className="h-5 w-5" />
+            Despesas Mensais Fixas - {currentMonth}
+          </CardTitle>
+          <CardDescription className="text-red-100 font-poppins">
+            Informe os valores das despesas fixas do mês
           </CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-4">
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <Label htmlFor="aluguel">Aluguel</Label>
-              <Input
-                type="number"
-                id="aluguel"
-                value={expenses.aluguel.toString()}
-                onChange={(e) => handleExpenseChange('aluguel', e.target.value)}
-              />
-            </div>
-            <div>
-              <Label htmlFor="copel">Copel</Label>
-              <Input
-                type="number"
-                id="copel"
-                value={expenses.copel.toString()}
-                onChange={(e) => handleExpenseChange('copel', e.target.value)}
-              />
-            </div>
-            <div>
-              <Label htmlFor="sanepar">Sanepar</Label>
-              <Input
-                type="number"
-                id="sanepar"
-                value={expenses.sanepar.toString()}
-                onChange={(e) => handleExpenseChange('sanepar', e.target.value)}
-              />
-            </div>
-            <div>
-              <Label htmlFor="internet">Internet</Label>
-              <Input
-                type="number"
-                id="internet"
-                value={expenses.internet.toString()}
-                onChange={(e) => handleExpenseChange('internet', e.target.value)}
-              />
-            </div>
-            <div>
-              <Label htmlFor="seguranca_mensalidade">Segurança</Label>
-              <Input
-                type="number"
-                id="seguranca_mensalidade"
-                value={expenses.seguranca_mensalidade.toString()}
-                onChange={(e) => handleExpenseChange('seguranca_mensalidade', e.target.value)}
-              />
-            </div>
-            <div>
-              <Label htmlFor="mei">MEI</Label>
-              <Input
-                type="number"
-                id="mei"
-                value={expenses.mei.toString()}
-                onChange={(e) => handleExpenseChange('mei', e.target.value)}
-              />
-            </div>
-            <div>
-              <Label htmlFor="celular_mes">Celular</Label>
-              <Input
-                type="number"
-                id="celular_mes"
-                value={expenses.celular_mes.toString()}
-                onChange={(e) => handleExpenseChange('celular_mes', e.target.value)}
-              />
-            </div>
-            <div>
-              <Label htmlFor="lavanderia">Lavanderia</Label>
-              <Input
-                type="number"
-                id="lavanderia"
-                value={expenses.lavanderia.toString()}
-                onChange={(e) => handleExpenseChange('lavanderia', e.target.value)}
-              />
-            </div>
-            <div>
-              <Label htmlFor="gasolina">Gasolina</Label>
-              <Input
-                type="number"
-                id="gasolina"
-                value={expenses.gasolina.toString()}
-                onChange={(e) => handleExpenseChange('gasolina', e.target.value)}
-              />
-            </div>
-            <div>
-              <Label htmlFor="tarifa_bancaria">Tarifa Bancária</Label>
-              <Input
-                type="number"
-                id="tarifa_bancaria"
-                value={expenses.tarifa_bancaria.toString()}
-                onChange={(e) => handleExpenseChange('tarifa_bancaria', e.target.value)}
-              />
-            </div>
-            <div>
-              <Label htmlFor="cartao_santander">Cartão Santander</Label>
-              <Input
-                type="number"
-                id="cartao_santander"
-                value={expenses.cartao_santander.toString()}
-                onChange={(e) => handleExpenseChange('cartao_santander', e.target.value)}
-              />
-            </div>
-            <div>
-              <Label htmlFor="cartao_bb">Cartão BB</Label>
-              <Input
-                type="number"
-                id="cartao_bb"
-                value={expenses.cartao_bb.toString()}
-                onChange={(e) => handleExpenseChange('cartao_bb', e.target.value)}
-              />
-            </div>
-            <div>
-              <Label htmlFor="cartao_nu">Cartão Nu</Label>
-              <Input
-                type="number"
-                id="cartao_nu"
-                value={expenses.cartao_nu.toString()}
-                onChange={(e) => handleExpenseChange('cartao_nu', e.target.value)}
-              />
-            </div>
-             <div>
-              <Label htmlFor="cartao_gab">Cartão Gab</Label>
-              <Input
-                type="number"
-                id="cartao_gab"
-                value={expenses.cartao_gab.toString()}
-                onChange={(e) => handleExpenseChange('cartao_gab', e.target.value)}
-              />
-            </div>
-             <div>
-              <Label htmlFor="boleto_biocom">Boleto Biocom</Label>
-              <Input
-                type="number"
-                id="boleto_biocom"
-                value={expenses.boleto_biocom.toString()}
-                onChange={(e) => handleExpenseChange('boleto_biocom', e.target.value)}
-              />
-            </div>
-             <div>
-              <Label htmlFor="boleto_euroshop">Boleto Euroshop</Label>
-              <Input
-                type="number"
-                id="boleto_euroshop"
-                value={expenses.boleto_euroshop.toString()}
-                onChange={(e) => handleExpenseChange('boleto_euroshop', e.target.value)}
-              />
-            </div>
+        <CardContent className="p-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {Object.entries(expenses).map(([key, value]) => (
+              <div key={key} className="space-y-2">
+                <Label htmlFor={key} className="font-poppins font-medium text-gray-700 capitalize">
+                  {key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                </Label>
+                <Input
+                  type="number"
+                  id={key}
+                  value={value.toString()}
+                  onChange={(e) => handleExpenseChange(key, e.target.value)}
+                  className="border-gray-300 focus:border-red-500 focus:ring-red-500"
+                  min="0"
+                  step="0.01"
+                />
+              </div>
+            ))}
           </div>
-          <div className="font-bold text-red-600">
-            Total de Despesas Fixas: R$ {totalExpenses.toFixed(2)}
+          <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-red-800 font-poppins text-lg">Total de Despesas Fixas:</span>
+              <span className="font-bold text-red-800 font-poppins text-2xl">
+                R$ {totalExpenses.toFixed(2)}
+              </span>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -681,50 +616,46 @@ const FinanceManager = () => {
         onDeleteExpense={handleDeleteExpense}
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card className="bg-white/70 backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle>Total de Receitas</CardTitle>
-            <CardDescription>
-              Soma das receitas de serviços e receitas adicionais.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-700">
-              R$ {totalIncome.toFixed(2)}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-white/70 backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle>Total de Despesas</CardTitle>
-            <CardDescription>
-              Soma das despesas fixas e despesas adicionais.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-700">
-              R$ {totalAllExpenses.toFixed(2)}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card className="bg-white/70 backdrop-blur-sm">
-        <CardHeader>
-          <CardTitle>Resultado Financeiro</CardTitle>
-          <CardDescription>
-            Receitas totais menos despesas totais.
+      <Card className={`bg-gradient-to-br ${finalBalance >= 0 ? 'from-green-50 to-emerald-50 border-green-300' : 'from-red-50 to-rose-50 border-red-300'} shadow-lg`}>
+        <CardHeader className={`${finalBalance >= 0 ? 'bg-gradient-to-r from-green-600 to-emerald-600' : 'bg-gradient-to-r from-red-600 to-rose-600'} text-white rounded-t-lg`}>
+          <CardTitle className="flex items-center gap-2 font-poppins text-xl">
+            <PiggyBank className="h-6 w-6" />
+            Resultado Financeiro Final
+          </CardTitle>
+          <CardDescription className={`${finalBalance >= 0 ? 'text-green-100' : 'text-red-100'} font-poppins`}>
+            Balanço geral do mês de {new Date(currentMonth + '-01').toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className={`text-3xl font-extrabold ${totalIncome - totalAllExpenses >= 0 ? 'text-green-800' : 'text-red-800'}`}>
-            R$ {(totalIncome - totalAllExpenses).toFixed(2)}
+        <CardContent className="p-8">
+          <div className="text-center space-y-6">
+            <div className={`text-6xl font-extrabold ${finalBalance >= 0 ? 'text-green-700' : 'text-red-700'} font-poppins`}>
+              R$ {finalBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+            </div>
+            <div className="flex items-center justify-center gap-4">
+              <div className={`px-6 py-3 rounded-full ${finalBalance >= 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'} font-poppins font-semibold`}>
+                {finalBalance >= 0 ? '✓ LUCRO' : '⚠ PREJUÍZO'}
+              </div>
+              {totalIncome > 0 && (
+                <div className="px-6 py-3 rounded-full bg-gray-100 text-gray-800 font-poppins font-semibold">
+                  Margem: {((finalBalance / totalIncome) * 100).toFixed(1)}%
+                </div>
+              )}
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+              <div className="text-center p-4 bg-white/60 rounded-lg">
+                <p className="text-gray-600 font-poppins font-medium">Receitas Totais</p>
+                <p className="text-2xl font-bold text-green-700 font-poppins">
+                  R$ {totalIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </p>
+              </div>
+              <div className="text-center p-4 bg-white/60 rounded-lg">
+                <p className="text-gray-600 font-poppins font-medium">Despesas Totais</p>
+                <p className="text-2xl font-bold text-red-700 font-poppins">
+                  R$ {totalAllExpenses.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </p>
+              </div>
+            </div>
           </div>
-          <p className="text-sm text-muted-foreground mt-2">
-            {totalIncome - totalAllExpenses >= 0 ? 'Lucro' : 'Prejuízo'} no mês de {currentMonth}.
-          </p>
         </CardContent>
       </Card>
     </div>

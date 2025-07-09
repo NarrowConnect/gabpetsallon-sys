@@ -47,13 +47,13 @@ const Index = () => {
               <img 
                 src="/lovable-uploads/becdcf34-2926-47cf-86b4-0d3e413832f7.png" 
                 alt="GabPetSallon" 
-                className="h-12 sm:h-16"
+                className="h-8 sm:h-10"
               />
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold font-pacify bg-gradient-to-r from-brand-cyan to-brand-orange bg-clip-text text-transparent">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold font-pacify bg-gradient-to-r from-brand-cyan to-brand-orange bg-clip-text text-transparent">
                 GabPetSallon
               </h1>
             </div>
-            <p className="text-sm sm:text-base text-gray-600">Sistema para controle da empresa</p>
+            <p className="text-xs sm:text-sm text-gray-600">Sistema para controle da empresa</p>
           </div>
           <Button variant="outline" onClick={handleLogout} className="flex items-center gap-2 border-brand-cyan hover:bg-brand-cyan hover:text-white transition-colors">
             <LogOut className="h-4 w-4" />
