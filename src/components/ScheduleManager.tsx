@@ -27,6 +27,7 @@ const ScheduleManager = () => {
     pet_nome: '',
     pet_raca: '',
     pet_porte: '',
+    pet_especie: 'Cão',
     data_servico: '',
     hora_servico: '',
     servico: '',
@@ -56,13 +57,52 @@ const ScheduleManager = () => {
   const porteOptions = [
     'Pequeno',
     'Médio',
-    'Grande'
+    'Grande',
+    'Gigante'
   ];
+
+  const especieOptions = [
+    'Cão',
+    'Gato',
+    'Outros'
+  ];
+
+  const racasCao = [
+    'Akita', 'Basset Hound', 'Beagle', 'Border Collie', 'Boxer', 'Bulldog Francês', 'Bulldog Inglês',
+    'Chihuahua', 'Cocker Spaniel', 'Dachshund', 'Dálmata', 'Doberman', 'Fila Brasileiro', 'German Shepherd',
+    'Golden Retriever', 'Husky Siberiano', 'Jack Russell Terrier', 'Labrador', 'Lhasa Apso', 'Maltês',
+    'Pastor Alemão', 'Pinscher', 'Pitbull', 'Poodle', 'Pug', 'Rottweiler', 'Schnauzer', 'Shih Tzu',
+    'Spitz Alemão', 'Teckel', 'Vira-Lata', 'Yorkshire', 'Outros'
+  ];
+
+  const racasGato = [
+    'Abissínio', 'Angorá', 'Bengal', 'British Shorthair', 'Chartreux', 'Maine Coon', 'Munchkin',
+    'Persa', 'Ragdoll', 'Russian Blue', 'Scottish Fold', 'Siamês', 'Sphynx', 'Vira-Lata', 'Outros'
+  ];
+
+  const getRacasDisponiveis = () => {
+    switch (formData.pet_especie) {
+      case 'Cão':
+        return racasCao;
+      case 'Gato':
+        return racasGato;
+      default:
+        return ['Outros'];
+    }
+  };
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
+    }));
+  };
+
+  const handleEspecieChange = (especie: string) => {
+    setFormData(prev => ({
+      ...prev,
+      pet_especie: especie,
+      pet_raca: '' // Reset raça quando muda espécie
     }));
   };
 
@@ -84,7 +124,8 @@ const ScheduleManager = () => {
         ...prev,
         pet_nome: pet.nome_pet,
         pet_raca: pet.raca || '',
-        pet_porte: pet.porte || ''
+        pet_porte: pet.porte || '',
+        pet_especie: pet.especie || 'Cão'
       }));
     }
   };
@@ -96,6 +137,7 @@ const ScheduleManager = () => {
       pet_nome: '',
       pet_raca: '',
       pet_porte: '',
+      pet_especie: 'Cão',
       data_servico: '',
       hora_servico: '',
       servico: '',
@@ -112,8 +154,17 @@ const ScheduleManager = () => {
     
     try {
       const agendamentoData = {
-        ...formData,
+        tutor_nome: formData.tutor_nome,
+        tutor_telefone: formData.tutor_telefone,
+        pet_nome: formData.pet_nome,
+        pet_raca: formData.pet_raca,
+        pet_porte: formData.pet_porte,
+        data_servico: formData.data_servico,
+        hora_servico: formData.hora_servico,
+        servico: formData.servico,
         valor: formData.valor ? parseFloat(formData.valor) : null,
+        observacoes: formData.observacoes,
+        status: formData.status,
         origem: 'admin' as const
       };
 
@@ -149,6 +200,7 @@ const ScheduleManager = () => {
       pet_nome: agendamento.pet_nome,
       pet_raca: agendamento.pet_raca || '',
       pet_porte: agendamento.pet_porte || '',
+      pet_especie: 'Cão', // Default para edição
       data_servico: agendamento.data_servico,
       hora_servico: agendamento.hora_servico,
       servico: agendamento.servico,
@@ -275,7 +327,7 @@ const ScheduleManager = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="pet_nome" className="font-poppins">Nome do Pet</Label>
                 <Input
@@ -288,13 +340,35 @@ const ScheduleManager = () => {
               </div>
 
               <div className="space-y-2">
+                <Label htmlFor="pet_especie" className="font-poppins">Espécie</Label>
+                <Select value={formData.pet_especie} onValueChange={handleEspecieChange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione a espécie" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {especieOptions.map((especie) => (
+                      <SelectItem key={especie} value={especie}>
+                        {especie}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="pet_raca" className="font-poppins">Raça</Label>
-                <Input
-                  id="pet_raca"
-                  value={formData.pet_raca}
-                  onChange={(e) => handleInputChange('pet_raca', e.target.value)}
-                  placeholder="Raça do pet"
-                />
+                <Select value={formData.pet_raca} onValueChange={(value) => handleInputChange('pet_raca', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione a raça" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {getRacasDisponiveis().map((raca) => (
+                      <SelectItem key={raca} value={raca}>
+                        {raca}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">
