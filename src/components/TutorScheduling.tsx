@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, Clock, PawPrint, LogOut, Plus, Eye } from "lucide-react";
+import { Calendar, Clock, PawPrint, LogOut, Plus, Eye, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import TutorAppointments from "./TutorAppointments";
@@ -20,39 +21,132 @@ const TutorScheduling = ({ tutorData, onLogout }: TutorSchedulingProps) => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("novo");
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<{[key: string]: string}>({});
   const [formData, setFormData] = useState({
     nomePet: "",
     racaPet: "",
     portePet: "",
+    especiePet: "Cão",
     dataServico: "",
     horaServico: "",
     servicoRealizar: "",
     observacoes: ""
   });
 
-  const racas = [
-    "SRD", "Akita-Inu", "American Bully", "Border Collie", "Bull Terrier", 
-    "Bulldog Francês", "Bulldog Inglês", "Cane Corso", "Chow Chow", 
-    "Chihuahua", "Dogo Alemão", "Dogo Argentino", "Fila Brasileiro", 
-    "Golden Retriever", "Husky Siberiano", "Kangal", "Pastor Alemão", 
-    "Pastor Belga", "Pastor de Malinoa", "Pastor Malemano", "Pincher", 
-    "Pit Bull", "Pit Monster", "Presa Canário", "Rottweiler Americano", 
-    "Rottweiler Inglês", "Samoieda", "São Bernardo", "Schnauzer", 
-    "Scottish Terrier", "Shiba-Inu"
-  ].sort();
-
   const servicos = [
     "Banho", "Tosa", "Banho e Tosa", "Banho Medicamentoso", 
     "Hospedagem", "Pet Sitter", "Taxi Dog"
   ];
 
+  const porteOptions = [
+    "Pequeno", "Médio", "Grande", "Gigante"
+  ];
+
+  const especieOptions = [
+    "Cão", "Gato", "Outros"
+  ];
+
+  const racasCao = [
+    'Akita', 'Basset Hound', 'Beagle', 'Border Collie', 'Boxer', 'Bulldog Francês', 'Bulldog Inglês',
+    'Chihuahua', 'Cocker Spaniel', 'Dachshund', 'Dálmata', 'Doberman', 'Fila Brasileiro', 'German Shepherd',
+    'Golden Retriever', 'Husky Siberiano', 'Jack Russell Terrier', 'Labrador', 'Lhasa Apso', 'Maltês',
+    'Pastor Alemão', 'Pinscher', 'Pitbull', 'Poodle', 'Pug', 'Rottweiler', 'Schnauzer', 'Shih Tzu',
+    'Spitz Alemão', 'Teckel', 'Vira-Lata', 'Yorkshire', 'Outros'
+  ].sort();
+
+  const racasGato = [
+    'Abissínio', 'Angorá', 'Bengal', 'British Shorthair', 'Chartreux', 'Maine Coon', 'Munchkin',
+    'Persa', 'Ragdoll', 'Russian Blue', 'Scottish Fold', 'Siamês', 'Sphynx', 'Vira-Lata', 'Outros'
+  ].sort();
+
+  const getRacasDisponiveis = () => {
+    switch (formData.especiePet) {
+      case 'Cão':
+        return racasCao;
+      case 'Gato':
+        return racasGato;
+      default:
+        return ['Outros'];
+    }
+  };
+
+  const handleEspecieChange = (especie: string) => {
+    setFormData(prev => ({
+      ...prev,
+      especiePet: especie,
+      racaPet: '' // Reset raça quando muda espécie
+    }));
+    // Limpar erro de raça se existir
+    if (errors.racaPet) {
+      setErrors(prev => ({ ...prev, racaPet: '' }));
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors: {[key: string]: string} = {};
+
+    if (!formData.nomePet.trim()) {
+      newErrors.nomePet = "Nome do pet é obrigatório";
+    }
+
+    if (!formData.racaPet) {
+      newErrors.racaPet = "Raça é obrigatória";
+    }
+
+    if (!formData.portePet) {
+      newErrors.portePet = "Porte é obrigatório";
+    }
+
+    if (!formData.dataServico) {
+      newErrors.dataServico = "Data do serviço é obrigatória";
+    } else {
+      // Validar se a data não é no passado
+      const selectedDate = new Date(formData.dataServico);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      if (selectedDate < today) {
+        newErrors.dataServico = "Data deve ser hoje ou no futuro";
+      }
+    }
+
+    if (!formData.horaServico) {
+      newErrors.horaServico = "Horário é obrigatório";
+    }
+
+    if (!formData.servicoRealizar) {
+      newErrors.servicoRealizar = "Serviço é obrigatório";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    
+    // Limpar erro do campo quando o usuário começar a digitar
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }));
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      toast({
+        title: "Formulário incompleto",
+        description: "Por favor, corrija os erros antes de continuar.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setLoading(true);
     
     try {
       const agendamentoData = {
-        tutor_id: tutorData.id,
         tutor_nome: tutorData.nome,
         tutor_telefone: tutorData.celular,
         pet_nome: formData.nomePet,
@@ -65,6 +159,8 @@ const TutorScheduling = ({ tutorData, onLogout }: TutorSchedulingProps) => {
         status: "Solicitado",
         origem: "tutor"
       };
+
+      console.log('Enviando agendamento:', agendamentoData);
 
       const { data, error } = await supabase
         .from('agendamentos_tutores')
@@ -82,13 +178,14 @@ const TutorScheduling = ({ tutorData, onLogout }: TutorSchedulingProps) => {
         return;
       }
 
-      console.log('Agendamento criado:', data);
+      console.log('Agendamento criado com sucesso:', data);
 
       // Reset form
       setFormData({
         nomePet: "",
         racaPet: "",
         portePet: "",
+        especiePet: "Cão",
         dataServico: "",
         horaServico: "",
         servicoRealizar: "",
@@ -164,73 +261,120 @@ const TutorScheduling = ({ tutorData, onLogout }: TutorSchedulingProps) => {
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="nomePet">Nome do Pet</Label>
+                      <Label htmlFor="nomePet">Nome do Pet *</Label>
                       <Input
                         id="nomePet"
                         value={formData.nomePet}
-                        onChange={(e) => setFormData({ ...formData, nomePet: e.target.value })}
-                        required
+                        onChange={(e) => handleInputChange('nomePet', e.target.value)}
                         disabled={loading}
-                        className="border-gray-300 focus:border-brand-cyan focus:ring-brand-cyan"
+                        className={`border-gray-300 focus:border-brand-cyan focus:ring-brand-cyan ${errors.nomePet ? 'border-red-500' : ''}`}
+                        placeholder="Digite o nome do seu pet"
                       />
+                      {errors.nomePet && (
+                        <div className="flex items-center gap-1 text-red-500 text-sm mt-1">
+                          <AlertCircle className="h-3 w-3" />
+                          {errors.nomePet}
+                        </div>
+                      )}
                     </div>
+
                     <div>
-                      <Label htmlFor="racaPet">Raça</Label>
-                      <Select value={formData.racaPet} onValueChange={(value) => setFormData({ ...formData, racaPet: value })} disabled={loading}>
+                      <Label htmlFor="especiePet">Espécie *</Label>
+                      <Select value={formData.especiePet} onValueChange={handleEspecieChange} disabled={loading}>
                         <SelectTrigger className="border-gray-300 focus:border-brand-cyan focus:ring-brand-cyan">
+                          <SelectValue placeholder="Selecione a espécie" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {especieOptions.map((especie) => (
+                            <SelectItem key={especie} value={especie}>{especie}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="racaPet">Raça *</Label>
+                      <Select value={formData.racaPet} onValueChange={(value) => handleInputChange('racaPet', value)} disabled={loading}>
+                        <SelectTrigger className={`border-gray-300 focus:border-brand-cyan focus:ring-brand-cyan ${errors.racaPet ? 'border-red-500' : ''}`}>
                           <SelectValue placeholder="Selecione a raça" />
                         </SelectTrigger>
                         <SelectContent>
-                          {["SRD", "Akita-Inu", "American Bully", "Border Collie", "Bull Terrier", "Bulldog Francês", "Bulldog Inglês", "Cane Corso", "Chow Chow", "Chihuahua", "Dogo Alemão", "Dogo Argentino", "Fila Brasileiro", "Golden Retriever", "Husky Siberiano", "Kangal", "Pastor Alemão", "Pastor Belga", "Pastor de Malinoa", "Pastor Malemano", "Pincher", "Pit Bull", "Pit Monster", "Presa Canário", "Rottweiler Americano", "Rottweiler Inglês", "Samoieda", "São Bernardo", "Schnauzer", "Scottish Terrier", "Shiba-Inu"].sort().map((raca) => (
+                          {getRacasDisponiveis().map((raca) => (
                             <SelectItem key={raca} value={raca}>{raca}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
+                      {errors.racaPet && (
+                        <div className="flex items-center gap-1 text-red-500 text-sm mt-1">
+                          <AlertCircle className="h-3 w-3" />
+                          {errors.racaPet}
+                        </div>
+                      )}
                     </div>
+
                     <div>
-                      <Label htmlFor="portePet">Porte</Label>
-                      <Select value={formData.portePet} onValueChange={(value) => setFormData({ ...formData, portePet: value })} disabled={loading}>
-                        <SelectTrigger className="border-gray-300 focus:border-brand-cyan focus:ring-brand-cyan">
+                      <Label htmlFor="portePet">Porte *</Label>
+                      <Select value={formData.portePet} onValueChange={(value) => handleInputChange('portePet', value)} disabled={loading}>
+                        <SelectTrigger className={`border-gray-300 focus:border-brand-cyan focus:ring-brand-cyan ${errors.portePet ? 'border-red-500' : ''}`}>
                           <SelectValue placeholder="Selecione o porte" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="Pequeno">Pequeno</SelectItem>
-                          <SelectItem value="Médio">Médio</SelectItem>
-                          <SelectItem value="Grande">Grande</SelectItem>
-                          <SelectItem value="Gigante">Gigante</SelectItem>
+                          {porteOptions.map((porte) => (
+                            <SelectItem key={porte} value={porte}>{porte}</SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
+                      {errors.portePet && (
+                        <div className="flex items-center gap-1 text-red-500 text-sm mt-1">
+                          <AlertCircle className="h-3 w-3" />
+                          {errors.portePet}
+                        </div>
+                      )}
                     </div>
+
                     <div>
-                      <Label htmlFor="servicoRealizar">Serviço</Label>
-                      <Select value={formData.servicoRealizar} onValueChange={(value) => setFormData({ ...formData, servicoRealizar: value })} disabled={loading}>
-                        <SelectTrigger className="border-gray-300 focus:border-brand-cyan focus:ring-brand-cyan">
+                      <Label htmlFor="servicoRealizar">Serviço *</Label>
+                      <Select value={formData.servicoRealizar} onValueChange={(value) => handleInputChange('servicoRealizar', value)} disabled={loading}>
+                        <SelectTrigger className={`border-gray-300 focus:border-brand-cyan focus:ring-brand-cyan ${errors.servicoRealizar ? 'border-red-500' : ''}`}>
                           <SelectValue placeholder="Selecione o serviço" />
                         </SelectTrigger>
                         <SelectContent>
-                          {["Banho", "Tosa", "Banho e Tosa", "Banho Medicamentoso", "Hospedagem", "Pet Sitter", "Taxi Dog"].map((servico) => (
+                          {servicos.map((servico) => (
                             <SelectItem key={servico} value={servico}>{servico}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
+                      {errors.servicoRealizar && (
+                        <div className="flex items-center gap-1 text-red-500 text-sm mt-1">
+                          <AlertCircle className="h-3 w-3" />
+                          {errors.servicoRealizar}
+                        </div>
+                      )}
                     </div>
+
                     <div>
-                      <Label htmlFor="dataServico">Data Preferida</Label>
+                      <Label htmlFor="dataServico">Data Preferida *</Label>
                       <Input
                         id="dataServico"
                         type="date"
                         value={formData.dataServico}
-                        onChange={(e) => setFormData({ ...formData, dataServico: e.target.value })}
+                        onChange={(e) => handleInputChange('dataServico', e.target.value)}
                         min={new Date().toISOString().split('T')[0]}
-                        required
                         disabled={loading}
-                        className="border-gray-300 focus:border-brand-cyan focus:ring-brand-cyan"
+                        className={`border-gray-300 focus:border-brand-cyan focus:ring-brand-cyan ${errors.dataServico ? 'border-red-500' : ''}`}
                       />
+                      {errors.dataServico && (
+                        <div className="flex items-center gap-1 text-red-500 text-sm mt-1">
+                          <AlertCircle className="h-3 w-3" />
+                          {errors.dataServico}
+                        </div>
+                      )}
                     </div>
+
                     <div>
-                      <Label htmlFor="horaServico">Horário Preferido</Label>
-                      <Select value={formData.horaServico} onValueChange={(value) => setFormData({ ...formData, horaServico: value })} disabled={loading}>
-                        <SelectTrigger className="border-gray-300 focus:border-brand-cyan focus:ring-brand-cyan">
+                      <Label htmlFor="horaServico">Horário Preferido *</Label>
+                      <Select value={formData.horaServico} onValueChange={(value) => handleInputChange('horaServico', value)} disabled={loading}>
+                        <SelectTrigger className={`border-gray-300 focus:border-brand-cyan focus:ring-brand-cyan ${errors.horaServico ? 'border-red-500' : ''}`}>
                           <SelectValue placeholder="Selecione o horário" />
                         </SelectTrigger>
                         <SelectContent>
@@ -239,20 +383,28 @@ const TutorScheduling = ({ tutorData, onLogout }: TutorSchedulingProps) => {
                           ))}
                         </SelectContent>
                       </Select>
+                      {errors.horaServico && (
+                        <div className="flex items-center gap-1 text-red-500 text-sm mt-1">
+                          <AlertCircle className="h-3 w-3" />
+                          {errors.horaServico}
+                        </div>
+                      )}
                     </div>
                   </div>
+
                   <div>
                     <Label htmlFor="observacoes">Observações</Label>
                     <Textarea
                       id="observacoes"
                       value={formData.observacoes}
-                      onChange={(e) => setFormData({ ...formData, observacoes: e.target.value })}
+                      onChange={(e) => handleInputChange('observacoes', e.target.value)}
                       placeholder="Alguma observação especial sobre seu pet ou preferência para o serviço?"
                       rows={3}
                       disabled={loading}
                       className="border-gray-300 focus:border-brand-cyan focus:ring-brand-cyan"
                     />
                   </div>
+
                   <Button 
                     type="submit" 
                     className="w-full bg-gradient-to-r from-brand-cyan to-brand-orange hover:from-brand-cyan/90 hover:to-brand-orange/90 text-white"
