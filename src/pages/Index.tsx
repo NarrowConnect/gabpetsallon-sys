@@ -45,7 +45,7 @@ const Index = () => {
           <div className="text-center flex-1">
             <div className="flex items-center justify-center gap-3 mb-2">
               <img 
-                src="/lovable-uploads/becdcf34-2926-47cf-86b4-0d3e413832f7.png" 
+                src="lovable-uploads/Marca_Vertical.png" 
                 alt="GabPetSallon" 
                 className="h-8 sm:h-10"
               />
@@ -55,7 +55,7 @@ const Index = () => {
             </div>
             <p className="text-xs sm:text-sm text-gray-600">Sistema para controle da empresa</p>
           </div>
-          <Button variant="outline" onClick={handleLogout} className="flex items-center gap-2 border-brand-cyan hover:bg-brand-cyan hover:text-white transition-colors">
+          <Button onClick={handleLogout} className="flex items-center gap-2 border border-brand-cyan bg-white hover:bg-brand-cyan hover:text-white transition-colors">
             <LogOut className="h-4 w-4" />
             Sair
           </Button>

@@ -496,7 +496,6 @@ const FinanceManager = () => {
         <Button 
           onClick={saveAllChanges} 
           disabled={isSaving}
-          size="lg"
           className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-8 py-3 font-poppins font-semibold shadow-lg"
         >
           {isSaving ? (

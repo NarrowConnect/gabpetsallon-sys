@@ -221,8 +221,7 @@ const handleTutorLogin = async (e: React.FormEvent) => {
                   </Button>
                   <Button 
                     type="button" 
-                    variant="outline" 
-                    className="w-full" 
+                    className="w-full border border-gray-300 bg-transparent text-gray-800 hover:bg-gray-100"
                     onClick={() => setShowRegistration(true)}
                     disabled={loading}
                   >

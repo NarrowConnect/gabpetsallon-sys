@@ -143,8 +143,6 @@ const FinancialReports = ({ reportData, onGenerateReport }: FinancialReportsProp
               <h4 className="font-medium">Relatórios Detalhados Gerados</h4>
               <div className="flex gap-2">
                 <Button 
-                  variant="outline" 
-                  size="sm" 
                   onClick={() => exportToCSV(reportData)}
                   className="flex items-center gap-2"
                 >
@@ -152,8 +150,6 @@ const FinancialReports = ({ reportData, onGenerateReport }: FinancialReportsProp
                   CSV (UTF-8)
                 </Button>
                 <Button 
-                  variant="outline" 
-                  size="sm" 
                   onClick={() => exportToXLS(reportData)}
                   className="flex items-center gap-2"
                 >

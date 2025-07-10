@@ -206,9 +206,8 @@ export default function WebhookManager() {
             Novo Webhook
           </Button>
           <Button 
-            onClick={processWebhooks} 
-            variant="outline"
-            className="w-full sm:w-auto"
+            onClick={processWebhooks}
+            className="w-full sm:w-auto border border-gray-300 bg-white text-gray-800 hover:bg-gray-100"
           >
             <Activity className="h-4 w-4 mr-2" />
             Processar Pendentes
@@ -293,7 +292,7 @@ export default function WebhookManager() {
 
               <div className="flex flex-col sm:flex-row gap-2">
                 <Button type="submit" className="w-full sm:w-auto">Criar Webhook</Button>
-                <Button type="button" variant="outline" onClick={() => setShowForm(false)} className="w-full sm:w-auto">
+                <Button type="button" onClick={() => setShowForm(false)} className="w-full sm:w-auto border border-gray-300 bg-white text-gray-800 hover:bg-gray-100">
                   Cancelar
                 </Button>
               </div>
@@ -311,10 +310,10 @@ export default function WebhookManager() {
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-2 mb-2">
-                      <Badge variant={webhook.is_active ? "default" : "secondary"}>
+                      <Badge>
                         {EVENT_TYPES.find(t => t.value === webhook.event_type)?.label || webhook.event_type}
                       </Badge>
-                      {!webhook.is_active && <Badge variant="outline">Inativo</Badge>}
+                      {!webhook.is_active && <Badge>Inativo</Badge>}
                     </div>
                     <p className="text-sm text-gray-600 break-all">{webhook.webhook_url}</p>
                     <p className="text-xs text-gray-400">
@@ -328,8 +327,6 @@ export default function WebhookManager() {
                       onCheckedChange={(checked) => toggleWebhook(webhook.id, checked)}
                     />
                     <Button
-                      variant="outline"
-                      size="sm"
                       onClick={() => deleteWebhook(webhook.id)}
                       className="text-red-600 hover:text-red-700"
                     >

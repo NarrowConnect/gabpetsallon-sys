@@ -217,7 +217,7 @@ export default function ApiTester() {
                   {API_ENDPOINTS.map(endpoint => (
                     <SelectItem key={endpoint.name} value={endpoint.name} className="font-poppins">
                       <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="text-xs font-poppins">
+                        <Badge className="text-xs font-poppins">
                           {endpoint.method}
                         </Badge>
                         {endpoint.name}
@@ -271,13 +271,12 @@ export default function ApiTester() {
               <span>Resultado</span>
               {result && (
                 <div className="flex items-center gap-2">
-                  <Badge 
-                    variant={result.status >= 200 && result.status < 300 ? "default" : "destructive"}
+                  <Badge
                     className={`${getStatusColor(result.status)} font-poppins`}
                   >
                     {result.error ? 'ERROR' : result.status}
                   </Badge>
-                  <Button size="sm" variant="outline" onClick={copyResult} className="font-poppins">
+                  <Button onClick={copyResult} className="font-poppins">
                     <Copy className="h-4 w-4" />
                   </Button>
                 </div>
