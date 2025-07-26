@@ -95,20 +95,20 @@ const CalendarView = ({ appointments }: CalendarViewProps) => {
           <div className="flex gap-2">
             <Button
               onClick={() => setSelectedDate(subMonths(selectedDate, 1))}
-              className="border border-brand-cyan hover:bg-brand-cyan hover:text-white bg-transparent"
+              className="bg-transparent border text-black border-cyan-400 hover:bg-brand-cyan hover:text-white "
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <Button
               variant="outline"
               onClick={() => setSelectedDate(new Date())}
-              className="border border-brand-orange hover:bg-brand-orange hover:text-white px-4 bg-transparent"
+              className="bg-transparent border text-black border-cyan-400 hover:bg-brand-cyan hover:text-white px-4 "
             >
               Hoje
             </Button>
             <Button
               onClick={() => setSelectedDate(addMonths(selectedDate, 1))}
-              className="border border-brand-cyan hover:bg-brand-cyan hover:text-white bg-transparent"
+              className="bg-transparent border text-black border-cyan-400 hover:bg-brand-cyan hover:text-white "
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
@@ -191,19 +191,19 @@ const CalendarView = ({ appointments }: CalendarViewProps) => {
           <div className="flex gap-2">
             <Button
               onClick={() => setSelectedDate(addDays(selectedDate, -7))}
-              className="border border-brand-cyan hover:bg-brand-cyan hover:text-white bg-transparent"
+              className="bg-transparent border text-black border-cyan-400 hover:bg-brand-cyan hover:text-white"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <Button
               onClick={() => setSelectedDate(new Date())}
-              className="border border-brand-orange hover:bg-brand-orange hover:text-white px-4"
+              className="bg-transparent border text-black border-cyan-400 hover:bg-brand-cyan hover:text-white px-4"
             >
               Hoje
             </Button>
             <Button
               onClick={() => setSelectedDate(addDays(selectedDate, 7))}
-              className="border border-brand-cyan hover:bg-brand-cyan hover:text-white bg-transparent"
+              className="bg-transparent border text-black border-cyan-400 hover:bg-brand-cyan hover:text-white"
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
@@ -279,19 +279,19 @@ const CalendarView = ({ appointments }: CalendarViewProps) => {
           <div className="flex gap-2">
             <Button
               onClick={() => setSelectedDate(addDays(selectedDate, -1))}
-              className="border border-brand-cyan hover:bg-brand-cyan hover:text-white bg-transparent"
+              className="bg-transparent border text-black border-cyan-400 hover:bg-brand-cyan hover:text-white"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <Button
               onClick={() => setSelectedDate(new Date())}
-              className="border border-brand-orange hover:bg-brand-orange hover:text-white px-4"
+              className="bg-transparent border text-black border-cyan-400 hover:bg-brand-cyan hover:text-white px-4"
             >
               Hoje
             </Button>
             <Button
               onClick={() => setSelectedDate(addDays(selectedDate, 1))}
-              className="border border-brand-cyan hover:bg-brand-cyan hover:text-white bg-transparent"
+              className="bg-transparent border text-black border-cyan-400 hover:bg-brand-cyan hover:text-white"
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
