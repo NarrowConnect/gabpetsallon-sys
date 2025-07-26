@@ -158,7 +158,7 @@ export type Database = {
           gasolina: number | null
           id: string
           internet: number | null
-          lavanderia: number | null
+          toalha: number | null
           mei: number | null
           mes_referencia: string
           sanepar: number | null
@@ -181,7 +181,7 @@ export type Database = {
           gasolina?: number | null
           id?: string
           internet?: number | null
-          lavanderia?: number | null
+          toalha?: number | null
           mei?: number | null
           mes_referencia: string
           sanepar?: number | null
@@ -204,7 +204,7 @@ export type Database = {
           gasolina?: number | null
           id?: string
           internet?: number | null
-          lavanderia?: number | null
+          toalha?: number | null
           mei?: number | null
           mes_referencia?: string
           sanepar?: number | null
@@ -506,12 +506,14 @@ export type Database = {
         Row: {
           banhos_medicamentosos: number | null
           banhos_porte_grande: number | null
+          banhos_porte_medio: number | null
           banhos_porte_pequeno: number | null
           created_at: string | null
           hospedagens: number | null
           id: string
           mes_referencia: string
-          roupas: number | null
+          boutique: number | null
+          creche?: number | null
           taxi_dog: number | null
           tosas: number | null
           total_entradas: number | null
@@ -520,12 +522,14 @@ export type Database = {
         Insert: {
           banhos_medicamentosos?: number | null
           banhos_porte_grande?: number | null
+          banhos_porte_medio?: number | null
           banhos_porte_pequeno?: number | null
           created_at?: string | null
           hospedagens?: number | null
+          creche?: number | null
           id?: string
           mes_referencia: string
-          roupas?: number | null
+          boutique?: number | null
           taxi_dog?: number | null
           tosas?: number | null
           total_entradas?: number | null
@@ -534,12 +538,14 @@ export type Database = {
         Update: {
           banhos_medicamentosos?: number | null
           banhos_porte_grande?: number | null
+          banhos_porte_medio?: number | null
           banhos_porte_pequeno?: number | null
           created_at?: string | null
           hospedagens?: number | null
+          creche?: number | null
           id?: string
           mes_referencia?: string
-          roupas?: number | null
+          boutique?: number | null
           taxi_dog?: number | null
           tosas?: number | null
           total_entradas?: number | null

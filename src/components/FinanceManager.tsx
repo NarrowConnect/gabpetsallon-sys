@@ -34,12 +34,14 @@ const FinanceManager = () => {
   
   const [income, setIncome] = useState({
     banhos_porte_pequeno: 0,
+    banhos_porte_medio: 0,
     banhos_porte_grande: 0,
     banhos_medicamentosos: 0,
     tosas: 0,
     hospedagens: 0,
+    creche: 0,
     taxi_dog: 0,
-    roupas: 0
+    boutique: 0
   });
 
   const [expenses, setExpenses] = useState({
@@ -50,15 +52,9 @@ const FinanceManager = () => {
     seguranca_mensalidade: 0,
     mei: 0,
     celular_mes: 0,
-    lavanderia: 0,
+    toalhas: 0,
     gasolina: 0,
-    tarifa_bancaria: 0,
-    cartao_santander: 0,
-    cartao_bb: 0,
     cartao_nu: 0,
-    cartao_gab: 0,
-    boleto_biocom: 0,
-    boleto_euroshop: 0
   });
 
   const [customIncomes, setCustomIncomes] = useState<CustomIncome[]>([]);
@@ -66,13 +62,15 @@ const FinanceManager = () => {
   const [isSaving, setIsSaving] = useState(false);
 
   const serviceValues = {
-    banhos_porte_pequeno: 35,
-    banhos_porte_grande: 50,
-    banhos_medicamentosos: 60,
-    tosas: 40,
-    hospedagens: 80,
-    taxi_dog: 25,
-    roupas: 15
+    banhos_porte_pequeno: 0,
+    banhos_porte_medio: 0,
+    banhos_porte_grande: 0,
+    banhos_medicamentosos: 0,
+    tosas: 0,
+    hospedagens: 0,
+    creche: 0.,
+    taxi_dog: 0,
+    boutique: 0
   };
 
   const loadCustomData = async () => {
@@ -120,12 +118,14 @@ const FinanceManager = () => {
       if (currentMonthData) {
         setIncome({
           banhos_porte_pequeno: currentMonthData.banhos_porte_pequeno || 0,
+          banhos_porte_medio: currentMonthData.banhos_porte_medio || 0,
           banhos_porte_grande: currentMonthData.banhos_porte_grande || 0,
           banhos_medicamentosos: currentMonthData.banhos_medicamentosos || 0,
           tosas: currentMonthData.tosas || 0,
           hospedagens: currentMonthData.hospedagens || 0,
+          creche: currentMonthData.creche || 0,
           taxi_dog: currentMonthData.taxi_dog || 0,
-          roupas: currentMonthData.roupas || 0
+          boutique: currentMonthData.boutique || 0
         });
       }
     }
@@ -141,15 +141,9 @@ const FinanceManager = () => {
           seguranca_mensalidade: currentMonthData.seguranca_mensalidade || 0,
           mei: currentMonthData.mei || 0,
           celular_mes: currentMonthData.celular_mes || 0,
-          lavanderia: currentMonthData.lavanderia || 0,
+          toalhas: currentMonthData.toalha || 0,
           gasolina: currentMonthData.gasolina || 0,
-          tarifa_bancaria: currentMonthData.tarifa_bancaria || 0,
-          cartao_santander: currentMonthData.cartao_santander || 0,
-          cartao_bb: currentMonthData.cartao_bb || 0,
-          cartao_nu: currentMonthData.cartao_nu || 0,
-          cartao_gab: currentMonthData.cartao_gab || 0,
-          boleto_biocom: currentMonthData.boleto_biocom || 0,
-          boleto_euroshop: currentMonthData.boleto_euroshop || 0
+          cartao_nu: currentMonthData.cartao_nu || 0
         });
       }
     }
@@ -394,10 +388,10 @@ const FinanceManager = () => {
     return sum + (Number(value) || 0);
   }, 0);
   
-  const totalServiceIncome = Object.entries(income).reduce((sum: number, [key, quantity]) => {
-    const value = serviceValues[key as keyof typeof serviceValues];
-    return sum + (Number(quantity) * Number(value));
+  const totalServiceIncome = Object.values(income).reduce((sum, value) => {
+  return sum + Number(value || 0);
   }, 0);
+
   
   const totalCustomIncome = customIncomes.reduce((sum: number, income) => {
     return sum + (Number(income.value) || 0);
@@ -528,13 +522,14 @@ const FinanceManager = () => {
               <div key={key} className="space-y-2">
                 <Label htmlFor={key} className="font-poppins font-medium text-gray-700">
                   {key === 'banhos_porte_pequeno' && 'Banhos Pequeno'}
+                  {key === 'banhos_porte_medio' && 'Banhos Medio'}
                   {key === 'banhos_porte_grande' && 'Banhos Grande'}
                   {key === 'banhos_medicamentosos' && 'Banhos Medicamentosos'}
                   {key === 'tosas' && 'Tosas'}
                   {key === 'hospedagens' && 'Hospedagens'}
+                  {key === 'creche' && 'Creche'}
                   {key === 'taxi_dog' && 'Taxi Dog'}
-                  {key === 'roupas' && 'Roupas'}
-                  <span className="text-green-600 font-semibold ml-2">(R${value})</span>
+                  {key === 'boutique' && 'boutique'}
                 </Label>
                 <Input
                   type="number"
@@ -544,9 +539,7 @@ const FinanceManager = () => {
                   className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                   min="0"
                 />
-                <p className="text-sm text-gray-600 font-poppins">
-                  Subtotal: R$ {(income[key as keyof typeof income] * value).toFixed(2)}
-                </p>
+                
               </div>
             ))}
           </div>
