@@ -47,15 +47,26 @@ const Index = () => {
               <img 
                 src="lovable-uploads/Marca_Vertical.png" 
                 alt="GabPetSallon" 
-                className="h-8 sm:h-10"
+                className="h-14 sm:h-15"
               />
-              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold font-pacify bg-gradient-to-r from-brand-cyan to-brand-orange bg-clip-text text-transparent">
-                GabPetSallon
-              </h1>
+
             </div>
             <p className="text-xs sm:text-sm text-gray-600">Sistema para controle da empresa</p>
           </div>
-          <Button onClick={handleLogout} className="flex items-center gap-2 border border-brand-cyan bg-white hover:bg-brand-cyan hover:text-white transition-colors">
+          <Button
+            onClick={handleLogout}
+            style={{
+              backgroundColor: "#1abc9c", // Cor padrão
+              color: "#fff"
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = "#16a085"; // hover
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "#1abc9c"; // reset hover
+            }}
+            className="flex items-center gap-2 border transition-colors"
+          >
             <LogOut className="h-4 w-4" />
             Sair
           </Button>
