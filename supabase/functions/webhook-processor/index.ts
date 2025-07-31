@@ -1,24 +1,22 @@
-
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { createClient } from '@supabase/supabase-js';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-serve(async (req) => {
+// Initialize Supabase client with your project URL and anon key
+const supabaseUrl = 'https://your-project.supabase.co'; // Replace with your actual Supabase URL
+const supabaseAnonKey = 'your-anon-key'; // Replace with your actual anon key
+const supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
+
+export const webhookProcessor = async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
 
   try {
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
-
-    // Buscar webhooks pendentes para processar
+    // Fetch pending webhooks to process
     const { data: pendingWebhooks, error } = await supabaseClient
       .from('webhook_logs')
       .select('*')
@@ -27,8 +25,8 @@ serve(async (req) => {
       .limit(50);
 
     if (error) {
-      console.error('Erro ao buscar webhooks pendentes:', error);
-      return new Response(JSON.stringify({ error: 'Erro interno' }), {
+      console.error('Error fetching pending webhooks:', error);
+      return new Response(JSON.stringify({ error: 'Internal error' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -53,12 +51,12 @@ serve(async (req) => {
 
         const responseBody = await response.text();
 
-        // Atualizar o log do webhook com o resultado
+        // Update the webhook log with the result
         await supabaseClient
           .from('webhook_logs')
           .update({
             http_status: response.status,
-            response_body: responseBody.substring(0, 1000), // Limitar tamanho
+            response_body: responseBody.substring(0, 1000), // Limit size
           })
           .eq('id', webhook.id);
 
@@ -69,9 +67,9 @@ serve(async (req) => {
         });
 
       } catch (err) {
-        console.error(`Erro ao processar webhook ${webhook.id}:`, err);
+        console.error(`Error processing webhook ${webhook.id}:`, err);
         
-        // Atualizar com erro
+        // Update with error
         await supabaseClient
           .from('webhook_logs')
           .update({
@@ -97,10 +95,10 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('Erro geral:', error);
-    return new Response(JSON.stringify({ error: 'Erro interno do servidor' }), {
+    console.error('General error:', error);
+    return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
-});
+};

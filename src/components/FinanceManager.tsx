@@ -437,11 +437,13 @@ const FinanceManager = () => {
           <div className="flex items-center justify-center gap-4 mt-4">
             <Button onClick={() => changeMonth('prev')} variant="outline">← Mês Anterior</Button>
             <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-2 text-blue-800 font-poppins font-medium">
-              {new Date(currentMonth).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
+              {new Date(currentMonth + '-02').toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
+              
             </div>
             <Button onClick={() => changeMonth('next')} variant="outline">Próximo Mês →</Button>
           </div>
-          <p className="text-blue-800 font-poppins font-medium">Mês de referência: {new Date(currentMonth).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}</p>
+          <p className="text-blue-800 font-poppins font-medium"> Mês de referência: {new Date(currentMonth + '-02').toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}</p>
+
         </div>
       </div>
 
