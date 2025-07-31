@@ -506,7 +506,7 @@ export type Database = {
         Row: {
           banhos_medicamentosos: number | null
           banhos_porte_grande: number | null
-          banhos_porte_medio: number | null
+          banho_porte_medio: number | null
           banhos_porte_pequeno: number | null
           created_at: string | null
           hospedagens: number | null

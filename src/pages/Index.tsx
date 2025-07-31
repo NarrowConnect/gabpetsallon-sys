@@ -13,8 +13,6 @@ import FinanceManager from "@/components/FinanceManager";
 import LoginPage from "@/components/LoginPage";
 import TutorScheduling from "@/components/TutorScheduling";
 import TutorAppointments from "@/components/TutorAppointments";
-import WebhookManager from "@/components/WebhookManager";
-import ApiTester from "@/components/ApiTester";
 import ReportsManager from "@/components/ReportsManager";
 
 const Index = () => {
@@ -74,7 +72,7 @@ const Index = () => {
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <div className="mb-6 sm:mb-8 overflow-x-auto">
-            <TabsList className="grid w-full min-w-max grid-cols-9 bg-white/80 backdrop-blur-sm border border-gray-200">
+            <TabsList className="grid w-90% snap-center min-w-max grid-cols-7 h-12 bg-white/80 backdrop-blur-sm border border-gray-200">
               <TabsTrigger value="dashboard" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4 data-[state=active]:bg-brand-cyan data-[state=active]:text-white">
                 <DollarSign className="h-3 w-3 sm:h-4 sm:w-4" />
                 <span className="hidden sm:inline">Dashboard</span>
@@ -108,15 +106,6 @@ const Index = () => {
                 <span className="hidden sm:inline">Relatórios</span>
                 <span className="sm:hidden">Rel</span>
               </TabsTrigger>
-              <TabsTrigger value="webhooks" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4 data-[state=active]:bg-brand-orange data-[state=active]:text-white">
-                <Webhook className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="hidden sm:inline">Webhooks</span>
-                <span className="sm:hidden">Web</span>
-              </TabsTrigger>
-              <TabsTrigger value="api" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4 data-[state=active]:bg-brand-cyan data-[state=active]:text-white">
-                <Code className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span>API</span>
-              </TabsTrigger>
             </TabsList>
           </div>
 
@@ -148,13 +137,6 @@ const Index = () => {
             <ReportsManager />
           </TabsContent>
 
-          <TabsContent value="webhooks">
-            <WebhookManager />
-          </TabsContent>
-
-          <TabsContent value="api">
-            <ApiTester />
-          </TabsContent>
         </Tabs>
       </ResponsiveContainer>
     </div>

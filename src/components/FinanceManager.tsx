@@ -30,11 +30,24 @@ const FinanceManager = () => {
   const { toast } = useToast();
   const { contasPagar, valoresRecebidos, loading, error, updateReceitas, updateDespesas } = useFinancas();
   
-  const currentMonth = new Date().toISOString().slice(0, 7);
-  
+  const getCurrentMonth = () => new Date().toISOString().slice(0, 7);
+  const [currentMonth, setCurrentMonth] = useState(getCurrentMonth());
+
+  const changeMonth = (direction: 'prev' | 'next') => {
+  const [year, month] = currentMonth.split('-').map(Number);
+  const date = new Date(year, month - 1); // mês baseado em zero
+
+  date.setMonth(direction === 'next' ? date.getMonth() + 1 : date.getMonth() - 1);
+
+  const newMonth = date.toISOString().slice(0, 7);
+  setCurrentMonth(newMonth);
+};
+
+
+
   const [income, setIncome] = useState({
     banhos_porte_pequeno: 0,
-    banhos_porte_medio: 0,
+    banho_porte_medio: 0,
     banhos_porte_grande: 0,
     banhos_medicamentosos: 0,
     tosas: 0,
@@ -63,7 +76,7 @@ const FinanceManager = () => {
 
   const serviceValues = {
     banhos_porte_pequeno: 0,
-    banhos_porte_medio: 0,
+    banho_porte_medio: 0,
     banhos_porte_grande: 0,
     banhos_medicamentosos: 0,
     tosas: 0,
@@ -75,6 +88,7 @@ const FinanceManager = () => {
 
   const loadCustomData = async () => {
     try {
+
       const { data: receitasData, error: receitasError } = await supabase
         .from('receitas_personalizadas')
         .select('*')
@@ -90,6 +104,7 @@ const FinanceManager = () => {
         category: 'Receita Personalizada'
       }));
       setCustomIncomes(mappedReceitas);
+
 
       const { data: despesasData, error: despesasError } = await supabase
         .from('despesas_personalizadas')
@@ -112,13 +127,16 @@ const FinanceManager = () => {
     }
   };
 
+  
+
+
   useEffect(() => {
     if (valoresRecebidos && valoresRecebidos.length > 0) {
       const currentMonthData = valoresRecebidos.find(item => item.mes_referencia === currentMonth);
       if (currentMonthData) {
         setIncome({
           banhos_porte_pequeno: currentMonthData.banhos_porte_pequeno || 0,
-          banhos_porte_medio: currentMonthData.banhos_porte_medio || 0,
+          banho_porte_medio: currentMonthData.banho_porte_medio || 0,
           banhos_porte_grande: currentMonthData.banhos_porte_grande || 0,
           banhos_medicamentosos: currentMonthData.banhos_medicamentosos || 0,
           tosas: currentMonthData.tosas || 0,
@@ -415,8 +433,15 @@ const FinanceManager = () => {
           <h2 className="text-3xl font-bold text-gray-900 font-poppins">Gestão Financeira</h2>
         </div>
         <p className="text-gray-600 font-poppins text-lg">Controle completo das finanças do seu negócio</p>
-        <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-md mx-auto">
-          <p className="text-blue-800 font-poppins font-medium">Mês de referência: {new Date(currentMonth + '-01').toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}</p>
+        <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-fl mx-auto">
+          <div className="flex items-center justify-center gap-4 mt-4">
+            <Button onClick={() => changeMonth('prev')} variant="outline">← Mês Anterior</Button>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-2 text-blue-800 font-poppins font-medium">
+              {new Date(currentMonth).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
+            </div>
+            <Button onClick={() => changeMonth('next')} variant="outline">Próximo Mês →</Button>
+          </div>
+          <p className="text-blue-800 font-poppins font-medium">Mês de referência: {new Date(currentMonth).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}</p>
         </div>
       </div>
 
@@ -522,7 +547,7 @@ const FinanceManager = () => {
               <div key={key} className="space-y-2">
                 <Label htmlFor={key} className="font-poppins font-medium text-gray-700">
                   {key === 'banhos_porte_pequeno' && 'Banhos Pequeno'}
-                  {key === 'banhos_porte_medio' && 'Banhos Medio'}
+                  {key === 'banho_porte_medio' && 'Banhos Medio'}
                   {key === 'banhos_porte_grande' && 'Banhos Grande'}
                   {key === 'banhos_medicamentosos' && 'Banhos Medicamentosos'}
                   {key === 'tosas' && 'Tosas'}
@@ -615,7 +640,7 @@ const FinanceManager = () => {
             Resultado Financeiro Final
           </CardTitle>
           <CardDescription className={`${finalBalance >= 0 ? 'text-green-100' : 'text-red-100'} font-poppins`}>
-            Balanço geral do mês de {new Date(currentMonth + '-01').toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
+            Balanço geral do mês de {new Date(currentMonth).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
           </CardDescription>
         </CardHeader>
         <CardContent className="p-8">

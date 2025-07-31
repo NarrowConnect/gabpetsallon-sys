@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Lock, User, PawPrint, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import TutorRegistration from "./TutorRegistration";
+import TutorRegistration from "@/components/TutorRegistration";
 
 interface LoginPageProps {
   onLogin: (userType: 'admin' | 'tutor', userData?: any) => void;
@@ -53,9 +53,10 @@ const LoginPage = ({ onLogin }: LoginPageProps) => {
         });
       } else {
         toast({
-          title: "Erro de Login",
-          description: "Senha incorreta.",
-          variant: "destructive"
+          title: "Senha incorreta",
+          description: "Verifique se digitou corretamente.",
+          variant: "default", 
+          duration: 5000
         });
       }
     } catch (error) {
