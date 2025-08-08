@@ -183,26 +183,7 @@ const FinancialSummary = () => {
       </div>
 
       {/* Cards de Detalhamento */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {/* Indicador de Performance */}
-        <Card className="bg-gradient-to-br from-purple-50 to-indigo-50 border-purple-200">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-purple-700 font-poppins font-medium text-xs">Performance</p>
-                <p className="text-lg font-bold text-purple-800 font-poppins">
-                  {summaryData.totalReceitas > 0 ? 
-                    `${((summaryData.saldoFinal / summaryData.totalReceitas) * 100).toFixed(1)}%` : 
-                    '0%'
-                  }
-                </p>
-              </div>
-              <Calculator className="h-5 w-5 text-purple-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Receitas Fixas vs Personalizadas */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card className="bg-gradient-to-br from-teal-50 to-cyan-50 border-teal-200">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -232,20 +213,6 @@ const FinancialSummary = () => {
           </CardContent>
         </Card>
 
-        {/* Status Financeiro */}
-        <Card className={`bg-gradient-to-br ${summaryData.saldoFinal >= 0 ? 'from-green-50 to-emerald-50 border-green-200' : 'from-red-50 to-rose-50 border-red-200'}`}>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className={`${summaryData.saldoFinal >= 0 ? 'text-green-700' : 'text-red-700'} font-poppins font-medium text-xs`}>Status</p>
-                <p className={`text-lg font-bold ${summaryData.saldoFinal >= 0 ? 'text-green-800' : 'text-red-800'} font-poppins`}>
-                  {summaryData.saldoFinal >= 0 ? 'LUCRO' : 'PREJUÍZO'}
-                </p>
-              </div>
-              <Wallet className={`h-5 w-5 ${summaryData.saldoFinal >= 0 ? 'text-green-600' : 'text-red-600'}`} />
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );

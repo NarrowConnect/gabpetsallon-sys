@@ -417,7 +417,7 @@ const FinanceManager = () => {
     return sum + (Number(value) || 0);
   }, 0);
   
-  const totalServiceIncome = Object.values(income).reduce((sum, value) => {
+  const total_entradas = Object.values(income).reduce((sum, value) => {
   return sum + Number(value || 0);
   }, 0);
 
@@ -430,7 +430,7 @@ const FinanceManager = () => {
     return sum + (Number(expense.value) || 0);
   }, 0);
   
-  const totalIncome = totalServiceIncome + totalCustomIncome;
+  const totalIncome = total_entradas + totalCustomIncome;
   const totalAllExpenses = totalExpenses + totalCustomExpenses;
   const finalBalance = totalIncome - totalAllExpenses;
 
@@ -588,7 +588,7 @@ const FinanceManager = () => {
             <div className="flex items-center justify-between">
               <span className="font-bold text-green-800 font-poppins text-lg">Total de Receitas de Serviços:</span>
               <span className="font-bold text-green-800 font-poppins text-2xl">
-                R$ {totalServiceIncome.toFixed(2)}
+                R$ {total_entradas.toFixed(2)}
               </span>
             </div>
           </div>
