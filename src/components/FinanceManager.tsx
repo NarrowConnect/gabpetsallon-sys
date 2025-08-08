@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useFinancas } from "@/hooks/useSupabase";
+import { useFinanceBalance } from "@/hooks/useFinanceBalance";
 import CustomIncomeManager from "./CustomIncomeManager";
 import CustomExpenseManager from "./CustomExpenseManager";
 import { supabase } from "@/integrations/supabase/client";
@@ -29,6 +30,7 @@ interface CustomExpense {
 const FinanceManager = () => {
   const { toast } = useToast();
   const { contasPagar, valoresRecebidos, loading, error, updateReceitas, updateDespesas } = useFinancas();
+  const { updateMonthBalance, linkMonthlyBalances } = useFinanceBalance();
   
   const getCurrentMonth = () => new Date().toISOString().slice(0, 7);
   const [currentMonth, setCurrentMonth] = useState(getCurrentMonth());
@@ -68,6 +70,8 @@ const FinanceManager = () => {
     toalhas: 0,
     gasolina: 0,
     cartao_nu: 0,
+    banhista: 0,
+    publicidade: 0,
   });
 
   const [customIncomes, setCustomIncomes] = useState<CustomIncome[]>([]);
@@ -159,9 +163,11 @@ const FinanceManager = () => {
           seguranca_mensalidade: currentMonthData.seguranca_mensalidade || 0,
           mei: currentMonthData.mei || 0,
           celular_mes: currentMonthData.celular_mes || 0,
-          toalhas: currentMonthData.toalha || 0,
+          toalhas: currentMonthData.toalhas || 0,
           gasolina: currentMonthData.gasolina || 0,
-          cartao_nu: currentMonthData.cartao_nu || 0
+          cartao_nu: currentMonthData.cartao_nu || 0,
+          banhista: currentMonthData.banhista || 0,
+          publicidade: currentMonthData.publicidade || 0,
         });
       }
     }
@@ -193,9 +199,13 @@ const FinanceManager = () => {
       
       await updateDespesas(currentMonth, { ...expenses, total_saidas: totalSaidas });
 
+      // Atualizar saldo do mês e linkar com meses anteriores
+      await updateMonthBalance(currentMonth);
+      await linkMonthlyBalances();
+
       toast({
         title: "Alterações salvas!",
-        description: "Todas as receitas e despesas foram atualizadas com sucesso.",
+        description: "Todas as receitas e despesas foram atualizadas com sucesso. Saldos mensais sincronizados.",
       });
     } catch (error) {
       console.error('Erro ao salvar alterações:', error);
@@ -299,7 +309,7 @@ const FinanceManager = () => {
       const { data, error } = await supabase
         .from('despesas_personalizadas')
         .insert([{
-          descricao: expenseData.description,
+          descricao: expenseData.description || expenseData.category,
           valor: expenseData.value,
           data_despesa: expenseData.date,
           mes_referencia: currentMonth
@@ -544,7 +554,7 @@ const FinanceManager = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="p-6">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {Object.entries(serviceValues).map(([key, value]) => (
               <div key={key} className="space-y-2">
                 <Label htmlFor={key} className="font-poppins font-medium text-gray-700">
@@ -599,7 +609,7 @@ const FinanceManager = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="p-6">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {Object.entries(expenses).map(([key, value]) => (
               <div key={key} className="space-y-2">
                 <Label htmlFor={key} className="font-poppins font-medium text-gray-700 capitalize">

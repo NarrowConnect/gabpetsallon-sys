@@ -146,6 +146,7 @@ export type Database = {
       contas_a_pagar: {
         Row: {
           aluguel: number | null
+          banhista: number | null
           boleto_biocom: number | null
           boleto_euroshop: number | null
           cartao_bb: number | null
@@ -158,17 +159,19 @@ export type Database = {
           gasolina: number | null
           id: string
           internet: number | null
-          toalha: number | null
           mei: number | null
           mes_referencia: string
+          publicidade: number | null
           sanepar: number | null
           seguranca_mensalidade: number | null
           tarifa_bancaria: number | null
+          toalhas: number | null
           total_saidas: number | null
           updated_at: string | null
         }
         Insert: {
           aluguel?: number | null
+          banhista?: number | null
           boleto_biocom?: number | null
           boleto_euroshop?: number | null
           cartao_bb?: number | null
@@ -181,17 +184,19 @@ export type Database = {
           gasolina?: number | null
           id?: string
           internet?: number | null
-          toalha?: number | null
           mei?: number | null
           mes_referencia: string
+          publicidade?: number | null
           sanepar?: number | null
           seguranca_mensalidade?: number | null
           tarifa_bancaria?: number | null
+          toalhas?: number | null
           total_saidas?: number | null
           updated_at?: string | null
         }
         Update: {
           aluguel?: number | null
+          banhista?: number | null
           boleto_biocom?: number | null
           boleto_euroshop?: number | null
           cartao_bb?: number | null
@@ -204,12 +209,13 @@ export type Database = {
           gasolina?: number | null
           id?: string
           internet?: number | null
-          toalha?: number | null
           mei?: number | null
           mes_referencia?: string
+          publicidade?: number | null
           sanepar?: number | null
           seguranca_mensalidade?: number | null
           tarifa_bancaria?: number | null
+          toalhas?: number | null
           total_saidas?: number | null
           updated_at?: string | null
         }
@@ -504,48 +510,48 @@ export type Database = {
       }
       valores_recebidos: {
         Row: {
+          banho_porte_medio: number | null
           banhos_medicamentosos: number | null
           banhos_porte_grande: number | null
-          banho_porte_medio: number | null
           banhos_porte_pequeno: number | null
+          boutique: number | null
           created_at: string | null
+          creche: number | null
           hospedagens: number | null
           id: string
           mes_referencia: string
-          boutique: number | null
-          creche?: number | null
           taxi_dog: number | null
           tosas: number | null
           total_entradas: number | null
           updated_at: string | null
         }
         Insert: {
+          banho_porte_medio?: number | null
           banhos_medicamentosos?: number | null
           banhos_porte_grande?: number | null
-          banhos_porte_medio?: number | null
           banhos_porte_pequeno?: number | null
+          boutique?: number | null
           created_at?: string | null
-          hospedagens?: number | null
           creche?: number | null
+          hospedagens?: number | null
           id?: string
           mes_referencia: string
-          boutique?: number | null
           taxi_dog?: number | null
           tosas?: number | null
           total_entradas?: number | null
           updated_at?: string | null
         }
         Update: {
+          banho_porte_medio?: number | null
           banhos_medicamentosos?: number | null
           banhos_porte_grande?: number | null
-          banhos_porte_medio?: number | null
           banhos_porte_pequeno?: number | null
+          boutique?: number | null
           created_at?: string | null
-          hospedagens?: number | null
           creche?: number | null
+          hospedagens?: number | null
           id?: string
           mes_referencia?: string
-          boutique?: number | null
           taxi_dog?: number | null
           tosas?: number | null
           total_entradas?: number | null

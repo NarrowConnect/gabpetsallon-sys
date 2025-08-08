@@ -85,7 +85,7 @@ const ReportsManager = () => {
       `Segurança,R$ ${(despesas?.seguranca_mensalidade || 0).toFixed(2).replace('.', ',')}\n`,
       `MEI,R$ ${(despesas?.mei || 0).toFixed(2).replace('.', ',')}\n`,
       `Celular,R$ ${(despesas?.celular_mes || 0).toFixed(2).replace('.', ',')}\n`,
-      `Toalha,R$ ${(despesas?.toalha || 0).toFixed(2).replace('.', ',')}\n`,
+      `Toalha,R$ ${(despesas?.toalhas || 0).toFixed(2).replace('.', ',')}\n`,
       `Gasolina,R$ ${(despesas?.gasolina || 0).toFixed(2).replace('.', ',')}\n`,
       `Tarifa Bancária,R$ ${(despesas?.tarifa_bancaria || 0).toFixed(2).replace('.', ',')}\n`,
       `Cartão Santander,R$ ${(despesas?.cartao_santander || 0).toFixed(2).replace('.', ',')}\n`,
