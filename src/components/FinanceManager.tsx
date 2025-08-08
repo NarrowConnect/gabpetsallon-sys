@@ -8,6 +8,7 @@ import { useFinancas } from "@/hooks/useSupabase";
 import { useFinanceBalance } from "@/hooks/useFinanceBalance";
 import CustomIncomeManager from "./CustomIncomeManager";
 import CustomExpenseManager from "./CustomExpenseManager";
+import FinancialSummary from "./FinancialSummary";
 import { supabase } from "@/integrations/supabase/client";
 import { TrendingUp, TrendingDown, DollarSign, PiggyBank, Receipt, CreditCard, Calculator, AlertTriangle } from "lucide-react";
 
@@ -435,14 +436,17 @@ const FinanceManager = () => {
 
   return (
     <div className="space-y-8">
+      {/* Resumo Financeiro Geral */}
+      <FinancialSummary />
+      
       <div className="text-center">
         <div className="flex items-center justify-center gap-3 mb-4">
           <div className="bg-gradient-to-r from-brand-cyan to-brand-orange p-3 rounded-full">
             <Calculator className="h-8 w-8 text-white" />
           </div>
-          <h2 className="text-3xl font-bold text-gray-900 font-poppins">Gestão Financeira</h2>
+          <h2 className="text-3xl font-bold text-gray-900 font-poppins">Gestão Financeira Mensal</h2>
         </div>
-        <p className="text-gray-600 font-poppins text-lg">Controle completo das finanças do seu negócio</p>
+        <p className="text-gray-600 font-poppins text-lg">Controle das finanças do mês atual</p>
         <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-fl mx-auto">
           <div className="flex items-center justify-center gap-4 mt-4">
             <Button onClick={() => changeMonth('prev')} variant="outline">← Mês Anterior</Button>

@@ -10,6 +10,8 @@ import { usePets } from "@/hooks/usePets";
 import { useTutors } from "@/hooks/useTutors";
 import PetForm from "@/components/forms/PetForm";
 import TutorForm from "@/components/forms/TutorForm";
+import TutorPetLinker from "@/components/TutorPetLinker";
+import PetBreedImage from "@/components/PetBreedImage";
 
 const PetsManager = () => {
   const { toast } = useToast();
@@ -231,16 +233,28 @@ const PetsManager = () => {
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-2">
-                    <div className="text-sm space-y-1">
-                      <p className="font-poppins"><span className="font-medium">Espécie:</span> {pet.especie}</p>
-                      {pet.raca && <p className="font-poppins"><span className="font-medium">Raça:</span> {pet.raca}</p>}
-                      {pet.porte && <p className="font-poppins"><span className="font-medium">Porte:</span> {pet.porte}</p>}
-                      {pet.idade && <p className="font-poppins"><span className="font-medium">Idade:</span> {pet.idade} anos</p>}
-                      {pet.peso && <p className="font-poppins"><span className="font-medium">Peso:</span> {pet.peso}kg</p>}
+                    <div className="flex items-center gap-3 mb-3">
+                      <PetBreedImage breed={pet.raca} className="w-12 h-12" />
+                      <div className="text-sm space-y-1 flex-1">
+                        <p className="font-poppins"><span className="font-medium">Espécie:</span> {pet.especie}</p>
+                        {pet.raca && <p className="font-poppins"><span className="font-medium">Raça:</span> {pet.raca}</p>}
+                        {pet.porte && <p className="font-poppins"><span className="font-medium">Porte:</span> {pet.porte}</p>}
+                        {pet.idade && <p className="font-poppins"><span className="font-medium">Idade:</span> {pet.idade} anos</p>}
+                        {pet.peso && <p className="font-poppins"><span className="font-medium">Peso:</span> {pet.peso}kg</p>}
+                      </div>
                     </div>
                     
+                    {/* Componente de vinculação de tutor */}
+                    <TutorPetLinker 
+                      petId={pet.id} 
+                      type="pet-to-tutor" 
+                      onSuccess={() => {
+                        // Atualizar a lista se necessário
+                      }} 
+                    />
+                    
                     {(pet.castrado || pet.toma_medicamentos) && (
-                      <div className="flex gap-2 text-xs">
+                      <div className="flex gap-2 text-xs mt-2">
                         {pet.castrado && (
                           <span className="bg-green-100 text-green-800 px-2 py-1 rounded font-poppins">Castrado</span>
                         )}

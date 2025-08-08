@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useTutors } from "@/hooks/useTutors";
 import { usePets } from "@/hooks/usePets";
 import TutorForm from "@/components/forms/TutorForm";
+import TutorPetLinker from "@/components/TutorPetLinker";
 
 const TutorsManager = () => {
   const { toast } = useToast();
@@ -220,6 +221,15 @@ const TutorsManager = () => {
                         <span className="font-poppins">Contatos adicionais cadastrados</span>
                       </div>
                     )}
+                    
+                    {/* Componente de vinculação de pets */}
+                    <TutorPetLinker 
+                      tutorId={tutor.id} 
+                      type="tutor-to-pet" 
+                      onSuccess={() => {
+                        // Atualizar a lista se necessário
+                      }} 
+                    />
                     <div className="flex gap-2 pt-2">
                       <Button variant="outline" size="sm" className="flex-1 font-poppins" onClick={() => viewTutorPets(tutor)}>
                         <Eye className="h-4 w-4 mr-1" />
