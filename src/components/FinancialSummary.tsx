@@ -61,8 +61,19 @@ const FinancialSummary = () => {
 
     // Calcular totais de receitas fixas
     const totalReceitasFixas = valoresRecebidos.reduce((sum, item) => {
-      return sum + Number(item.total_entradas || 0);
-    }, 0);
+    const somaServicos = [
+      item.banhos_porte_pequeno,
+      item.banho_porte_medio,
+      item.banhos_porte_grande,
+      item.banhos_medicamentosos,
+      item.tosas,
+      item.hospedagens,
+      item.creche,
+      item.taxi_dog,
+      item.boutique
+    ].reduce((acc, val) => acc + Number(val || 0), 0);
+    return sum + somaServicos;
+  }, 0);
 
     // Calcular totais de despesas fixas
     const totalDespesasFixas = contasPagar.reduce((sum, item) => {

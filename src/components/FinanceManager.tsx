@@ -79,17 +79,18 @@ const FinanceManager = () => {
   const [customExpenses, setCustomExpenses] = useState<CustomExpense[]>([]);
   const [isSaving, setIsSaving] = useState(false);
 
-  const serviceValues = {
+  const [serviceValues, setServiceValues] = useState({
     banhos_porte_pequeno: 0,
     banho_porte_medio: 0,
     banhos_porte_grande: 0,
     banhos_medicamentosos: 0,
     tosas: 0,
     hospedagens: 0,
-    creche: 0.,
+    creche: 0,
     taxi_dog: 0,
     boutique: 0
-  };
+  });
+
 
   const loadCustomData = async () => {
     try {
@@ -187,12 +188,12 @@ const FinanceManager = () => {
   const saveAllChanges = async () => {
     setIsSaving(true);
     try {
-      const totalEntradas = Object.entries(income).reduce((sum: number, [key, quantity]) => {
-        const value = serviceValues[key as keyof typeof serviceValues];
-        return sum + (Number(quantity) * Number(value));
-      }, 0);
+      const totalEntradas = Object.values(income).reduce((sum, value) => {
+    return sum + (Number(value) || 0);
+    }, 0);
+
       
-      await updateReceitas(currentMonth, { ...income, total_entradas: totalEntradas });
+      await updateReceitas(currentMonth, { ...income, total_entradas: totalEntradas, });
 
       const totalSaidas = Object.values(expenses).reduce((sum: number, val: string | number) => {
         return sum + (Number(val) || 0);
@@ -253,6 +254,37 @@ const FinanceManager = () => {
       });
     }
   };
+
+  const loadServiceValues = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('valores_recebidos') // substitua pelo nome correto da sua tabela de preços
+      .select('*')
+      .single(); // se tiver mais de uma linha, adapte
+
+    if (error) throw error;
+
+    setServiceValues({
+      banhos_porte_pequeno: data.banhos_porte_pequeno || 0,
+      banho_porte_medio: data.banho_porte_medio || 0,
+      banhos_porte_grande: data.banhos_porte_grande || 0,
+      banhos_medicamentosos: data.banhos_medicamentosos || 0,
+      tosas: data.tosas || 0,
+      hospedagens: data.hospedagens || 0,
+      creche: data.creche || 0,
+      taxi_dog: data.taxi_dog || 0,
+      boutique: data.boutique || 0
+    });
+  } catch (error) {
+    console.error('Erro ao carregar valores dos serviços:', error);
+  }
+};
+
+  useEffect(() => {
+    loadCustomData();
+loadServiceValues();
+  }, []);
+
 
   const handleUpdateIncome = async (id: string, updates: Partial<CustomIncome>) => {
     try {
@@ -364,6 +396,8 @@ const FinanceManager = () => {
       });
     }
   };
+
+  
 
   const handleDeleteExpense = async (id: string) => {
     try {
