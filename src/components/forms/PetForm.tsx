@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -71,6 +71,35 @@ const PetForm: React.FC<PetFormProps> = ({
     cidade_veterinario: initialData?.cidade_veterinario || null,
     estado_veterinario: initialData?.estado_veterinario || null
   });
+
+  useEffect(() => {
+    setFormData({
+      tutor_id: tutorId || initialData?.tutor_id || null,
+      nome_tutor: tutorName || initialData?.nome_tutor || "",
+      nome_pet: initialData?.nome_pet || "",
+      especie: initialData?.especie || "Cão",
+      raca: initialData?.raca || null,
+      sexo: initialData?.sexo || null,
+      porte: initialData?.porte || null,
+      idade: initialData?.idade || null,
+      peso: initialData?.peso || null,
+      castrado: initialData?.castrado || false,
+      toma_medicamentos: initialData?.toma_medicamentos || false,
+      temperamento: initialData?.temperamento || null,
+      necessidades_especiais: initialData?.necessidades_especiais || null,
+      rotina: initialData?.rotina || null,
+      saude: initialData?.saude || null,
+      medicamentos: initialData?.medicamentos || null,
+      vacinas_vermifugos: initialData?.vacinas_vermifugos || null,
+      controle_parasitario: initialData?.controle_parasitario || null,
+      nome_veterinario: initialData?.nome_veterinario || null,
+      telefone_veterinario: initialData?.telefone_veterinario || null,
+      celular_veterinario: initialData?.celular_veterinario || null,
+      endereco_veterinario: initialData?.endereco_veterinario || null,
+      cidade_veterinario: initialData?.cidade_veterinario || null,
+      estado_veterinario: initialData?.estado_veterinario || null
+    });
+  }, [initialData, tutorId, tutorName, isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

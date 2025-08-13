@@ -18,11 +18,8 @@ import {
 import {
   format,
   addDays,
-  startOfWeek,
-  endOfWeek,
   eachDayOfInterval,
   addMonths,
-  subMonths,
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -94,7 +91,7 @@ const CalendarView = ({ appointments }: CalendarViewProps) => {
           </h3>
           <div className="flex gap-2">
             <Button
-              onClick={() => setSelectedDate(subMonths(selectedDate, 1))}
+              onClick={() => setSelectedDate(addMonths(selectedDate, -1))}
               className="bg-transparent border text-black border-cyan-400 hover:bg-brand-cyan hover:text-white "
             >
               <ChevronLeft className="h-4 w-4" />
@@ -177,8 +174,16 @@ const CalendarView = ({ appointments }: CalendarViewProps) => {
 
   // Render view semanal
   const renderWeekView = () => {
-    const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 });
-    const weekEnd = endOfWeek(selectedDate, { weekStartsOn: 1 });
+    const getWeekStart = (date: Date) => {
+      const d = new Date(date);
+      const day = d.getDay(); // 0=Dom, 1=Seg, ...
+      const diff = (day + 6) % 7; // distância até segunda
+      d.setDate(d.getDate() - diff);
+      d.setHours(0, 0, 0, 0);
+      return d;
+    };
+    const weekStart = getWeekStart(selectedDate);
+    const weekEnd = addDays(weekStart, 6);
     const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
 
     return (

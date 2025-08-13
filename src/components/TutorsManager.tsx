@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,16 @@ const TutorsManager = () => {
   const [selectedTutorPets, setSelectedTutorPets] = useState<any[]>([]);
   const [selectedTutorName, setSelectedTutorName] = useState("");
   const [editingTutor, setEditingTutor] = useState<any>(null);
+
+  useEffect(() => {
+    if (error) {
+      toast({
+        title: "Erro ao carregar tutores",
+        description: String(error),
+        variant: "destructive",
+      });
+    }
+  }, [error, toast]);
 
   const filteredTutors = tutors.filter(tutor =>
     tutor.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||

@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +17,16 @@ const PetsManager = () => {
   const { toast } = useToast();
   const { pets, loading, error, addPet, updatePet, deletePet } = usePets();
   const { tutors, addTutor } = useTutors();
+  
+  useEffect(() => {
+    if (error) {
+      toast({
+        title: "Erro ao carregar pets",
+        description: String(error),
+        variant: "destructive",
+      });
+    }
+  }, [error, toast]);
   
   const [searchTerm, setSearchTerm] = useState("");
   const [isPetDialogOpen, setIsPetDialogOpen] = useState(false);

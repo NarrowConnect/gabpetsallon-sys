@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -44,6 +44,29 @@ const TutorForm: React.FC<TutorFormProps> = ({
     contato_adicional_2_nome: initialData?.contato_adicional_2_nome || null,
     contato_adicional_2_telefone: initialData?.contato_adicional_2_telefone || null
   });
+
+  useEffect(() => {
+    // Sincroniza quando abrir ou quando initialData mudar
+    setFormData({
+      nome: initialData?.nome || "",
+      celular: initialData?.celular || "",
+      telefone_residencial: initialData?.telefone_residencial || null,
+      endereco: initialData?.endereco || null,
+      cep: initialData?.cep || null,
+      cidade: initialData?.cidade || null,
+      estado: initialData?.estado || null,
+      nome_veterinario: initialData?.nome_veterinario || null,
+      telefone_veterinario: initialData?.telefone_veterinario || null,
+      celular_veterinario: initialData?.celular_veterinario || null,
+      endereco_veterinario: initialData?.endereco_veterinario || null,
+      cidade_veterinario: initialData?.cidade_veterinario || null,
+      estado_veterinario: initialData?.estado_veterinario || null,
+      contato_adicional_1_nome: initialData?.contato_adicional_1_nome || null,
+      contato_adicional_1_telefone: initialData?.contato_adicional_1_telefone || null,
+      contato_adicional_2_nome: initialData?.contato_adicional_2_nome || null,
+      contato_adicional_2_telefone: initialData?.contato_adicional_2_telefone || null
+    });
+  }, [initialData, isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
