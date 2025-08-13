@@ -170,7 +170,8 @@ const TutorForm: React.FC<TutorFormProps> = ({
               <Input
                 id="cep"
                 value={formData.cep || ''}
-                onChange={(e) => handleChange('cep', e.target.value)}
+                onChange={(e) => handleCepChange(e.target.value)}
+                onBlur={(e) => handleCepChange(e.target.value)}
                 placeholder="80000-000"
                 className="font-poppins"
               />
