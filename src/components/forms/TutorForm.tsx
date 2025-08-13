@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useCepLookup, formatCep } from "@/hooks/useCepLookup";
 import type { TutorDB, TutorInsert } from '@/hooks/useTutors';
 
 interface TutorFormProps {
@@ -45,6 +46,9 @@ const TutorForm: React.FC<TutorFormProps> = ({
     contato_adicional_2_telefone: initialData?.contato_adicional_2_telefone || null
   });
 
+  const [numero, setNumero] = useState<string>("");
+  const { lookup } = useCepLookup();
+
   useEffect(() => {
     // Sincroniza quando abrir ou quando initialData mudar
     setFormData({
@@ -70,15 +74,55 @@ const TutorForm: React.FC<TutorFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await onSubmit(formData);
+    const computedEndereco = numero
+      ? `${formData.endereco || ''}${formData.endereco ? ', ' : ''}${numero}`
+      : formData.endereco;
+    await onSubmit({ ...formData, endereco: computedEndereco });
     onClose();
   };
 
+  const formatPhone = (value: string) => {
+    const numbers = value.replace(/\D/g, '');
+    if (numbers.length <= 10) {
+      return numbers.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3').trim();
+    } else {
+      return numbers.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3').trim();
+    }
+  };
+
   const handleChange = (field: keyof TutorInsert, value: string) => {
+    if (
+      field === 'celular' ||
+      field === 'telefone_residencial' ||
+      field === 'telefone_veterinario' ||
+      field === 'celular_veterinario' ||
+      field === 'contato_adicional_1_telefone' ||
+      field === 'contato_adicional_2_telefone'
+    ) {
+      value = formatPhone(value);
+    }
     setFormData(prev => ({
       ...prev,
       [field]: value || null
     }));
+  };
+
+  const handleCepChange = async (value: string) => {
+    const formatted = formatCep(value);
+    setFormData(prev => ({ ...prev, cep: formatted }));
+    const digits = formatted.replace(/\D/g, '');
+    if (digits.length === 8) {
+      const res = await lookup(digits);
+      if (res) {
+        const enderecoAuto = [res.street, res.neighborhood].filter(Boolean).join(' - ');
+        setFormData(prev => ({
+          ...prev,
+          endereco: enderecoAuto,
+          cidade: res.city,
+          estado: res.state,
+        }));
+      }
+    }
   };
 
   return (

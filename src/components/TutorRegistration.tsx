@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useCepLookup, formatCep } from "@/hooks/useCepLookup";
 
 interface TutorRegistrationProps {
   onTutorCreated: (tutor: any) => void;
@@ -16,6 +17,7 @@ interface TutorRegistrationProps {
 const TutorRegistration = ({ onTutorCreated, onCancel }: TutorRegistrationProps) => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [numero, setNumero] = useState("");
   const [formData, setFormData] = useState({
     nome: "",
     celular: "",
@@ -35,6 +37,8 @@ const TutorRegistration = ({ onTutorCreated, onCancel }: TutorRegistrationProps)
     contato_adicional_2_nome: "",
     contato_adicional_2_telefone: ""
   });
+
+  const { lookup } = useCepLookup();
 
   const validateForm = () => {
     if (!formData.nome.trim()) {
@@ -89,9 +93,10 @@ const TutorRegistration = ({ onTutorCreated, onCancel }: TutorRegistrationProps)
     setLoading(true);
 
     try {
+      const computedEndereco = numero ? `${formData.endereco}${formData.endereco ? ', ' : ''}${numero}` : formData.endereco;
       const { data, error } = await supabase
         .from('tutores')
-        .insert([formData])
+        .insert([{ ...formData, endereco: computedEndereco }])
         .select()
         .single();
 
@@ -123,14 +128,38 @@ const TutorRegistration = ({ onTutorCreated, onCancel }: TutorRegistrationProps)
     }
   };
 
-  const handleChange = (field: string, value: string) => {
-    // Aplicar formatação para campos de telefone
-    if (field === 'celular' || field === 'telefone_residencial' || 
-        field === 'telefone_veterinario' || field === 'celular_veterinario' ||
-        field === 'contato_adicional_1_telefone' || field === 'contato_adicional_2_telefone') {
+  const handleChange = async (field: string, value: string) => {
+    // CEP: formata e busca endereço
+    if (field === 'cep') {
+      const formatted = formatCep(value);
+      setFormData(prev => ({ ...prev, cep: formatted }));
+      const digits = formatted.replace(/\D/g, '');
+      if (digits.length === 8) {
+        const res = await lookup(digits);
+        if (res) {
+          const enderecoAuto = [res.street, res.neighborhood].filter(Boolean).join(' - ');
+          setFormData(prev => ({
+            ...prev,
+            endereco: enderecoAuto,
+            cidade: res.city,
+            estado: res.state,
+          }));
+        }
+      }
+      return;
+    }
+
+    // Aplicar formatação para campos de telefone (padrão celular com 9 dígitos)
+    if (
+      field === 'celular' ||
+      field === 'telefone_veterinario' ||
+      field === 'celular_veterinario' ||
+      field === 'contato_adicional_1_telefone' ||
+      field === 'contato_adicional_2_telefone'
+    ) {
       value = formatPhone(value);
     }
-    
+
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -205,13 +234,23 @@ const TutorRegistration = ({ onTutorCreated, onCancel }: TutorRegistrationProps)
               {/* Endereço */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-brand-orange">Endereço</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="md:col-span-2">
                     <Label htmlFor="endereco">Endereço</Label>
                     <Input
                       id="endereco"
                       value={formData.endereco}
                       onChange={(e) => handleChange('endereco', e.target.value)}
+                      disabled={loading}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="numero">Número</Label>
+                    <Input
+                      id="numero"
+                      value={numero}
+                      onChange={(e) => setNumero(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      placeholder="Nº"
                       disabled={loading}
                     />
                   </div>
