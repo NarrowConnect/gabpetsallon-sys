@@ -87,8 +87,14 @@ const API_ENDPOINTS = [
   }
 ];
 
+// ===== BLOCO DE CONFIGURAÇÃO DE API SUPABASE =====
+// ⚠️  SUBSTITUA AS CHAVES ABAIXO PELAS SUAS QUANDO NECESSÁRIO:
+// 1. SUPABASE_URL: Substitua pela URL do seu projeto Supabase
+// 2. SUPABASE_ANON_KEY: Substitua pela chave anônima do seu projeto
+// ✅ Encontre suas chaves em: https://supabase.com/dashboard/project/[SEU-PROJETO]/settings/api
 const SUPABASE_URL = 'https://zwykvxtufkcovqyifhfg.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp3eWt2eHR1Zmtjb3ZxeWlmaGZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE1OTkxODAsImV4cCI6MjA2NzE3NTE4MH0.jZos1WwH4o1HqkkAiZsmmYpARATVZDe01E0p4lPOxHE';
+// ===== FIM DO BLOCO DE CONFIGURAÇÃO =====
 
 export default function ApiTester() {
   const [selectedEndpoint, setSelectedEndpoint] = useState(API_ENDPOINTS[0]);

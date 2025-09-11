@@ -1,9 +1,16 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-// Configure estas variáveis com seus dados reais do Supabase
-const supabaseUrl = process.env.REACT_APP_SUPABASE_URL || 'https://your-project.supabase.co';
-const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY || 'your-anon-key-here';
+// ===== BLOCO DE CONFIGURAÇÃO DE API SUPABASE =====
+// ⚠️  SUBSTITUA AS CHAVES ABAIXO PELAS SUAS QUANDO NECESSÁRIO:
+// ⚠️  ATENÇÃO: Este arquivo usa variáveis de ambiente que não são suportadas no Lovable
+// ✅ Configure diretamente as chaves ou use o arquivo src/integrations/supabase/client.ts
+// 1. supabaseUrl: Substitua pela URL do seu projeto Supabase
+// 2. supabaseAnonKey: Substitua pela chave anônima do seu projeto
+// ✅ Encontre suas chaves em: https://supabase.com/dashboard/project/[SEU-PROJETO]/settings/api
+const supabaseUrl = process.env.REACT_APP_SUPABASE_URL || 'https://zwykvxtufkcovqyifhfg.supabase.co';
+const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp3eWt2eHR1Zmtjb3ZxeWlmaGZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE1OTkxODAsImV4cCI6MjA2NzE3NTE4MH0.jZos1WwH4o1HqkkAiZsmmYpARATVZDe01E0p4lPOxHE';
+// ===== FIM DO BLOCO DE CONFIGURAÇÃO =====
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
