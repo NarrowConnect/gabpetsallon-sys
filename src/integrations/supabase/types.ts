@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -639,7 +639,7 @@ export type Database = {
     }
     Functions: {
       trigger_webhook: {
-        Args: { p_event_type: string; p_event_data: Json }
+        Args: { p_event_data: Json; p_event_type: string }
         Returns: undefined
       }
     }
