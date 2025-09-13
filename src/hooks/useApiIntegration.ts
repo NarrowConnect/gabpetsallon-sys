@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { useToast } from './use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 interface ApiResponse {
   success: boolean;

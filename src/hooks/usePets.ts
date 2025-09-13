@@ -1,12 +1,14 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 import type { Database } from '@/integrations/supabase/types';
 
 export type PetDB = Database['public']['Tables']['pets']['Row'];
 export type PetInsert = Database['public']['Tables']['pets']['Insert'];
 
 export const usePets = () => {
+  const { toast } = useToast();
   const [pets, setPets] = useState<PetDB[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -24,7 +26,13 @@ export const usePets = () => {
       setPets(data || []);
     } catch (err) {
       console.error('Erro ao buscar pets:', err);
-      setError(err instanceof Error ? err.message : 'Erro desconhecido');
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
+      setError(errorMessage);
+      toast({
+        title: "Erro ao carregar pets",
+        description: errorMessage,
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
@@ -40,10 +48,20 @@ export const usePets = () => {
       
       if (error) throw error;
       setPets(prev => [...prev, data]);
+      toast({
+        title: "Sucesso!",
+        description: "Pet adicionado com sucesso.",
+      });
       return data;
     } catch (err) {
       console.error('Erro ao adicionar pet:', err);
-      setError(err instanceof Error ? err.message : 'Erro ao adicionar pet');
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao adicionar pet';
+      setError(errorMessage);
+      toast({
+        title: "Erro ao adicionar pet",
+        description: errorMessage,
+        variant: "destructive"
+      });
       throw err;
     }
   };
@@ -59,10 +77,20 @@ export const usePets = () => {
       
       if (error) throw error;
       setPets(prev => prev.map(p => p.id === id ? data : p));
+      toast({
+        title: "Sucesso!",
+        description: "Pet atualizado com sucesso.",
+      });
       return data;
     } catch (err) {
       console.error('Erro ao atualizar pet:', err);
-      setError(err instanceof Error ? err.message : 'Erro ao atualizar pet');
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao atualizar pet';
+      setError(errorMessage);
+      toast({
+        title: "Erro ao atualizar pet",
+        description: errorMessage,
+        variant: "destructive"
+      });
       throw err;
     }
   };
@@ -76,9 +104,19 @@ export const usePets = () => {
       
       if (error) throw error;
       setPets(prev => prev.filter(p => p.id !== id));
+      toast({
+        title: "Sucesso!",
+        description: "Pet removido com sucesso.",
+      });
     } catch (err) {
       console.error('Erro ao deletar pet:', err);
-      setError(err instanceof Error ? err.message : 'Erro ao deletar pet');
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao deletar pet';
+      setError(errorMessage);
+      toast({
+        title: "Erro ao deletar pet",
+        description: errorMessage,
+        variant: "destructive"
+      });
       throw err;
     }
   };

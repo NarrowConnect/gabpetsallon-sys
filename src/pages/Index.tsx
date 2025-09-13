@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { Toaster } from "@/components/ui/toaster";
 import { PlusCircle, Calendar, DollarSign, Users, Heart, Scissors, Home, Car, LogOut, BarChart3, Webhook, Code } from "lucide-react";
 import { ResponsiveContainer } from "@/components/ui/responsive-container";
 import Dashboard from "@/components/Dashboard";
@@ -139,6 +140,7 @@ const Index = () => {
 
         </Tabs>
       </ResponsiveContainer>
+      <Toaster />
     </div>
   );
 };

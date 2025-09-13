@@ -1,12 +1,14 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 import type { Database } from '@/integrations/supabase/types';
 
 export type AgendamentoDB = Database['public']['Tables']['agendamentos']['Row'];
 export type AgendamentoInsert = Database['public']['Tables']['agendamentos']['Insert'];
 
 export const useAgendamentos = () => {
+  const { toast } = useToast();
   const [agendamentos, setAgendamentos] = useState<AgendamentoDB[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -25,7 +27,13 @@ export const useAgendamentos = () => {
       setAgendamentos(data || []);
     } catch (err) {
       console.error('Erro ao buscar agendamentos:', err);
-      setError(err instanceof Error ? err.message : 'Erro desconhecido');
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
+      setError(errorMessage);
+      toast({
+        title: "Erro ao carregar agendamentos",
+        description: errorMessage,
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
@@ -41,10 +49,20 @@ export const useAgendamentos = () => {
       
       if (error) throw error;
       setAgendamentos(prev => [data, ...prev]);
+      toast({
+        title: "Sucesso!",
+        description: "Agendamento criado com sucesso.",
+      });
       return data;
     } catch (err) {
       console.error('Erro ao adicionar agendamento:', err);
-      setError(err instanceof Error ? err.message : 'Erro ao adicionar agendamento');
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao adicionar agendamento';
+      setError(errorMessage);
+      toast({
+        title: "Erro ao adicionar agendamento",
+        description: errorMessage,
+        variant: "destructive"
+      });
       throw err;
     }
   };
@@ -60,10 +78,20 @@ export const useAgendamentos = () => {
       
       if (error) throw error;
       setAgendamentos(prev => prev.map(a => a.id === id ? data : a));
+      toast({
+        title: "Sucesso!",
+        description: "Agendamento atualizado com sucesso.",
+      });
       return data;
     } catch (err) {
       console.error('Erro ao atualizar agendamento:', err);
-      setError(err instanceof Error ? err.message : 'Erro ao atualizar agendamento');
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao atualizar agendamento';
+      setError(errorMessage);
+      toast({
+        title: "Erro ao atualizar agendamento",
+        description: errorMessage,
+        variant: "destructive"
+      });
       throw err;
     }
   };
@@ -77,9 +105,19 @@ export const useAgendamentos = () => {
       
       if (error) throw error;
       setAgendamentos(prev => prev.filter(a => a.id !== id));
+      toast({
+        title: "Sucesso!",
+        description: "Agendamento removido com sucesso.",
+      });
     } catch (err) {
       console.error('Erro ao deletar agendamento:', err);
-      setError(err instanceof Error ? err.message : 'Erro ao deletar agendamento');
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao deletar agendamento';
+      setError(errorMessage);
+      toast({
+        title: "Erro ao deletar agendamento",
+        description: errorMessage,
+        variant: "destructive"
+      });
       throw err;
     }
   };

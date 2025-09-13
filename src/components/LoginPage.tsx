@@ -32,11 +32,21 @@ const LoginPage = ({ onLogin }: LoginPageProps) => {
         .select('*')
         .eq('email', adminForm.email)
         .eq('ativo', true)
-        .single();
+        .maybeSingle();
 
-      if (error || !adminData) {
+      if (error) {
+        console.error('Erro ao buscar admin:', error);
         toast({
           title: "Erro de Login",
+          description: "Erro ao conectar com o servidor. Verifique sua conexão.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      if (!adminData) {
+        toast({
+          title: "Acesso Negado",
           description: "Email não encontrado ou usuário inativo.",
           variant: "destructive"
         });
@@ -55,8 +65,7 @@ const LoginPage = ({ onLogin }: LoginPageProps) => {
         toast({
           title: "Senha incorreta",
           description: "Verifique se digitou corretamente.",
-          variant: "default", 
-          duration: 5000
+          variant: "destructive"
         });
       }
     } catch (error) {
@@ -86,9 +95,19 @@ const handleTutorLogin = async (e: React.FormEvent) => {
       .select('*')
       .eq('nome', nomeNormalizado)
       .eq('celular', celularNormalizado)
-      .single();  // Fetch a single record only
+      .maybeSingle();
 
-    if (error || !tutorData) {
+    if (error) {
+      console.error('Erro ao buscar tutor:', error);
+      toast({
+        title: "Erro de Login",
+        description: "Erro ao conectar com o servidor. Verifique sua conexão.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!tutorData) {
       toast({
         title: "Tutor não encontrado",
         description: "Dados não encontrados. Deseja criar um novo cadastro?",

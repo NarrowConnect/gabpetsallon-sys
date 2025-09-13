@@ -53,14 +53,15 @@ export const useCepLookup = () => {
 
       toast({
         title: "CEP não encontrado",
-        description: "Não foi possível localizar o endereço para este CEP.",
+        description: "Não foi possível localizar o endereço para este CEP. Verifique se o CEP está correto.",
         variant: "destructive",
       });
       return null;
     } catch (e) {
+      console.error('Erro ao buscar CEP:', e);
       toast({
-        title: "Erro ao buscar CEP",
-        description: "Verifique sua conexão e tente novamente.",
+        title: "Erro de conexão",
+        description: "Não foi possível conectar ao serviço de CEP. Verifique sua conexão com a internet.",
         variant: "destructive",
       });
       return null;
