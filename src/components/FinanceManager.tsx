@@ -211,9 +211,10 @@ const FinanceManager = () => {
       });
     } catch (error) {
       console.error('Erro ao salvar alterações:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
       toast({
         title: "Erro ao salvar",
-        description: "Ocorreu um erro ao salvar as alterações.",
+        description: `Ocorreu um erro ao salvar as alterações: ${errorMessage}`,
         variant: "destructive"
       });
     } finally {
@@ -247,9 +248,10 @@ const FinanceManager = () => {
       setCustomIncomes(prev => [...prev, newIncome]);
     } catch (error) {
       console.error('Erro ao adicionar receita:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
       toast({
-        title: "Erro",
-        description: "Não foi possível adicionar a receita.",
+        title: "Erro ao adicionar receita",
+        description: `Não foi possível adicionar a receita: ${errorMessage}`,
         variant: "destructive"
       });
     }

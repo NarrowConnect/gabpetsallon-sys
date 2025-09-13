@@ -181,11 +181,10 @@ export const useFinancas = () => {
           .from('valores_recebidos')
           .update(updates)
           .eq('mes_referencia', mesReferencia)
-          .select()
-          .single();
+          .select();
         
         if (updateError) throw updateError;
-        data = updateData;
+        data = updateData?.[0];
       } else {
         // Registro não existe, fazer INSERT
         const { data: insertData, error: insertError } = await supabase
@@ -239,11 +238,10 @@ export const useFinancas = () => {
           .from('contas_a_pagar')
           .update(updates)
           .eq('mes_referencia', mesReferencia)
-          .select()
-          .single();
+          .select();
         
         if (updateError) throw updateError;
-        data = updateData;
+        data = updateData?.[0];
       } else {
         // Registro não existe, fazer INSERT
         const { data: insertData, error: insertError } = await supabase
