@@ -210,30 +210,6 @@ const FinancialSummary = () => {
         </Card>
       </div>
 
-      {/* Card de Saldo Acumulado Transportado */}
-      {summaryData.saldoTransportado !== 0 && (
-        <Card className={`bg-gradient-to-br ${summaryData.saldoTransportado >= 0 ? 'from-purple-50 to-indigo-50 border-purple-200' : 'from-red-50 to-pink-50 border-red-200'} shadow-lg`}>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className={`${summaryData.saldoTransportado >= 0 ? 'text-purple-700' : 'text-red-700'} font-poppins font-medium text-sm`}>
-                  Saldo Acumulado Transportado
-                </p>
-                <p className={`text-3xl font-bold ${summaryData.saldoTransportado >= 0 ? 'text-purple-800' : 'text-red-800'} font-poppins`}>
-                  R$ {summaryData.saldoTransportado.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                </p>
-                <p className={`text-sm ${summaryData.saldoTransportado >= 0 ? 'text-purple-600' : 'text-red-600'} font-poppins mt-1`}>
-                  {summaryData.saldoTransportado >= 0 ? 'Valor positivo acumulado dos meses anteriores' : 'Valor negativo a ser compensado nos próximos meses'}
-                </p>
-              </div>
-              <div className={`${summaryData.saldoTransportado >= 0 ? 'bg-purple-200' : 'bg-red-200'} p-3 rounded-full`}>
-                <Wallet className={`h-8 w-8 ${summaryData.saldoTransportado >= 0 ? 'text-purple-700' : 'text-red-700'}`} />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Cards de Detalhamento */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card className="bg-gradient-to-br from-teal-50 to-cyan-50 border-teal-200">
