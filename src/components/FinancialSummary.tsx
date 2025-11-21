@@ -8,6 +8,7 @@ interface FinanceSummaryData {
   totalReceitas: number;
   totalDespesas: number;
   saldoFinal: number;
+  saldoTransportado: number;
   mesesComDados: number;
   receitaMedia: number;
   despesaMedia: number;
@@ -19,6 +20,7 @@ const FinancialSummary = () => {
     totalReceitas: 0,
     totalDespesas: 0,
     saldoFinal: 0,
+    saldoTransportado: 0,
     mesesComDados: 0,
     receitaMedia: 0,
     despesaMedia: 0
@@ -57,53 +59,68 @@ const FinancialSummary = () => {
   }, []);
 
   useEffect(() => {
-    if (!contasPagar || !valoresRecebidos) return;
+    const calcularSaldoTransportado = async () => {
+      if (!contasPagar || !valoresRecebidos) return;
 
-    // Calcular totais de receitas fixas
-    const totalReceitasFixas = valoresRecebidos.reduce((sum, item) => {
-    const somaServicos = [
-      item.banhos_porte_pequeno,
-      item.banho_porte_medio,
-      item.banhos_porte_grande,
-      item.banhos_medicamentosos,
-      item.tosas,
-      item.hospedagens,
-      item.creche,
-      item.taxi_dog,
-      item.boutique
-    ].reduce((acc, val) => acc + Number(val || 0), 0);
-    return sum + somaServicos;
-  }, 0);
+      // Calcular totais de receitas fixas
+      const totalReceitasFixas = valoresRecebidos.reduce((sum, item) => {
+        const somaServicos = [
+          item.banhos_porte_pequeno,
+          item.banho_porte_medio,
+          item.banhos_porte_grande,
+          item.banhos_medicamentosos,
+          item.tosas,
+          item.hospedagens,
+          item.creche,
+          item.taxi_dog,
+          item.boutique
+        ].reduce((acc, val) => acc + Number(val || 0), 0);
+        return sum + somaServicos;
+      }, 0);
 
-    // Calcular totais de despesas fixas
-    const totalDespesasFixas = contasPagar.reduce((sum, item) => {
-      return sum + Number(item.total_saidas || 0);
-    }, 0);
+      // Calcular totais de despesas fixas
+      const totalDespesasFixas = contasPagar.reduce((sum, item) => {
+        return sum + Number(item.total_saidas || 0);
+      }, 0);
 
-    // Somar com receitas e despesas personalizadas
-    const totalReceitas = totalReceitasFixas + customData.receitasPersonalizadas;
-    const totalDespesas = totalDespesasFixas + customData.despesasPersonalizadas;
-    const saldoFinal = totalReceitas - totalDespesas;
+      // Somar com receitas e despesas personalizadas
+      const totalReceitas = totalReceitasFixas + customData.receitasPersonalizadas;
+      const totalDespesas = totalDespesasFixas + customData.despesasPersonalizadas;
+      const saldoFinal = totalReceitas - totalDespesas;
 
-    // Calcular número de meses com dados
-    const mesesUnicos = new Set([
-      ...valoresRecebidos.map(item => item.mes_referencia),
-      ...contasPagar.map(item => item.mes_referencia)
-    ]);
-    const mesesComDados = mesesUnicos.size;
+      // Buscar saldo transportado acumulado do controle financeiro
+      const { data: controleData } = await supabase
+        .from('controle_financeiro')
+        .select('saldo_transportar')
+        .order('mes_referencia', { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
-    // Calcular médias
-    const receitaMedia = mesesComDados > 0 ? totalReceitas / mesesComDados : 0;
-    const despesaMedia = mesesComDados > 0 ? totalDespesas / mesesComDados : 0;
+      const saldoTransportado = controleData?.saldo_transportar || 0;
 
-    setSummaryData({
-      totalReceitas,
-      totalDespesas,
-      saldoFinal,
-      mesesComDados,
-      receitaMedia,
-      despesaMedia
-    });
+      // Calcular número de meses com dados
+      const mesesUnicos = new Set([
+        ...valoresRecebidos.map(item => item.mes_referencia),
+        ...contasPagar.map(item => item.mes_referencia)
+      ]);
+      const mesesComDados = mesesUnicos.size;
+
+      // Calcular médias
+      const receitaMedia = mesesComDados > 0 ? totalReceitas / mesesComDados : 0;
+      const despesaMedia = mesesComDados > 0 ? totalDespesas / mesesComDados : 0;
+
+      setSummaryData({
+        totalReceitas,
+        totalDespesas,
+        saldoFinal,
+        saldoTransportado,
+        mesesComDados,
+        receitaMedia,
+        despesaMedia
+      });
+    };
+
+    calcularSaldoTransportado();
   }, [contasPagar, valoresRecebidos, customData]);
 
   if (loading) {
@@ -192,6 +209,30 @@ const FinancialSummary = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Card de Saldo Acumulado Transportado */}
+      {summaryData.saldoTransportado !== 0 && (
+        <Card className={`bg-gradient-to-br ${summaryData.saldoTransportado >= 0 ? 'from-purple-50 to-indigo-50 border-purple-200' : 'from-red-50 to-pink-50 border-red-200'} shadow-lg`}>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className={`${summaryData.saldoTransportado >= 0 ? 'text-purple-700' : 'text-red-700'} font-poppins font-medium text-sm`}>
+                  Saldo Acumulado Transportado
+                </p>
+                <p className={`text-3xl font-bold ${summaryData.saldoTransportado >= 0 ? 'text-purple-800' : 'text-red-800'} font-poppins`}>
+                  R$ {summaryData.saldoTransportado.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </p>
+                <p className={`text-sm ${summaryData.saldoTransportado >= 0 ? 'text-purple-600' : 'text-red-600'} font-poppins mt-1`}>
+                  {summaryData.saldoTransportado >= 0 ? 'Valor positivo acumulado dos meses anteriores' : 'Valor negativo a ser compensado nos próximos meses'}
+                </p>
+              </div>
+              <div className={`${summaryData.saldoTransportado >= 0 ? 'bg-purple-200' : 'bg-red-200'} p-3 rounded-full`}>
+                <Wallet className={`h-8 w-8 ${summaryData.saldoTransportado >= 0 ? 'text-purple-700' : 'text-red-700'}`} />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Cards de Detalhamento */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

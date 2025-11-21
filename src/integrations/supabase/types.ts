@@ -291,6 +291,7 @@ export type Database = {
           cidade_veterinario: string | null
           controle_parasitario: string | null
           created_at: string | null
+          data_aniversario: string | null
           endereco_veterinario: string | null
           especie: string | null
           estado_veterinario: string | null
@@ -320,6 +321,7 @@ export type Database = {
           cidade_veterinario?: string | null
           controle_parasitario?: string | null
           created_at?: string | null
+          data_aniversario?: string | null
           endereco_veterinario?: string | null
           especie?: string | null
           estado_veterinario?: string | null
@@ -349,6 +351,7 @@ export type Database = {
           cidade_veterinario?: string | null
           controle_parasitario?: string | null
           created_at?: string | null
+          data_aniversario?: string | null
           endereco_veterinario?: string | null
           especie?: string | null
           estado_veterinario?: string | null

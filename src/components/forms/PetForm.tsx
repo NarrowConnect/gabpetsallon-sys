@@ -57,6 +57,7 @@ const PetForm: React.FC<PetFormProps> = ({
     peso: initialData?.peso || null,
     castrado: initialData?.castrado || false,
     toma_medicamentos: initialData?.toma_medicamentos || false,
+    data_aniversario: initialData?.data_aniversario || null,
     temperamento: initialData?.temperamento || null,
     necessidades_especiais: initialData?.necessidades_especiais || null,
     rotina: initialData?.rotina || null,
@@ -85,6 +86,7 @@ const PetForm: React.FC<PetFormProps> = ({
       peso: initialData?.peso || null,
       castrado: initialData?.castrado || false,
       toma_medicamentos: initialData?.toma_medicamentos || false,
+      data_aniversario: initialData?.data_aniversario || null,
       temperamento: initialData?.temperamento || null,
       necessidades_especiais: initialData?.necessidades_especiais || null,
       rotina: initialData?.rotina || null,
@@ -224,6 +226,16 @@ const PetForm: React.FC<PetFormProps> = ({
                 step="0.1"
                 value={formData.peso || ''}
                 onChange={(e) => handleChange('peso', e.target.value ? parseFloat(e.target.value) : null)}
+                className="font-poppins"
+              />
+            </div>
+            <div>
+              <Label htmlFor="data_aniversario" className="font-poppins">Data de Aniversário</Label>
+              <Input
+                id="data_aniversario"
+                type="date"
+                value={formData.data_aniversario || ''}
+                onChange={(e) => handleChange('data_aniversario', e.target.value || null)}
                 className="font-poppins"
               />
             </div>
