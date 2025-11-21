@@ -78,6 +78,7 @@ const FinanceManager = () => {
   const [customIncomes, setCustomIncomes] = useState<CustomIncome[]>([]);
   const [customExpenses, setCustomExpenses] = useState<CustomExpense[]>([]);
   const [isSaving, setIsSaving] = useState(false);
+  const [saldoTransportado, setSaldoTransportado] = useState(0);
 
   const [serviceValues, setServiceValues] = useState({
     banhos_porte_pequeno: 0,
@@ -176,6 +177,25 @@ const FinanceManager = () => {
 
     loadCustomData();
   }, [valoresRecebidos, contasPagar, currentMonth]);
+
+  // Buscar saldo transportado do mês anterior
+  useEffect(() => {
+    const buscarSaldoTransportado = async () => {
+      const [ano, mes] = currentMonth.split('-').map(Number);
+      const dataMesAnterior = new Date(ano, mes - 2); // Mês anterior (baseado em zero)
+      const mesAnterior = dataMesAnterior.toISOString().slice(0, 7);
+
+      const { data } = await supabase
+        .from('controle_financeiro')
+        .select('saldo_transportar')
+        .eq('mes_referencia', mesAnterior)
+        .maybeSingle();
+
+      setSaldoTransportado(data?.saldo_transportar || 0);
+    };
+
+    buscarSaldoTransportado();
+  }, [currentMonth]);
 
   const handleIncomeChange = (field: string, value: string) => {
     setIncome(prev => ({ ...prev, [field]: Number(value) || 0 }));
@@ -534,7 +554,7 @@ loadServiceValues();
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className={`${finalBalance >= 0 ? 'text-blue-700' : 'text-orange-700'} font-poppins font-medium text-sm`}>Saldo Final</p>
+                <p className={`${finalBalance >= 0 ? 'text-blue-700' : 'text-orange-700'} font-poppins font-medium text-sm`}>Saldo do Mês</p>
                 <p className={`text-3xl font-bold ${finalBalance >= 0 ? 'text-blue-800' : 'text-orange-800'} font-poppins`}>
                   R$ {finalBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </p>
@@ -562,6 +582,32 @@ loadServiceValues();
           </CardContent>
         </Card>
       </div>
+
+      {/* Card de Saldo Acumulado Transportado */}
+      {saldoTransportado !== 0 && (
+        <Card className={`bg-gradient-to-br ${saldoTransportado >= 0 ? 'from-indigo-50 to-purple-50 border-indigo-200' : 'from-pink-50 to-red-50 border-pink-200'} shadow-lg`}>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <p className={`${saldoTransportado >= 0 ? 'text-indigo-700' : 'text-pink-700'} font-poppins font-medium text-sm mb-1`}>
+                  Saldo Acumulado dos Meses Anteriores
+                </p>
+                <p className={`text-4xl font-bold ${saldoTransportado >= 0 ? 'text-indigo-800' : 'text-pink-800'} font-poppins`}>
+                  R$ {saldoTransportado.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </p>
+                <p className={`text-sm ${saldoTransportado >= 0 ? 'text-indigo-600' : 'text-pink-600'} font-poppins mt-2`}>
+                  {saldoTransportado >= 0 
+                    ? '💰 Valor positivo disponível acumulado' 
+                    : '⚠️ Valor negativo a ser compensado'}
+                </p>
+              </div>
+              <div className={`${saldoTransportado >= 0 ? 'bg-indigo-200' : 'bg-pink-200'} p-4 rounded-full`}>
+                <Calculator className={`h-8 w-8 ${saldoTransportado >= 0 ? 'text-indigo-700' : 'text-pink-700'}`} />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="flex justify-center">
         <Button 
