@@ -1,23 +1,23 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Initialize Supabase client with your project URL and anon key
-const supabaseUrl = 'https://your-project.supabase.co'; // Replace with your actual Supabase URL
-const supabaseAnonKey = 'your-anon-key'; // Replace with your actual anon key
-const supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
-
-export const webhookProcessor = async (req) => {
+Deno.serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
     // Fetch pending webhooks to process
-    const { data: pendingWebhooks, error } = await supabaseClient
+    const { data: pendingWebhooks, error } = await supabase
       .from('webhook_logs')
       .select('*')
       .is('http_status', null)
@@ -36,6 +36,8 @@ export const webhookProcessor = async (req) => {
 
     for (const webhook of pendingWebhooks || []) {
       try {
+        console.log(`Processing webhook ${webhook.id} to ${webhook.webhook_url}`);
+        
         const response = await fetch(webhook.webhook_url, {
           method: 'POST',
           headers: {
@@ -50,9 +52,10 @@ export const webhookProcessor = async (req) => {
         });
 
         const responseBody = await response.text();
+        console.log(`Webhook ${webhook.id} response: ${response.status}`);
 
         // Update the webhook log with the result
-        await supabaseClient
+        await supabase
           .from('webhook_logs')
           .update({
             http_status: response.status,
@@ -70,11 +73,11 @@ export const webhookProcessor = async (req) => {
         console.error(`Error processing webhook ${webhook.id}:`, err);
         
         // Update with error
-        await supabaseClient
+        await supabase
           .from('webhook_logs')
           .update({
             http_status: 0,
-            error_message: err.message,
+            error_message: err instanceof Error ? err.message : 'Unknown error',
           })
           .eq('id', webhook.id);
 
@@ -82,7 +85,7 @@ export const webhookProcessor = async (req) => {
           id: webhook.id,
           status: 0,
           success: false,
-          error: err.message,
+          error: err instanceof Error ? err.message : 'Unknown error',
         });
       }
     }
@@ -96,9 +99,11 @@ export const webhookProcessor = async (req) => {
 
   } catch (error) {
     console.error('General error:', error);
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+    return new Response(JSON.stringify({ 
+      error: error instanceof Error ? error.message : 'Internal server error' 
+    }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
-};
+});
