@@ -409,6 +409,24 @@ export type Database = {
         }
         Relationships: []
       }
+      teste: {
+        Row: {
+          algo: string | null
+          created_at: string
+          id: number
+        }
+        Insert: {
+          algo?: string | null
+          created_at?: string
+          id?: number
+        }
+        Update: {
+          algo?: string | null
+          created_at?: string
+          id?: number
+        }
+        Relationships: []
+      }
       tutores: {
         Row: {
           celular: string
