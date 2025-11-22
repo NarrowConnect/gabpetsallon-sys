@@ -26,6 +26,7 @@ interface WebhookResult {
 
 export default function BirthdayWebhookTester() {
   const [birthdayPets, setBirthdayPets] = useState<Pet[]>([]);
+  const [reminderPets, setReminderPets] = useState<Pet[]>([]);
   const [loading, setLoading] = useState(false);
   const [webhookResults, setWebhookResults] = useState<WebhookResult[]>([]);
 
@@ -48,6 +49,12 @@ export default function BirthdayWebhookTester() {
       const mesHoje = String(hoje.getMonth() + 1).padStart(2, '0');
       const diaHoje = String(hoje.getDate()).padStart(2, '0');
 
+      // Data daqui a 3 dias
+      const tresAntes = new Date(hoje);
+      tresAntes.setDate(tresAntes.getDate() + 3);
+      const mesTresAntes = String(tresAntes.getMonth() + 1).padStart(2, '0');
+      const diaTresAntes = String(tresAntes.getDate()).padStart(2, '0');
+
       const aniversariantes = pets?.filter((pet: Pet) => {
         if (!pet.data_aniversario) return false;
         
@@ -58,12 +65,24 @@ export default function BirthdayWebhookTester() {
         return mesNascimento === mesHoje && diaNascimento === diaHoje;
       }) || [];
 
+      const lembretes = pets?.filter((pet: Pet) => {
+        if (!pet.data_aniversario) return false;
+        
+        const dataNascimento = new Date(pet.data_aniversario);
+        const mesNascimento = String(dataNascimento.getMonth() + 1).padStart(2, '0');
+        const diaNascimento = String(dataNascimento.getDate()).padStart(2, '0');
+        
+        return mesNascimento === mesTresAntes && diaNascimento === diaTresAntes;
+      }) || [];
+
       setBirthdayPets(aniversariantes);
+      setReminderPets(lembretes);
       
-      if (aniversariantes.length === 0) {
-        toast.info('Nenhum pet faz aniversário hoje');
+      const totalPets = aniversariantes.length + lembretes.length;
+      if (totalPets === 0) {
+        toast.info('Nenhum pet faz aniversário hoje ou nos próximos 3 dias');
       } else {
-        toast.success(`${aniversariantes.length} pet(s) fazem aniversário hoje!`);
+        toast.success(`${aniversariantes.length} hoje, ${lembretes.length} em 3 dias`);
       }
     } catch (error) {
       console.error('Erro ao verificar aniversários:', error);
@@ -73,7 +92,7 @@ export default function BirthdayWebhookTester() {
     }
   };
 
-  const sendWebhook = async (pet: Pet) => {
+  const sendWebhook = async (pet: Pet, tipo: 'hoje' | '3_dias_antes') => {
     const webhookUrl = 'https://hook.us1.make.com/w23dbn0tkpfl16wfrp5kzilt1052uwjj';
     
     try {
@@ -81,17 +100,39 @@ export default function BirthdayWebhookTester() {
       const dataNascimento = new Date(pet.data_aniversario);
       const idadeAtual = hoje.getFullYear() - dataNascimento.getFullYear();
 
-      const webhookData = {
-        pet_id: pet.id,
-        nome_pet: pet.nome_pet,
-        nome_tutor: pet.nome_tutor,
-        data_aniversario: pet.data_aniversario,
-        idade_atual: idadeAtual,
-        especie: pet.especie,
-        raca: pet.raca,
-        data_envio: hoje.toISOString(),
-        mensagem: `Hoje é aniversário de ${pet.nome_pet}! 🎉 Ele(a) está completando ${idadeAtual} anos.`
-      };
+      let webhookData;
+      if (tipo === 'hoje') {
+        webhookData = {
+          tipo_notificacao: 'aniversario_hoje',
+          pet_id: pet.id,
+          nome_pet: pet.nome_pet,
+          nome_tutor: pet.nome_tutor,
+          data_aniversario: pet.data_aniversario,
+          idade_atual: idadeAtual,
+          especie: pet.especie,
+          raca: pet.raca,
+          data_envio: hoje.toISOString(),
+          mensagem: `🎉 Hoje é aniversário de ${pet.nome_pet}! Ele(a) está completando ${idadeAtual} anos.`
+        };
+      } else {
+        const tresAntes = new Date(hoje);
+        tresAntes.setDate(tresAntes.getDate() + 3);
+        const idadeFutura = tresAntes.getFullYear() - dataNascimento.getFullYear();
+        
+        webhookData = {
+          tipo_notificacao: 'lembrete_3_dias',
+          pet_id: pet.id,
+          nome_pet: pet.nome_pet,
+          nome_tutor: pet.nome_tutor,
+          data_aniversario: pet.data_aniversario,
+          idade_futura: idadeFutura,
+          especie: pet.especie,
+          raca: pet.raca,
+          data_envio: hoje.toISOString(),
+          data_aniversario_real: tresAntes.toISOString().split('T')[0],
+          mensagem: `🎂 Em 3 dias ${pet.nome_pet} fará aniversário! Ele(a) completará ${idadeFutura} anos.`
+        };
+      }
 
       const response = await fetch(webhookUrl, {
         method: 'POST',
@@ -102,7 +143,7 @@ export default function BirthdayWebhookTester() {
       });
 
       const result: WebhookResult = {
-        pet_nome: pet.nome_pet,
+        pet_nome: `${pet.nome_pet} (${tipo === 'hoje' ? 'Hoje' : '3 dias antes'})`,
         success: response.ok,
         status: response.status,
         timestamp: new Date().toISOString()
@@ -111,14 +152,14 @@ export default function BirthdayWebhookTester() {
       setWebhookResults(prev => [result, ...prev]);
 
       if (response.ok) {
-        toast.success(`Webhook enviado para ${pet.nome_pet}`);
+        toast.success(`Webhook ${tipo === 'hoje' ? 'de hoje' : 'de lembrete'} enviado para ${pet.nome_pet}`);
       } else {
         toast.error(`Erro ao enviar webhook para ${pet.nome_pet}`);
       }
     } catch (error) {
       console.error('Erro ao enviar webhook:', error);
       const result: WebhookResult = {
-        pet_nome: pet.nome_pet,
+        pet_nome: `${pet.nome_pet} (${tipo === 'hoje' ? 'Hoje' : '3 dias antes'})`,
         success: false,
         error: error instanceof Error ? error.message : 'Erro desconhecido',
         timestamp: new Date().toISOString()
@@ -129,14 +170,18 @@ export default function BirthdayWebhookTester() {
   };
 
   const sendAllWebhooks = async () => {
-    if (birthdayPets.length === 0) {
-      toast.info('Nenhum pet faz aniversário hoje');
+    const totalPets = birthdayPets.length + reminderPets.length;
+    if (totalPets === 0) {
+      toast.info('Nenhum pet para enviar webhook');
       return;
     }
 
     setLoading(true);
     for (const pet of birthdayPets) {
-      await sendWebhook(pet);
+      await sendWebhook(pet, 'hoje');
+    }
+    for (const pet of reminderPets) {
+      await sendWebhook(pet, '3_dias_antes');
     }
     setLoading(false);
     toast.success('Todos os webhooks foram processados');
@@ -150,7 +195,7 @@ export default function BirthdayWebhookTester() {
       if (error) throw error;
       
       console.log('Resposta do birthday-checker:', data);
-      toast.success(`Verificação concluída: ${data.total_aniversariantes} aniversariantes encontrados`);
+      toast.success(`Verificação: ${data.total_aniversariantes_hoje} hoje, ${data.total_lembretes_3_dias} em 3 dias`);
       
       // Atualizar a lista após verificar
       checkBirthdays();
@@ -195,15 +240,15 @@ export default function BirthdayWebhookTester() {
         </div>
       </div>
 
-      {/* Pets de Aniversário */}
+      {/* Pets de Aniversário Hoje */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Cake className="h-5 w-5" />
+            <Cake className="h-5 w-5 text-brand-cyan" />
             Aniversariantes de Hoje
           </CardTitle>
           <CardDescription>
-            Pets que fazem aniversário hoje e precisam receber notificação
+            Pets que fazem aniversário hoje - webhook enviado no dia
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -237,7 +282,7 @@ export default function BirthdayWebhookTester() {
                     </p>
                   </div>
                   <Button 
-                    onClick={() => sendWebhook(pet)}
+                    onClick={() => sendWebhook(pet, 'hoje')}
                     disabled={loading}
                     size="sm"
                     className="w-full sm:w-auto"
@@ -247,22 +292,81 @@ export default function BirthdayWebhookTester() {
                   </Button>
                 </div>
               ))}
-              
-              {birthdayPets.length > 1 && (
-                <Button 
-                  onClick={sendAllWebhooks}
-                  disabled={loading}
-                  className="w-full"
-                  variant="default"
-                >
-                  <Send className="h-4 w-4 mr-2" />
-                  Enviar Todos os Webhooks ({birthdayPets.length})
-                </Button>
-              )}
             </div>
           )}
         </CardContent>
       </Card>
+
+      {/* Pets com Lembrete 3 Dias Antes */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Cake className="h-5 w-5 text-brand-yellow" />
+            Aniversariantes em 3 Dias
+          </CardTitle>
+          <CardDescription>
+            Pets que farão aniversário em 3 dias - webhook de lembrete
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {reminderPets.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <Cake className="h-16 w-16 mx-auto mb-4 opacity-20" />
+              <p>Nenhum pet fará aniversário em 3 dias</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {reminderPets.map((pet) => (
+                <div 
+                  key={pet.id} 
+                  className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-4 border rounded-lg bg-card"
+                >
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-lg flex items-center gap-2">
+                      🎂 {pet.nome_pet}
+                      <Badge variant="outline" className="bg-yellow-50">
+                        Em 3 dias
+                      </Badge>
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      Tutor: {pet.nome_tutor}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {pet.especie} • {pet.raca}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Data de Nascimento: {new Date(pet.data_aniversario).toLocaleDateString('pt-BR')}
+                    </p>
+                  </div>
+                  <Button 
+                    onClick={() => sendWebhook(pet, '3_dias_antes')}
+                    disabled={loading}
+                    size="sm"
+                    variant="outline"
+                    className="w-full sm:w-auto"
+                  >
+                    <Send className="h-4 w-4 mr-2" />
+                    Enviar Lembrete
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Botão para enviar todos */}
+      {(birthdayPets.length > 0 || reminderPets.length > 0) && (
+        <Button 
+          onClick={sendAllWebhooks}
+          disabled={loading}
+          className="w-full"
+          size="lg"
+        >
+          <Send className="h-4 w-4 mr-2" />
+          Enviar Todos os Webhooks ({birthdayPets.length + reminderPets.length})
+        </Button>
+      )}
 
       {/* Logs de Envio */}
       <Card>
