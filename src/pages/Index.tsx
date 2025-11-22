@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/toaster";
-import { PlusCircle, Calendar, DollarSign, Users, Heart, Scissors, Home, Car, LogOut, BarChart3, Webhook, Code } from "lucide-react";
+import { PlusCircle, Calendar, DollarSign, Users, Heart, Scissors, Home, Car, LogOut, BarChart3, Webhook, Code, Cake } from "lucide-react";
 import { ResponsiveContainer } from "@/components/ui/responsive-container";
 import Dashboard from "@/components/Dashboard";
 import TutorsManager from "@/components/TutorsManager";
@@ -15,6 +15,7 @@ import LoginPage from "@/components/LoginPage";
 import TutorScheduling from "@/components/TutorScheduling";
 import TutorAppointments from "@/components/TutorAppointments";
 import ReportsManager from "@/components/ReportsManager";
+import BirthdayWebhookTester from "@/components/BirthdayWebhookTester";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -73,7 +74,7 @@ const Index = () => {
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <div className="mb-6 sm:mb-8 overflow-x-auto">
-            <TabsList className="grid w-90% snap-center min-w-max grid-cols-7 h-12 bg-white/80 backdrop-blur-sm border border-gray-200">
+            <TabsList className="grid w-90% snap-center min-w-max grid-cols-8 h-12 bg-white/80 backdrop-blur-sm border border-gray-200">
               <TabsTrigger value="dashboard" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4 data-[state=active]:bg-brand-cyan data-[state=active]:text-white">
                 <DollarSign className="h-3 w-3 sm:h-4 sm:w-4" />
                 <span className="hidden sm:inline">Dashboard</span>
@@ -107,6 +108,11 @@ const Index = () => {
                 <span className="hidden sm:inline">Relatórios</span>
                 <span className="sm:hidden">Rel</span>
               </TabsTrigger>
+              <TabsTrigger value="birthday" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-4 data-[state=active]:bg-brand-yellow data-[state=active]:text-gray-800">
+                <Cake className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">Aniversários</span>
+                <span className="sm:hidden">🎂</span>
+              </TabsTrigger>
             </TabsList>
           </div>
 
@@ -136,6 +142,10 @@ const Index = () => {
 
           <TabsContent value="reports">
             <ReportsManager />
+          </TabsContent>
+
+          <TabsContent value="birthday">
+            <BirthdayWebhookTester />
           </TabsContent>
 
         </Tabs>
