@@ -13,6 +13,14 @@ interface Pet {
   especie: string;
   raca: string;
   idade: number;
+  tutor_id: string | null;
+}
+
+interface Tutor {
+  id: string;
+  nome: string;
+  celular: string;
+  email: string | null;
 }
 
 Deno.serve(async (req) => {
@@ -51,11 +59,28 @@ Deno.serve(async (req) => {
       throw petsError;
     }
 
+    // Buscar todos os tutores para obter email e whatsapp
+    const { data: tutores, error: tutoresError } = await supabase
+      .from('tutores')
+      .select('id, nome, celular, email');
+
+    if (tutoresError) {
+      console.error('Erro ao buscar tutores:', tutoresError);
+    }
+
+    const tutoresList: Tutor[] = tutores || [];
+
+    // Função para buscar informações do tutor
+    const getTutorInfo = (pet: Pet) => {
+      const tutor = tutoresList.find(t => t.nome === pet.nome_tutor || t.id === pet.tutor_id);
+      return {
+        email: tutor?.email || null,
+        whatsapp: tutor?.celular || null
+      };
+    };
+
     // Filtrar pets que fazem aniversário hoje
     const petsHoje = pets?.filter((pet: Pet) => {
-      if (!pet.data_aniversario) return false;
-      
-      const dataNascimento = new Date(pet.data_aniversario);
       const mesNascimento = String(dataNascimento.getMonth() + 1).padStart(2, '0');
       const diaNascimento = String(dataNascimento.getDate()).padStart(2, '0');
       
@@ -85,12 +110,15 @@ Deno.serve(async (req) => {
       try {
         const dataNascimento = new Date(pet.data_aniversario);
         const idadeAtual = hoje.getFullYear() - dataNascimento.getFullYear();
+        const tutorInfo = getTutorInfo(pet);
 
         const webhookData = {
           tipo_notificacao: 'aniversario_hoje',
           pet_id: pet.id,
           nome_pet: pet.nome_pet,
           nome_tutor: pet.nome_tutor,
+          tutor_email: tutorInfo.email,
+          tutor_whatsapp: tutorInfo.whatsapp,
           data_aniversario: pet.data_aniversario,
           idade_atual: idadeAtual,
           especie: pet.especie,
@@ -138,12 +166,15 @@ Deno.serve(async (req) => {
       try {
         const dataNascimento = new Date(pet.data_aniversario);
         const idadeFutura = tresAntes.getFullYear() - dataNascimento.getFullYear();
+        const tutorInfo = getTutorInfo(pet);
 
         const webhookData = {
           tipo_notificacao: 'lembrete_3_dias',
           pet_id: pet.id,
           nome_pet: pet.nome_pet,
           nome_tutor: pet.nome_tutor,
+          tutor_email: tutorInfo.email,
+          tutor_whatsapp: tutorInfo.whatsapp,
           data_aniversario: pet.data_aniversario,
           idade_futura: idadeFutura,
           especie: pet.especie,
