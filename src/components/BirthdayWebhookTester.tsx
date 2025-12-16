@@ -14,6 +14,14 @@ interface Pet {
   especie: string;
   raca: string;
   idade: number;
+  tutor_id: string | null;
+}
+
+interface Tutor {
+  id: string;
+  nome: string;
+  celular: string;
+  email: string | null;
 }
 
 interface WebhookResult {
@@ -27,12 +35,27 @@ interface WebhookResult {
 export default function BirthdayWebhookTester() {
   const [birthdayPets, setBirthdayPets] = useState<Pet[]>([]);
   const [reminderPets, setReminderPets] = useState<Pet[]>([]);
+  const [tutors, setTutors] = useState<Tutor[]>([]);
   const [loading, setLoading] = useState(false);
   const [webhookResults, setWebhookResults] = useState<WebhookResult[]>([]);
 
   useEffect(() => {
+    fetchTutors();
     checkBirthdays();
   }, []);
+
+  const fetchTutors = async () => {
+    const { data } = await supabase.from('tutores').select('id, nome, celular, email');
+    setTutors((data as Tutor[]) || []);
+  };
+
+  const getTutorInfo = (pet: Pet) => {
+    const tutor = tutors.find(t => t.nome === pet.nome_tutor || t.id === pet.tutor_id);
+    return {
+      email: tutor?.email || null,
+      whatsapp: tutor?.celular || null
+    };
+  };
 
   const checkBirthdays = async () => {
     setLoading(true);
@@ -99,6 +122,7 @@ export default function BirthdayWebhookTester() {
       const hoje = new Date();
       const dataNascimento = new Date(pet.data_aniversario);
       const idadeAtual = hoje.getFullYear() - dataNascimento.getFullYear();
+      const tutorInfo = getTutorInfo(pet);
 
       let webhookData;
       if (tipo === 'hoje') {
@@ -107,6 +131,8 @@ export default function BirthdayWebhookTester() {
           pet_id: pet.id,
           nome_pet: pet.nome_pet,
           nome_tutor: pet.nome_tutor,
+          tutor_email: tutorInfo.email,
+          tutor_whatsapp: tutorInfo.whatsapp,
           data_aniversario: pet.data_aniversario,
           idade_atual: idadeAtual,
           especie: pet.especie,
@@ -124,6 +150,8 @@ export default function BirthdayWebhookTester() {
           pet_id: pet.id,
           nome_pet: pet.nome_pet,
           nome_tutor: pet.nome_tutor,
+          tutor_email: tutorInfo.email,
+          tutor_whatsapp: tutorInfo.whatsapp,
           data_aniversario: pet.data_aniversario,
           idade_futura: idadeFutura,
           especie: pet.especie,

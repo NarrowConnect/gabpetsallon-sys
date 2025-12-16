@@ -257,6 +257,104 @@ export type Database = {
         }
         Relationships: []
       }
+      creche_agendamentos: {
+        Row: {
+          created_at: string | null
+          data_entrada: string
+          data_saida: string | null
+          id: string
+          observacoes: string | null
+          pet_id: string | null
+          pet_nome: string
+          status: string | null
+          tutor_nome: string
+          tutor_telefone: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          data_entrada: string
+          data_saida?: string | null
+          id?: string
+          observacoes?: string | null
+          pet_id?: string | null
+          pet_nome: string
+          status?: string | null
+          tutor_nome: string
+          tutor_telefone?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          data_entrada?: string
+          data_saida?: string | null
+          id?: string
+          observacoes?: string | null
+          pet_id?: string | null
+          pet_nome?: string
+          status?: string | null
+          tutor_nome?: string
+          tutor_telefone?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "creche_agendamentos_pet_id_fkey"
+            columns: ["pet_id"]
+            isOneToOne: false
+            referencedRelation: "pets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      creche_documentos: {
+        Row: {
+          created_at: string | null
+          creche_agendamento_id: string | null
+          id: string
+          nome_arquivo: string
+          pet_id: string | null
+          public_token: string | null
+          tipo_arquivo: string
+          url_arquivo: string
+        }
+        Insert: {
+          created_at?: string | null
+          creche_agendamento_id?: string | null
+          id?: string
+          nome_arquivo: string
+          pet_id?: string | null
+          public_token?: string | null
+          tipo_arquivo: string
+          url_arquivo: string
+        }
+        Update: {
+          created_at?: string | null
+          creche_agendamento_id?: string | null
+          id?: string
+          nome_arquivo?: string
+          pet_id?: string | null
+          public_token?: string | null
+          tipo_arquivo?: string
+          url_arquivo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "creche_documentos_creche_agendamento_id_fkey"
+            columns: ["creche_agendamento_id"]
+            isOneToOne: false
+            referencedRelation: "creche_agendamentos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "creche_documentos_pet_id_fkey"
+            columns: ["pet_id"]
+            isOneToOne: false
+            referencedRelation: "pets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       despesas_personalizadas: {
         Row: {
           created_at: string | null
@@ -442,6 +540,7 @@ export type Database = {
           contato_adicional_2_nome: string | null
           contato_adicional_2_telefone: string | null
           created_at: string | null
+          email: string | null
           endereco: string | null
           endereco_veterinario: string | null
           estado: string | null
@@ -464,6 +563,7 @@ export type Database = {
           contato_adicional_2_nome?: string | null
           contato_adicional_2_telefone?: string | null
           created_at?: string | null
+          email?: string | null
           endereco?: string | null
           endereco_veterinario?: string | null
           estado?: string | null
@@ -486,6 +586,7 @@ export type Database = {
           contato_adicional_2_nome?: string | null
           contato_adicional_2_telefone?: string | null
           created_at?: string | null
+          email?: string | null
           endereco?: string | null
           endereco_veterinario?: string | null
           estado?: string | null

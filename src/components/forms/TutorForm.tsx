@@ -29,6 +29,7 @@ const TutorForm: React.FC<TutorFormProps> = ({
   const [formData, setFormData] = useState<TutorInsert>({
     nome: initialData?.nome || "",
     celular: initialData?.celular || "",
+    email: (initialData as any)?.email || null,
     telefone_residencial: initialData?.telefone_residencial || null,
     endereco: initialData?.endereco || null,
     cep: initialData?.cep || null,
@@ -54,6 +55,7 @@ const TutorForm: React.FC<TutorFormProps> = ({
     setFormData({
       nome: initialData?.nome || "",
       celular: initialData?.celular || "",
+      email: (initialData as any)?.email || null,
       telefone_residencial: initialData?.telefone_residencial || null,
       endereco: initialData?.endereco || null,
       cep: initialData?.cep || null,
@@ -152,6 +154,17 @@ const TutorForm: React.FC<TutorFormProps> = ({
                 onChange={(e) => handleChange('celular', e.target.value)}
                 placeholder="(41) 99999-9999"
                 required
+                className="font-poppins"
+              />
+            </div>
+            <div>
+              <Label htmlFor="email" className="font-poppins">E-mail</Label>
+              <Input
+                id="email"
+                type="email"
+                value={(formData as any).email || ''}
+                onChange={(e) => handleChange('email' as any, e.target.value)}
+                placeholder="email@exemplo.com"
                 className="font-poppins"
               />
             </div>
