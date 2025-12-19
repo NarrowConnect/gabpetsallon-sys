@@ -79,9 +79,17 @@ export function useCreche() {
 
   const addAgendamento = async (agendamento: CrecheAgendamentoInsert) => {
     try {
+      // Convert empty strings to null for date fields
+      const cleanedAgendamento = {
+        ...agendamento,
+        data_saida: agendamento.data_saida || null,
+        observacoes: agendamento.observacoes || null,
+        tutor_telefone: agendamento.tutor_telefone || null,
+      };
+      
       const { data, error } = await supabase
         .from('creche_agendamentos')
-        .insert([agendamento])
+        .insert([cleanedAgendamento])
         .select()
         .single();
 
